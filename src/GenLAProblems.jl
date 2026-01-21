@@ -1,6 +1,13 @@
 module GenLAProblems
 
-using PythonCall
+const _pythoncall_loaded = Ref(false)
+
+function _ensure_pythoncall()
+    if !_pythoncall_loaded[]
+        @eval using PythonCall
+        _pythoncall_loaded[] = true
+    end
+end
 using Symbolics
 using AbstractAlgebra
 import AbstractAlgebra: charpoly
@@ -73,6 +80,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return p.nm
     end
 
+    _ensure_pythoncall()
     if p.nm !== nothing && PythonCall.pyhasattr(p.nm, String(name))
         return getproperty(p.nm, name)
     end
@@ -87,6 +95,7 @@ Load the Python `la_figures` module via PythonCall.
 function load_la_figures()
     if _la_figures[] === nothing
         try
+            _ensure_pythoncall()
             _la_figures[] = pyimport("la_figures")
         catch err
             error(
@@ -107,6 +116,7 @@ Load the Python `itikz` module and its `nicematrix` helper via PythonCall.
 function load_itikz()
     if _itikz[] === nothing
         try
+            _ensure_pythoncall()
             _itikz[] = pyimport("itikz")
             _nM[] = pyimport("itikz.nicematrix")
         catch err
