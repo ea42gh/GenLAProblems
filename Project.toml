@@ -9,14 +9,12 @@ BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 Hadamard = "4a05ff16-5f95-55f4-bb53-bb3f467c689a"
 LAlatex = "2feda2f4-7604-459e-bd73-51e960cd9dcb"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 BlockArrays = "1.4.0"
-PythonCall = "0.9.31"
 Reexport = "1.2.2"
 Symbolics = "7.5.0"
 julia = "1.10.10"
@@ -24,5 +22,6 @@ julia = "1.10.10"
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 [targets]
 test = ["Test"]
