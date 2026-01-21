@@ -7,6 +7,7 @@ makedocs(;
     modules=[GenLAProblems],
     authors="ea42_github@mail.com",
     sitename="GenLAProblems.jl",
+    doctest=false,
     format=Documenter.HTML(;
         canonical="https://ea42gh.github.io/GenLAProblems.jl",
         edit_link="main",
