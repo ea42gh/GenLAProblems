@@ -609,9 +609,9 @@ end
 # ---------------------------------------------------------------------- charpoy
 # ------------------------------------------------------------------------------
 Rq, λ = AbstractAlgebra.QQ["λ"]
-Qx, x = AbstractAlgebra.PolynomialRing(AbstractAlgebra.QQ, "x")
+Qx, x = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "x")
 K, i = AbstractAlgebra.NumberField(x^2 + 1, "i")
-Kλ, λc = AbstractAlgebra.PolynomialRing(K, "λ")
+Kλ, λc = AbstractAlgebra.polynomial_ring(K, "λ")
 """
     charpoly(A::Matrix{Rational{Int64}})
 
