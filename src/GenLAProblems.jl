@@ -3,8 +3,12 @@ module GenLAProblems
 const _pythoncall_loaded = Ref(false)
 
 _in_precompile() = ccall(:jl_generating_output, Cint, ()) == 1
+_pythoncall_disabled() = get(ENV, "GENLAPROBLEMS_DISABLE_PYTHONCALL", "") != ""
 
 function _ensure_pythoncall()
+    if _pythoncall_disabled()
+        return nothing
+    end
     if _in_precompile()
         return nothing
     end
@@ -24,6 +28,7 @@ using Hadamard
 
 using Reexport
 @reexport using LAlatex
+using PrecompileTools
 
 """
     Base.adjoint(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
@@ -149,5 +154,21 @@ export ge, show_solution
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions
 export round_value, round_matrices
+
+# Precompile pure-Julia workloads to reduce latency without PythonCall.
+@compile_workload begin
+    Random.seed!(1)
+    A = gen_full_col_rank_matrix(3, 3)
+    b = gen_rhs(A)
+    gen_gj_matrix(A, b)
+    ref_matrix(A)
+    rref_matrix(A)
+    charpoly(A)
+    gen_eigenproblem(3)
+    gen_symmetric_eigenproblem(3)
+    gen_qr_problem(3, 3)
+    gen_qr_problem_4(3)
+    gen_svd_problem(3, 3)
+end
 
 end
