@@ -2,11 +2,17 @@ module GenLAProblems
 
 const _pythoncall_loaded = Ref(false)
 
+_in_precompile() = ccall(:jl_generating_output, Cint, ()) == 1
+
 function _ensure_pythoncall()
+    if _in_precompile()
+        return nothing
+    end
     if !_pythoncall_loaded[]
         @eval using PythonCall
         _pythoncall_loaded[] = true
     end
+    return PythonCall
 end
 using Symbolics
 using AbstractAlgebra
@@ -90,7 +96,10 @@ Load the Python `la_figures` module via PythonCall.
 function load_la_figures()
     if _la_figures[] === nothing
         try
-            _ensure_pythoncall()
+            pc = _ensure_pythoncall()
+            if pc === nothing
+                return nothing
+            end
             _la_figures[] = pyimport("la_figures")
         catch err
             error(
