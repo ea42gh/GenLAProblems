@@ -46,14 +46,14 @@ Return `true` when `x` is `:none` or `nothing`.
 """
 is_none_val(x) = x === :none || x === nothing
 
-const _itikz = Ref{Any}(nothing)
-const _nM = Ref{Any}(nothing)
 const _la_figures = Ref{Any}(nothing)
-const _nm_proxy = Ref{Any}(nothing)
 
-struct NMProxy
-    nm::Any
-    la::Any
+struct NMProxy end
+
+const nM = NMProxy()
+
+function (::NMProxy)()
+    return nM
 end
 
 function _show_svg(svg)
@@ -63,28 +63,23 @@ end
 
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :show_eig_tbl
-        return (args...; kwargs...) -> _show_svg(p.la.eig_tbl_svg(args...; kwargs...))
+        return (args...; kwargs...) -> _show_svg(load_la_figures().eig_tbl_svg(args...; kwargs...))
     elseif name === :show_svd_tbl
-        return (args...; kwargs...) -> _show_svg(p.la.svd_tbl_svg(args...; kwargs...))
+        return (args...; kwargs...) -> _show_svg(load_la_figures().svd_tbl_svg(args...; kwargs...))
     elseif name === :show_ge_tbl
-        return (args...; kwargs...) -> _show_svg(p.la.ge_tbl_svg(args...; kwargs...))
+        return (args...; kwargs...) -> _show_svg(load_la_figures().ge_tbl_svg(args...; kwargs...))
     elseif name === :show_qr_tbl
-        return (args...; kwargs...) -> _show_svg(p.la.qr_tbl_svg(args...; kwargs...))
+        return (args...; kwargs...) -> _show_svg(load_la_figures().qr_tbl_svg(args...; kwargs...))
     elseif name === :show_ge
-        return (args...; kwargs...) -> _show_svg(p.la.svg(args...; kwargs...))
+        return (args...; kwargs...) -> _show_svg(load_la_figures().svg(args...; kwargs...))
     elseif name === :show_qr
-        return (args...; kwargs...) -> _show_svg(p.la.qr_svg(args...; kwargs...))
+        return (args...; kwargs...) -> _show_svg(load_la_figures().qr_svg(args...; kwargs...))
     elseif name === :la || name === :la_figures
-        return p.la
-    elseif name === :nm
-        return p.nm
+        return load_la_figures()
     end
 
     _ensure_pythoncall()
-    if p.nm !== nothing && PythonCall.pyhasattr(p.nm, String(name))
-        return getproperty(p.nm, name)
-    end
-    return getproperty(p.la, name)
+    return getproperty(load_la_figures(), name)
 end
 
 """
@@ -108,56 +103,18 @@ function load_la_figures()
     return _la_figures[]
 end
 
-"""
-    load_itikz() -> (itikz, nicematrix)
-
-Load the Python `itikz` module and its `nicematrix` helper via PythonCall.
-"""
-function load_itikz()
-    if _itikz[] === nothing
-        try
-            _ensure_pythoncall()
-            _itikz[] = pyimport("itikz")
-            _nM[] = pyimport("itikz.nicematrix")
-        catch err
-            error(
-                "Python module `itikz` (and `itikz.nicematrix`) is required by GenLAProblems.\n" *
-                "Install it in the active Python environment.\n\n" *
-                "Original error:\n$err"
-            )
-        end
-    end
-    return _itikz[], _nM[]
-end
 
 """
-    nM() -> NMProxy
+    nM -> NMProxy
 
-Return a proxy that exposes la_figures display helpers and forwards other
-attributes to `itikz.nicematrix` when available.
+Proxy that exposes la_figures display helpers and la_figures attributes.
 """
-function nM()
-    if _nm_proxy[] === nothing
-        nm = nothing
-        try
-            _itikz[] = pyimport("itikz")
-            nm = pyimport("itikz.nicematrix")
-            _nM[] = nm
-        catch
-            nm = nothing
-        end
-        _nm_proxy[] = NMProxy(nm, load_la_figures())
-    end
-    return _nm_proxy[]
-end
-
-const nM = nM()
 
 include("MatrixGeneration.jl")
 include("SolveProblems.jl")
 include("ge.jl")
 
-export load_itikz, load_la_figures, nM
+export load_la_figures, nM
 export symbol_vector, symbols_matrix, form_linear_combination
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix
