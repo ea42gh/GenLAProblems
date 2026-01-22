@@ -610,7 +610,17 @@ end
 # ------------------------------------------------------------------------------
 Rq, λ = AbstractAlgebra.QQ["λ"]
 Qx, x = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "x")
-K, i = AbstractAlgebra.NumberField(x^2 + 1, "i")
+const _K_i = let
+    if isdefined(AbstractAlgebra, :NumberField)
+        AbstractAlgebra.NumberField(x^2 + 1, "i")
+    elseif isdefined(AbstractAlgebra, :number_field)
+        AbstractAlgebra.number_field(x^2 + 1, "i")
+    else
+        error("AbstractAlgebra number field constructor not available.")
+    end
+end
+const K = _K_i[1]
+const i = _K_i[2]
 Kλ, λc = AbstractAlgebra.polynomial_ring(K, "λ")
 """
     charpoly(A::Matrix{Rational{Int64}})
