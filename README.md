@@ -11,11 +11,11 @@ GenLAProblems depends on `LAlatex` for LaTeX rendering utilities and display hel
 GenLAProblems is the new home for linear algebra problem generation and GE/GJ helpers.
 The legacy `GenLinAlgProblems` package is treated as read-only during the split.
 
-## Display backend transition
+## Display backend
 
-Current GE/GJ rendering uses the Python `itikz`/`itikz.nicematrix` stack via `PythonCall`.
-We plan to migrate these visualizations to `la_figures` in a later cleanup pass.
-Until then, keep `itikz` available in the active Python environment.
+GE/GJ visualizations are rendered via the Python `la_figures` + `matrixlayout` stack
+through `PythonCall`. Ensure those Python packages are available in the active
+Python environment.
 
 ## Local development
 

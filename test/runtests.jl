@@ -19,4 +19,39 @@ using Test
         @test size(matrices[end][end], 2) == size(A, 2)
         @test length(pivots) == 2
     end
+
+    @testset "Solve helpers" begin
+        R_RHS = [1 0 2 5; 0 1 -1 3]
+        R, RHS = split_R_RHS(R_RHS, 1)
+        @test R == [1 0 2; 0 1 -1]
+        @test RHS == [5; 3]
+
+        pivots = [1, 2]
+        Xp = particular_solution(R, RHS, pivots)
+        @test Xp == [5; 3; 0]
+
+        H = homogeneous_solutions(R, pivots)
+        @test H == [-2; 1; 1]
+
+        A = [0 2 0; 0 0 3; 4 5 6]
+        @test find_pivot(A, 1, 1) == 3
+        @test find_pivot(A, 2, 2) == 3
+        @test find_pivot(A, 2, 1) == 3
+        @test find_pivot(A, 3, 2) == -1
+        @test find_diag_pivot(A, 1, 1) == 3
+        @test find_diag_pivot(A, 2, 2) == 3
+        @test find_diag_pivot(A, 3, 3) == 3
+        @test find_diag_pivot(zeros(2, 2), 1, 1) == -1
+
+        B = [1 0 0; 0 0 2; 0 3 0]
+        @test non_zero_entry(B, 1, 2, false)
+        @test !non_zero_entry(B, 2, 2, false)
+        @test non_zero_entry(B, 2, 2, true)
+
+        C = [1 2; 3 4]
+        interchange(C, 1, 2)
+        @test C == [3 4; 1 2]
+        eliminate(C, 1, 2, -2)
+        @test C == [3 4; -5 -6]
+    end
 end

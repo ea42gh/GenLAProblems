@@ -211,6 +211,43 @@ function _backsub_ref(pb::ShowGe; b_col=1)
     return A, b
 end
 
+function _forwardsub_ref(pb::ShowGe; b_col=1)
+    A = pb.A
+    if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
+        b = pb.B[:, b_col]
+    else
+        b = zeros(eltype(A), size(A, 1), 1)
+    end
+    if A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}
+        A = _encode_exact.(A)
+    end
+    if b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}
+        b = _encode_exact.(b)
+    end
+    return A, b
+end
+
+function _relabel_cascade(lines, n; var_name::String="x", param_name::String="\\alpha")
+    line_list = [String(x) for x in lines]
+    var_pat = Regex(string(replace(var_name, "\\" => "\\\\"), "_(\\d+)"))
+    param_pat = Regex(string(replace(param_name, "\\" => "\\\\"), "_(\\d+)"))
+    out = Vector{String}(undef, length(line_list))
+    for (i, line) in enumerate(line_list)
+        line2 = replace(line, var_pat) do m
+            idx = parse(Int, m.captures[1])
+            new_idx = n - idx + 1
+            return string(var_name, "_", new_idx)
+        end
+        line2 = replace(line2, param_pat) do m
+            idx = parse(Int, m.captures[1])
+            new_idx = n - idx + 1
+            return string(param_name, "_", new_idx)
+        end
+        out[i] = line2
+    end
+    return out
+end
+
 function _display_cascade(lines)
     tex = "\\begin{align*}\n" * join(lines, " \\\\\n") * "\n\\end{align*}"
     display(MIME"text/latex"(), tex)
@@ -244,17 +281,26 @@ end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number"""
 function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    error("forward substitution rendering is not available without itikz")
+    A, b = _forwardsub_ref(pb; b_col=b_col)
+    lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
+    lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number"""
 function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    error("forward substitution rendering is not available without itikz")
+    A, b = _forwardsub_ref(pb; b_col=b_col)
+    lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
+    lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer"""
 function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
-    error("forward substitution rendering is not available without itikz")
+    A, b = _forwardsub_ref(pb; b_col=b_col)
+    lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
+    lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_solution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
@@ -297,11 +343,16 @@ raw"""
     show_forwardsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing)
 
 Render the forward-substitution cascade for the lower-triangular system `A * x = b`
-is not available without the legacy itikz renderer. Supports Integer/Float as well as
-exact `Rational` and `Complex{Rational}` inputs (converted to tuples for exact SymPy) when available.
+using the la_figures backsubstitution cascade on a reversed system, then relabeling indices.
+Supports Integer/Float as well as exact `Rational` and `Complex{Rational}` inputs
+converted to tuples for exact SymPy reconstruction.
 """
 function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing)
-    error("forward substitution rendering is not available without itikz")
+    A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
+    b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
+    lines = load_la_figures().backsubstitution_tex(A2[end:-1:1, end:-1:1], b2[end:-1:1], var_name=var_name)
+    lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    return _display_cascade(lines)
 end
 # ==============================================================================================================
 raw"""Xp, Xh = solutions(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number"""
