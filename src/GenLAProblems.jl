@@ -158,9 +158,8 @@ export round_value, round_matrices
 # Precompile pure-Julia workloads to reduce latency without PythonCall.
 @compile_workload begin
     Random.seed!(1)
-    A = gen_full_col_rank_matrix(3, 3)
-    b = gen_rhs(A)
-    gen_gj_matrix(A, b)
+    pivot_cols, A = gen_gj_matrix(3, 3, 3)
+    gen_rhs(A, pivot_cols)
     ref_matrix(A)
     rref_matrix(A)
     charpoly(A)
