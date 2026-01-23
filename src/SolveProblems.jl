@@ -610,18 +610,31 @@ end
 # ------------------------------------------------------------------------------
 Rq, λ = AbstractAlgebra.QQ["λ"]
 Qx, x = AbstractAlgebra.polynomial_ring(AbstractAlgebra.QQ, "x")
-const _K_i = let
+const _K_i = Ref{Any}(nothing)
+const _Kλ = Ref{Any}(nothing)
+
+function _get_number_field()
+    if _K_i[] !== nothing
+        return _K_i[]::Tuple
+    end
     if isdefined(AbstractAlgebra, :NumberField)
-        AbstractAlgebra.NumberField(x^2 + 1, "i")
+        _K_i[] = AbstractAlgebra.NumberField(x^2 + 1, "i")
     elseif isdefined(AbstractAlgebra, :number_field)
-        AbstractAlgebra.number_field(x^2 + 1, "i")
+        _K_i[] = AbstractAlgebra.number_field(x^2 + 1, "i")
     else
         error("AbstractAlgebra number field constructor not available.")
     end
+    return _K_i[]::Tuple
 end
-const K = _K_i[1]
-const i = _K_i[2]
-Kλ, λc = AbstractAlgebra.polynomial_ring(K, "λ")
+
+function _get_K_lambda()
+    if _Kλ[] !== nothing
+        return _Kλ[]::Tuple
+    end
+    K, _ = _get_number_field()
+    _Kλ[] = AbstractAlgebra.polynomial_ring(K, "λ")
+    return _Kλ[]::Tuple
+end
 """
     charpoly(A::Matrix{Rational{Int64}})
 
@@ -643,7 +656,10 @@ function charpoly(A::Matrix{Int64})
     det(B)
 end
 
-_to_complex_rational_field(z::Complex{Rational{Int64}}) = K(real(z)) + K(imag(z)) * i
+_to_complex_rational_field(z::Complex{Rational{Int64}}) = begin
+    K, i = _get_number_field()
+    K(real(z)) + K(imag(z)) * i
+end
 
 """
     charpoly(A::Matrix{Complex{Rational{Int64}}})
@@ -651,6 +667,8 @@ _to_complex_rational_field(z::Complex{Rational{Int64}}) = K(real(z)) + K(imag(z)
 Compute the characteristic polynomial over the Gaussian rationals.
 """
 function charpoly(A::Matrix{Complex{Rational{Int64}}})
+    K, _ = _get_number_field()
+    Kλ, λc = _get_K_lambda()
     A2 = map(_to_complex_rational_field, A)
     M = matrix(K, A2)
     B = M - λc*one(M)
