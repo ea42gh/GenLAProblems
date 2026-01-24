@@ -321,12 +321,14 @@ function _relabel_cascade(lines, n; var_name::String="x", param_name::String="\\
     param_pat = Regex(string(replace(param_name, "\\" => "\\\\"), "_(\\d+)"))
     out = Vector{String}(undef, length(line_list))
     for (i, line) in enumerate(line_list)
-        line2 = replace(line, var_pat => (m -> begin
+        line2 = replace(line, var_pat => (s -> begin
+            m = match(var_pat, s)
             idx = parse(Int, m.captures[1])
             new_idx = n - idx + 1
             string(var_name, "_", new_idx)
         end))
-        line2 = replace(line2, param_pat => (m -> begin
+        line2 = replace(line2, param_pat => (s -> begin
+            m = match(param_pat, s)
             idx = parse(Int, m.captures[1])
             new_idx = n - idx + 1
             string(param_name, "_", new_idx)
