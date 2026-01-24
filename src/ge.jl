@@ -311,6 +311,10 @@ function _forwardsub_ref(pb::ShowGe; b_col=1)
 end
 
 function _relabel_cascade(lines, n; var_name::String="x", param_name::String="\\alpha")
+    if !(lines isa AbstractVector{<:AbstractString})
+        _ensure_pythoncall()
+        lines = Base.invokelatest(PythonCall.pyconvert, Vector{String}, lines)
+    end
     line_list = [String(x) for x in lines]
     var_pat = Regex(string(replace(var_name, "\\" => "\\\\"), "_(\\d+)"))
     param_pat = Regex(string(replace(param_name, "\\" => "\\\\"), "_(\\d+)"))
@@ -341,12 +345,30 @@ function _display_cascade(lines)
     return tex
 end
 
+function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing)
+    ml = load_matrixlayout()
+    backsubst_svg = _pygetattr(ml, :backsubst_svg)
+    kwargs = Dict{Symbol, Any}()
+    kwargs[:cascade_txt] = _ge_to_pylist(lines)
+    kwargs[:show_system] = false
+    kwargs[:show_cascade] = true
+    kwargs[:show_solution] = false
+    if fig_scale !== nothing
+        kwargs[:fig_scale] = fig_scale
+    end
+    if tmp_dir !== nothing
+        kwargs[:output_dir] = tmp_dir
+    end
+    svg = _pycall(backsubst_svg; kwargs...)
+    return _show_svg(svg)
+end
+
 function _display_tex(tex)
     if !(tex isa AbstractString)
         _ensure_pythoncall()
         tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     end
-    tex = replace(tex, "\\\$" => "\$")
+    tex = replace(tex, r"\\+\$" => "\$")
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -354,21 +376,21 @@ raw"""function show_backsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=
 function show_backsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _display_cascade(lines)
+    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_backsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
 function show_backsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _display_cascade(lines)
+    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Integer"""
 function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _display_cascade(lines)
+    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number"""
@@ -723,7 +745,6 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     mats = _ge_grid_to_lists(mats)
     pivot_list = _shift_specs(pivot_list, 2)
     bg_for_entries = _shift_specs(bg_for_entries, 3)
-    ref_path_list = _shift_specs(ref_path_list, 3)
     pivot_list = _ge_to_pylist(pivot_list)
     bg_for_entries = _ge_to_pylist(bg_for_entries)
     ref_path_list = _ge_to_pylist(ref_path_list)

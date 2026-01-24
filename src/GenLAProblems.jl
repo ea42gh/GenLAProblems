@@ -163,7 +163,8 @@ function Base.getproperty(p::NMProxy, name::Symbol)
             pop!(clean, :keep_file, nothing)
             la = load_la_figures()
             gram_schmidt_qr = _pygetattr(la, :gram_schmidt_qr)
-            return _show_svg(_pycall(gram_schmidt_qr, args...; clean...))
+            svg = _show_svg(_pycall(gram_schmidt_qr, args...; clean...))
+            return svg, nothing
         end
     elseif name === :qr_tbl_svg
         return function (args...; kwargs...)
