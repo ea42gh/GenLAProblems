@@ -155,10 +155,15 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return load_matrixlayout()
     elseif name === :gram_schmidt_qr
         return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
+            clean = Dict(kwargs)
+            if haskey(clean, :tmp_dir) && !haskey(clean, :output_dir)
+                clean[:output_dir] = clean[:tmp_dir]
+            end
+            pop!(clean, :tmp_dir, nothing)
+            pop!(clean, :keep_file, nothing)
             la = load_la_figures()
             gram_schmidt_qr = _pygetattr(la, :gram_schmidt_qr)
-            return _pycall(gram_schmidt_qr, args...; clean...)
+            return _show_svg(_pycall(gram_schmidt_qr, args...; clean...))
         end
     elseif name === :qr_tbl_svg
         return function (args...; kwargs...)
