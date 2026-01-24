@@ -18,6 +18,16 @@ function _ensure_pythoncall()
     end
     return PythonCall
 end
+
+function _pyimport(name::String)
+    _ensure_pythoncall()
+    return Base.invokelatest(PythonCall.pyimport, name)
+end
+
+function _pycall(f, args...; kwargs...)
+    _ensure_pythoncall()
+    return Base.invokelatest(PythonCall.pycall, f, args...; kwargs...)
+end
 using Symbolics
 using AbstractAlgebra
 import AbstractAlgebra: charpoly
@@ -83,7 +93,13 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :show_eig_tbl
         return (args...; kwargs...) -> _show_svg(load_la_figures().eig_tbl_svg(args...; kwargs...))
     elseif name === :show_svd_tbl || name === :show_svd_table
-        return (args...; kwargs...) -> _show_svg(load_la_figures().svd_tbl_svg(args...; kwargs...))
+        return function (args...; kwargs...)
+            clean = Dict(kwargs)
+            pop!(clean, :tmp_dir, nothing)
+            pop!(clean, :keep_file, nothing)
+            pop!(clean, :output_dir, nothing)
+            return _show_svg(load_la_figures().svd_tbl_svg(args...; clean...))
+        end
     elseif name === :show_ge_tbl
         return (args...; kwargs...) -> _show_svg(load_la_figures().ge_tbl_svg(args...; kwargs...))
     elseif name === :show_qr_tbl
@@ -96,6 +112,16 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return load_la_figures()
     elseif name === :ml || name === :matrixlayout
         return load_matrixlayout()
+    elseif name === :gram_schmidt_qr
+        return getproperty(load_la_figures(), :gram_schmidt_qr)
+    elseif name === :qr_tbl_svg
+        return getproperty(load_la_figures(), :qr_tbl_svg)
+    elseif name === :qr_svg
+        return getproperty(load_la_figures(), :qr_svg)
+    elseif name === :eig_tbl_svg
+        return getproperty(load_la_figures(), :eig_tbl_svg)
+    elseif name === :svd_tbl_svg
+        return getproperty(load_la_figures(), :svd_tbl_svg)
     end
 
     _ensure_pythoncall()
@@ -104,10 +130,14 @@ end
 
 function Base.getproperty(::SympyProxy, name::Symbol)
     if _sympy[] === nothing
-        _ensure_pythoncall()
-        _sympy[] = Base.invokelatest(PythonCall.pyimport, "sympy")
+        _sympy[] = _pyimport("sympy")
     end
-    return getproperty(_sympy[], name)
+    attr = getproperty(_sympy[], name)
+    builtins = _pyimport("builtins")
+    if _pycall(builtins.callable, attr)
+        return (args...; kwargs...) -> _pycall(attr, args...; kwargs...)
+    end
+    return attr
 end
 
 """

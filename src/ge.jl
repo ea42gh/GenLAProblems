@@ -548,9 +548,10 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         mats = formater(mats)
     end
     _ensure_pythoncall()
-    builtins = PythonCall.pyimport("builtins")
-    ge_conv = PythonCall.pyimport("la_figures.ge_convenience")
-    svg = ge_conv.ge(
+    builtins = Base.invokelatest(PythonCall.pyimport, "builtins")
+    ge_conv = Base.invokelatest(PythonCall.pyimport, "la_figures.ge_convenience")
+    svg = Base.invokelatest(
+        ge_conv.ge,
         mats;
         Nrhs=Nrhs,
         formatter=builtins.str,
