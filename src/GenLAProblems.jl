@@ -59,6 +59,10 @@ is_none_val(x) = x === :none || x === nothing
 
 const _la_figures = Ref{Any}(nothing)
 const _matrixlayout = Ref{Any}(nothing)
+const _sympy = Ref{Any}(nothing)
+
+struct SympyProxy end
+const sympy = SympyProxy()
 
 struct NMProxy end
 
@@ -74,7 +78,9 @@ function _show_svg(svg)
 end
 
 function Base.getproperty(p::NMProxy, name::Symbol)
-    if name === :show_eig_tbl
+    if name === :ge
+        return matrixlayout_ge
+    elseif name === :show_eig_tbl
         return (args...; kwargs...) -> _show_svg(load_la_figures().eig_tbl_svg(args...; kwargs...))
     elseif name === :show_svd_tbl || name === :show_svd_table
         return (args...; kwargs...) -> _show_svg(load_la_figures().svd_tbl_svg(args...; kwargs...))
@@ -94,6 +100,13 @@ function Base.getproperty(p::NMProxy, name::Symbol)
 
     _ensure_pythoncall()
     return getproperty(load_matrixlayout(), name)
+end
+
+function Base.getproperty(::SympyProxy, name::Symbol)
+    if _sympy[] === nothing
+        _sympy[] = getproperty(load_la_figures(), :sympy)
+    end
+    return getproperty(_sympy[], name)
 end
 
 """
@@ -155,7 +168,7 @@ include("MatrixGeneration.jl")
 include("SolveProblems.jl")
 include("ge.jl")
 
-export load_la_figures, load_matrixlayout, nM
+export load_la_figures, load_matrixlayout, nM, sympy
 export symbol_vector, symbols_matrix, form_linear_combination
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix

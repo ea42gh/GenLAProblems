@@ -127,18 +127,22 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
         variable_colors=["red", "black"],
         array_names=array_names,
     )
-    display(MIME"image/svg+xml"(), pb.h)
-    return pb.h
+    _ensure_pythoncall()
+    svg = SVGOut(PythonCall.pyconvert(String, pb.h))
+    display(MIME"image/svg+xml"(), svg)
+    return svg
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_system(  pb::ShowGe{T}; b_col=1, var\\_name::String="x")   where T <: Number"""
 function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <: Number
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
-       b = pb.N[:,b_col]
+       b = pb.B[:,b_col]
     else
        b = zeros( eltype(pb.A), size(pb.A,1), 1)
     end
     tex = load_la_figures().linear_system_tex(pb.A, b, var_name=var_name)
+    _ensure_pythoncall()
+    tex = PythonCall.pyconvert(String, tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -152,6 +156,8 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
        b = cnv.(zeros( eltype(pb.A), size(A,1), 1))
     end
     tex = load_la_figures().linear_system_tex(A, b, var_name=var_name)
+    _ensure_pythoncall()
+    tex = PythonCall.pyconvert(String, tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -165,6 +171,8 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
        b = cnv.(zeros( eltype(A), size(A,1), 1))
     end
     tex = load_la_figures().linear_system_tex(A, b, var_name=var_name)
+    _ensure_pythoncall()
+    tex = PythonCall.pyconvert(String, tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -249,12 +257,20 @@ function _relabel_cascade(lines, n; var_name::String="x", param_name::String="\\
 end
 
 function _display_cascade(lines)
+    if !(lines isa AbstractVector{<:AbstractString})
+        _ensure_pythoncall()
+        lines = PythonCall.pyconvert(Vector{String}, lines)
+    end
     tex = "\\begin{align*}\n" * join(lines, " \\\\\n") * "\n\\end{align*}"
     display(MIME"text/latex"(), tex)
     return tex
 end
 
 function _display_tex(tex)
+    if !(tex isa AbstractString)
+        _ensure_pythoncall()
+        tex = PythonCall.pyconvert(String, tex)
+    end
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -472,7 +488,8 @@ function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_
         variable_summary=variable_summary,
         variable_colors=variable_colors,
     )
-    return s
+    _ensure_pythoncall()
+    return PythonCall.pyconvert(String, s)
 end
 """
     SVGOut(svg::String)
@@ -499,6 +516,47 @@ end
 Return an SVG wrapper for `julia_ge` suitable for notebook display.
 """
 ge(args...; kwargs...) = SVGOut(julia_ge(args...; kwargs...))
+
+function _matrices_are_strings(mats)
+    for row in mats
+        for cell in row
+            if cell === nothing
+                continue
+            end
+            if cell isa AbstractArray
+                for v in cell
+                    if v === nothing
+                        continue
+                    end
+                    return v isa AbstractString
+                end
+            else
+                return cell isa AbstractString
+            end
+        end
+    end
+    return false
+end
+
+function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
+             variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
+             ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
+             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, kwargs... )
+    mats = matrices
+    if !_matrices_are_strings(mats)
+        mats = formater(mats)
+    end
+    _ensure_pythoncall()
+    builtins = PythonCall.pyimport("builtins")
+    svg = load_matrixlayout().grid_svg(
+        matrices=mats,
+        Nrhs=Nrhs,
+        formatter=builtins.str,
+        fig_scale=fig_scale,
+        output_dir=tmp_dir,
+    )
+    return SVGOut(PythonCall.pyconvert(String, svg)), nothing
+end
 
 # ------------------------------------------------------------------------------------------
 raw"""function show_solution( matrices; var_name::String="x", tmp\\_dir=nothing )"""
