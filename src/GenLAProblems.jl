@@ -163,11 +163,10 @@ export round_value, round_matrices
     ref_matrix(3, 3, 3)
     rref_matrix(3, 3, 3)
     charpoly(A)
-    gen_eigenproblem(3)
-    gen_symmetric_eigenproblem(3)
-    gen_qr_problem(3, 3)
-    gen_qr_problem_4(3)
-    gen_svd_problem(3, 3)
+    gen_eigenproblem([1, 2, 3])
+    gen_symmetric_eigenproblem([1, 2, 3])
+    gen_qr_problem(4)
+    gen_qr_problem_4()
 end
 
 end
