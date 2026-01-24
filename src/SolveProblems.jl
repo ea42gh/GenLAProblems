@@ -503,21 +503,20 @@ end
 Naive Gram-Schmidt producing an integer matrix of orthogonalized columns.
 """
 function gram_schmidt_w(A)
-    T = eltype(A)
-    basetype = T <: Rational ? fieldtypes(T)[1] : T
-
-    W   = Array{basetype}(undef, size(A))
+    W = Array{Rational{Int64}}(undef, size(A))
     N = size(A,2)
     for j=1:N
         v_j = Rational.(A[:,j])
         for k=1:j-1
             v_j = v_j - (dot(W[:,k], A[:,j]) / dot(W[:,k], W[:,k]) ) .* W[:,k]
         end
-        tmp = reduce( (x,y)-> lcm(x,denominator(y)), v_j, init=1) * v_j
-        d   = reduce( gcd, tmp, init=tmp[1] )
-        W[:,j] =  tmp / d
+        lcm_den = reduce((x, y) -> lcm(x, denominator(y)), v_j, init=1)
+        tmp = lcm_den .* v_j
+        tmp_num = numerator.(tmp)
+        d = reduce(gcd, tmp_num, init=tmp_num[1])
+        W[:, j] = tmp ./ d
     end
-    Int64.(W)
+    W
 end
 # ------------------------------------------------------------------------------
 """
@@ -529,11 +528,24 @@ function normalize_columns( int_W )
     norms_squared = [dot(view(int_W, :, i), view(int_W, :, i)) for i in 1:size(int_W, 2)]
     norms         = []
     for norm_squared in norms_squared
-        sz = isqrt(norm_squared)
-        if sz^2 == norm_squared
-            push!(norms, sz)
+        if norm_squared isa Rational
+            if denominator(norm_squared) == 1
+                sz = isqrt(numerator(norm_squared))
+                if sz^2 == numerator(norm_squared)
+                    push!(norms, sz)
+                else
+                    push!(norms, Symbolics.sqrt(norm_squared))
+                end
+            else
+                push!(norms, Symbolics.sqrt(norm_squared))
+            end
         else
-            push!(norms, Symbolics.sqrt(norm_squared))
+            sz = isqrt(norm_squared)
+            if sz^2 == norm_squared
+                push!(norms, sz)
+            else
+                push!(norms, Symbolics.sqrt(norm_squared))
+            end
         end
     end
     if all(x -> typeof(x) <: Integer, norms)
