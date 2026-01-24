@@ -336,7 +336,7 @@ function _display_cascade(lines)
         _ensure_pythoncall()
         lines = PythonCall.pyconvert(Vector{String}, lines)
     end
-    tex = "\\begin{align*}\n" * join(lines, " \\\\\n") * "\n\\end{align*}"
+    tex = join(lines, "\n")
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -346,6 +346,7 @@ function _display_tex(tex)
         _ensure_pythoncall()
         tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     end
+    tex = replace(tex, "\\\$" => "\$")
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -650,6 +651,7 @@ end
 
 function _ge_to_pylist(obj)
     if obj isa AbstractArray
+        _ensure_pythoncall()
         return Base.invokelatest(PythonCall.pylist, [_ge_to_pylist(x) for x in obj])
     end
     return obj
