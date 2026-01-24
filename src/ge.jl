@@ -648,6 +648,13 @@ function _ge_normalize_grid(mats)
     return mats
 end
 
+function _ge_to_pylist(obj)
+    if obj isa AbstractArray
+        return Base.invokelatest(PythonCall.pylist, [_ge_to_pylist(x) for x in obj])
+    end
+    return obj
+end
+
 function _needs_shift_locs(obj)
     if obj isa Tuple && length(obj) == 2
         if all(x -> x isa Integer, obj)
@@ -703,7 +710,7 @@ function _shift_specs(specs, loc_index::Int)
 end
 
 function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
-             variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
+             variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"], pivot_text_color=nothing,
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
              start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, kwargs... )
     mats = matrices
@@ -715,20 +722,30 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     pivot_list = _shift_specs(pivot_list, 2)
     bg_for_entries = _shift_specs(bg_for_entries, 3)
     ref_path_list = _shift_specs(ref_path_list, 3)
+    pivot_list = _ge_to_pylist(pivot_list)
+    bg_for_entries = _ge_to_pylist(bg_for_entries)
+    ref_path_list = _ge_to_pylist(ref_path_list)
+    comment_list = _ge_to_pylist(comment_list)
+    variable_summary = _ge_to_pylist(variable_summary)
+    array_names = _ge_to_pylist(array_names)
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
     ge_conv = _pyimport("la_figures.ge_convenience")
     ge_fn = Base.invokelatest(PythonCall.pygetattr, ge_conv, "ge")
+    if pivot_text_color === nothing
+        pivot_text_color = pivot_colors[1]
+    end
+    mats_py = _ge_to_pylist(mats)
     svg = _pycall(
         ge_fn,
-        mats;
+        mats_py;
         Nrhs=Nrhs,
         formatter=py_str,
         pivot_list=pivot_list,
         bg_for_entries=bg_for_entries,
         variable_colors=variable_colors,
-        pivot_text_color=pivot_colors[1],
+        pivot_text_color=pivot_text_color,
         ref_path_list=ref_path_list,
         comment_list=comment_list,
         variable_summary=variable_summary,
