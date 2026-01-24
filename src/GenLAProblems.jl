@@ -105,7 +105,7 @@ function load_la_figures()
             if pc === nothing
                 return nothing
             end
-            _la_figures[] = pyimport("la_figures")
+            _la_figures[] = Base.invokelatest(PythonCall.pyimport, "la_figures")
         catch err
             error(
                 "Python module `la_figures` is required by GenLAProblems.\n" *
