@@ -539,6 +539,28 @@ function _matrices_are_strings(mats)
     return false
 end
 
+function _ge_block_to_list(block)
+    if block === nothing || block === :none
+        return nothing
+    end
+    if block isa AbstractArray
+        rows = Vector{Any}()
+        for i in axes(block, 1)
+            row = Vector{Any}()
+            for j in axes(block, 2)
+                push!(row, block[i, j])
+            end
+            push!(rows, row)
+        end
+        return rows
+    end
+    return block
+end
+
+function _ge_grid_to_lists(mats)
+    return [[_ge_block_to_list(block) for block in row] for row in mats]
+end
+
 function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
@@ -547,14 +569,16 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     if !_matrices_are_strings(mats)
         mats = formater(mats)
     end
+    mats = _ge_grid_to_lists(mats)
     _ensure_pythoncall()
     builtins = Base.invokelatest(PythonCall.pyimport, "builtins")
+    py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
     ge_conv = Base.invokelatest(PythonCall.pyimport, "la_figures.ge_convenience")
     svg = Base.invokelatest(
         ge_conv.ge,
         mats;
         Nrhs=Nrhs,
-        formatter=builtins.str,
+        formatter=py_str,
         pivot_list=pivot_list,
         bg_for_entries=bg_for_entries,
         variable_colors=variable_colors,
