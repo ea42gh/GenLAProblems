@@ -133,7 +133,10 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :ml || name === :matrixlayout
         return load_matrixlayout()
     elseif name === :gram_schmidt_qr
-        return getproperty(load_la_figures(), :gram_schmidt_qr)
+        return function (args...; kwargs...)
+            clean = _clean_tmp_kwargs(kwargs)
+            return load_la_figures().gram_schmidt_qr(args...; clean...)
+        end
     elseif name === :qr_tbl_svg
         return getproperty(load_la_figures(), :qr_tbl_svg)
     elseif name === :qr_svg

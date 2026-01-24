@@ -128,9 +128,9 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
         array_names=array_names,
     )
     _ensure_pythoncall()
-    svg = SVGOut(PythonCall.pyconvert(String, pb.h))
+    svg_str = Base.invokelatest(PythonCall.pyconvert, String, pb.h)
+    svg = SVGOut(svg_str)
     pb.h = svg
-    display(MIME"image/svg+xml"(), svg)
     return svg
 end
 # --------------------------------------------------------------------------------------------------------------
@@ -594,7 +594,8 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         tmp_dir=tmp_dir,
         keep_file=keep_file,
     )
-    return SVGOut(PythonCall.pyconvert(String, svg)), nothing
+    svg_str = Base.invokelatest(PythonCall.pyconvert, String, svg)
+    return SVGOut(svg_str), nothing
 end
 
 # ------------------------------------------------------------------------------------------
