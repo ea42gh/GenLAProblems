@@ -635,6 +635,19 @@ function _ge_grid_to_lists(mats)
     return [[_ge_block_to_list(block) for block in row] for row in mats]
 end
 
+function _ge_normalize_grid(mats)
+    if mats isa AbstractVector
+        if isempty(mats)
+            return mats
+        end
+        first = mats[1]
+        if first isa AbstractArray && !(first isa AbstractVector)
+            return [[m] for m in mats]
+        end
+    end
+    return mats
+end
+
 function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
@@ -643,6 +656,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     if !_matrices_are_strings(mats)
         mats = formater(mats)
     end
+    mats = _ge_normalize_grid(mats)
     mats = _ge_grid_to_lists(mats)
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
