@@ -129,6 +129,7 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
     )
     _ensure_pythoncall()
     svg = SVGOut(PythonCall.pyconvert(String, pb.h))
+    pb.h = svg
     display(MIME"image/svg+xml"(), svg)
     return svg
 end
@@ -548,12 +549,24 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     end
     _ensure_pythoncall()
     builtins = PythonCall.pyimport("builtins")
-    svg = load_matrixlayout().grid_svg(
-        matrices=mats,
+    ge_conv = PythonCall.pyimport("la_figures.ge_convenience")
+    svg = ge_conv.ge(
+        mats;
         Nrhs=Nrhs,
         formatter=builtins.str,
+        pivot_list=pivot_list,
+        bg_for_entries=bg_for_entries,
+        variable_colors=variable_colors,
+        pivot_text_color=pivot_colors[1],
+        ref_path_list=ref_path_list,
+        comment_list=comment_list,
+        variable_summary=variable_summary,
+        array_names=array_names,
+        start_index=start_index,
+        func=func,
         fig_scale=fig_scale,
-        output_dir=tmp_dir,
+        tmp_dir=tmp_dir,
+        keep_file=keep_file,
     )
     return SVGOut(PythonCall.pyconvert(String, svg)), nothing
 end

@@ -78,7 +78,7 @@ function _show_svg(svg)
 end
 
 function Base.getproperty(p::NMProxy, name::Symbol)
-    if name === :ge
+    if name === :ge || name === :_to_svg_str
         return matrixlayout_ge
     elseif name === :show_eig_tbl
         return (args...; kwargs...) -> _show_svg(load_la_figures().eig_tbl_svg(args...; kwargs...))
@@ -104,7 +104,8 @@ end
 
 function Base.getproperty(::SympyProxy, name::Symbol)
     if _sympy[] === nothing
-        _sympy[] = getproperty(load_la_figures(), :sympy)
+        _ensure_pythoncall()
+        _sympy[] = Base.invokelatest(PythonCall.pyimport, "sympy")
     end
     return getproperty(_sympy[], name)
 end
