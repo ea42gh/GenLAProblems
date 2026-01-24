@@ -571,11 +571,12 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     end
     mats = _ge_grid_to_lists(mats)
     _ensure_pythoncall()
-    builtins = Base.invokelatest(PythonCall.pyimport, "builtins")
+    builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
-    ge_conv = Base.invokelatest(PythonCall.pyimport, "la_figures.ge_convenience")
-    svg = Base.invokelatest(
-        ge_conv.ge,
+    ge_conv = _pyimport("la_figures.ge_convenience")
+    ge_fn = Base.invokelatest(PythonCall.pygetattr, ge_conv, "ge")
+    svg = _pycall(
+        ge_fn,
         mats;
         Nrhs=Nrhs,
         formatter=py_str,

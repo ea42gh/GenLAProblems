@@ -87,27 +87,47 @@ function _show_svg(svg)
     return svg
 end
 
+function _clean_tmp_kwargs(kwargs)
+    clean = Dict(kwargs)
+    pop!(clean, :tmp_dir, nothing)
+    pop!(clean, :keep_file, nothing)
+    pop!(clean, :output_dir, nothing)
+    return clean
+end
+
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :ge || name === :_to_svg_str
         return matrixlayout_ge
     elseif name === :show_eig_tbl
-        return (args...; kwargs...) -> _show_svg(load_la_figures().eig_tbl_svg(args...; kwargs...))
+        return function (args...; kwargs...)
+            clean = _clean_tmp_kwargs(kwargs)
+            return _show_svg(load_la_figures().eig_tbl_svg(args...; clean...))
+        end
     elseif name === :show_svd_tbl || name === :show_svd_table
         return function (args...; kwargs...)
-            clean = Dict(kwargs)
-            pop!(clean, :tmp_dir, nothing)
-            pop!(clean, :keep_file, nothing)
-            pop!(clean, :output_dir, nothing)
+            clean = _clean_tmp_kwargs(kwargs)
             return _show_svg(load_la_figures().svd_tbl_svg(args...; clean...))
         end
     elseif name === :show_ge_tbl
-        return (args...; kwargs...) -> _show_svg(load_la_figures().ge_tbl_svg(args...; kwargs...))
+        return function (args...; kwargs...)
+            clean = _clean_tmp_kwargs(kwargs)
+            return _show_svg(load_la_figures().ge_tbl_svg(args...; clean...))
+        end
     elseif name === :show_qr_tbl
-        return (args...; kwargs...) -> _show_svg(load_la_figures().qr_tbl_svg(args...; kwargs...))
+        return function (args...; kwargs...)
+            clean = _clean_tmp_kwargs(kwargs)
+            return _show_svg(load_la_figures().qr_tbl_svg(args...; clean...))
+        end
     elseif name === :show_ge
-        return (args...; kwargs...) -> _show_svg(load_la_figures().svg(args...; kwargs...))
+        return function (args...; kwargs...)
+            clean = _clean_tmp_kwargs(kwargs)
+            return _show_svg(load_la_figures().svg(args...; clean...))
+        end
     elseif name === :show_qr
-        return (args...; kwargs...) -> _show_svg(load_la_figures().qr_svg(args...; kwargs...))
+        return function (args...; kwargs...)
+            clean = _clean_tmp_kwargs(kwargs)
+            return _show_svg(load_la_figures().qr_svg(args...; clean...))
+        end
     elseif name === :la || name === :la_figures
         return load_la_figures()
     elseif name === :ml || name === :matrixlayout
