@@ -203,6 +203,39 @@ function _encode_exact(x)
     return x
 end
 
+function _rational_str(r::Rational)
+    return string(numerator(r), "/", denominator(r))
+end
+
+function _complex_rational_str(z::Complex{<:Rational})
+    re = real(z)
+    im = imag(z)
+    if im == 0
+        return _rational_str(re)
+    end
+    im_str = _rational_str(abs(im))
+    if re == 0
+        return string(im < 0 ? "-" : "", im_str, "*I")
+    end
+    sign = im < 0 ? "-" : "+"
+    return string(_rational_str(re), " ", sign, " ", im_str, "*I")
+end
+
+function _encode_exact_vector(b::AbstractVector)
+    out = Vector{Any}(undef, length(b))
+    for i in eachindex(b)
+        val = b[i]
+        if val isa Rational
+            out[i] = _rational_str(val)
+        elseif val isa Complex{<:Rational}
+            out[i] = _complex_rational_str(val)
+        else
+            out[i] = val
+        end
+    end
+    return out
+end
+
 function _rhs_vector(b, b_col)
     if b isa AbstractMatrix
         if size(b, 2) == 1
@@ -229,7 +262,11 @@ function _backsub_ref(pb::ShowGe; b_col=1)
         A = _encode_exact.(A)
     end
     if b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}
-        b = _encode_exact.(b)
+        if b isa AbstractVector
+            b = _encode_exact_vector(b)
+        else
+            b = _encode_exact.(b)
+        end
     end
     return A, b
 end
@@ -246,7 +283,11 @@ function _forwardsub_ref(pb::ShowGe; b_col=1)
         A = _encode_exact.(A)
     end
     if b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}
-        b = _encode_exact.(b)
+        if b isa AbstractVector
+            b = _encode_exact_vector(b)
+        else
+            b = _encode_exact.(b)
+        end
     end
     return A, b
 end

@@ -93,7 +93,6 @@ function _show_svg(svg)
     elseif svg isa AbstractString
         svg = SVGOut(svg)
     end
-    display(MIME"image/svg+xml"(), svg)
     return svg
 end
 
