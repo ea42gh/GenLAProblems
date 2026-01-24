@@ -368,8 +368,6 @@ function _display_tex(tex)
         _ensure_pythoncall()
         tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     end
-    tex = replace(tex, "\\\\$" => "\$")
-    tex = replace(tex, "\\$" => "\$")
     display(MIME"text/latex"(), tex)
     return tex
 end
