@@ -58,6 +58,7 @@ Return `true` when `x` is `:none` or `nothing`.
 is_none_val(x) = x === :none || x === nothing
 
 const _la_figures = Ref{Any}(nothing)
+const _matrixlayout = Ref{Any}(nothing)
 
 struct NMProxy end
 
@@ -75,7 +76,7 @@ end
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :show_eig_tbl
         return (args...; kwargs...) -> _show_svg(load_la_figures().eig_tbl_svg(args...; kwargs...))
-    elseif name === :show_svd_tbl
+    elseif name === :show_svd_tbl || name === :show_svd_table
         return (args...; kwargs...) -> _show_svg(load_la_figures().svd_tbl_svg(args...; kwargs...))
     elseif name === :show_ge_tbl
         return (args...; kwargs...) -> _show_svg(load_la_figures().ge_tbl_svg(args...; kwargs...))
@@ -87,10 +88,12 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return (args...; kwargs...) -> _show_svg(load_la_figures().qr_svg(args...; kwargs...))
     elseif name === :la || name === :la_figures
         return load_la_figures()
+    elseif name === :ml || name === :matrixlayout
+        return load_matrixlayout()
     end
 
     _ensure_pythoncall()
-    return getproperty(load_la_figures(), name)
+    return getproperty(load_matrixlayout(), name)
 end
 
 """
@@ -117,18 +120,42 @@ function load_la_figures()
     return _la_figures[]
 end
 
+"""
+    load_matrixlayout() -> matrixlayout
+
+Load the Python `matrixlayout` module via PythonCall.
+"""
+function load_matrixlayout()
+    if _matrixlayout[] === nothing
+        try
+            pc = _ensure_pythoncall()
+            if pc === nothing
+                return nothing
+            end
+            _matrixlayout[] = Base.invokelatest(PythonCall.pyimport, "matrixlayout")
+        catch err
+            error(
+                "Python module `matrixlayout` is required by GenLAProblems.\n" *
+                "Install it in the active Python environment.\n\n" *
+                "Original error:\n$err"
+            )
+        end
+    end
+    return _matrixlayout[]
+end
+
 
 """
     nM -> NMProxy
 
-Proxy that exposes la_figures display helpers and la_figures attributes.
+Proxy that exposes matrixlayout helpers by default and la_figures display helpers.
 """
 
 include("MatrixGeneration.jl")
 include("SolveProblems.jl")
 include("ge.jl")
 
-export load_la_figures, nM
+export load_la_figures, load_matrixlayout, nM
 export symbol_vector, symbols_matrix, form_linear_combination
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix
