@@ -46,6 +46,17 @@ using Reexport
 using PrecompileTools
 
 """
+    sympy_matrix(x)
+
+Return a SymPy Matrix from a Julia array or PythonCall matrix-like object.
+"""
+function sympy_matrix(x)
+    sym = _pyimport("sympy")
+    mat = _pygetattr(sym, :Matrix)
+    return _pycall(mat, x)
+end
+
+"""
     Base.adjoint(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
 
 Return `p` unchanged to avoid accidental polynomial adjoints.
@@ -104,19 +115,29 @@ function _clean_tmp_kwargs(kwargs)
     return clean
 end
 
+function _map_tmp_to_output(kwargs)
+    clean = Dict(kwargs)
+    if haskey(clean, :tmp_dir) && !haskey(clean, :output_dir)
+        clean[:output_dir] = clean[:tmp_dir]
+    end
+    pop!(clean, :tmp_dir, nothing)
+    pop!(clean, :keep_file, nothing)
+    return clean
+end
+
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :ge || name === :_to_svg_str
         return matrixlayout_ge
     elseif name === :show_eig_tbl
         return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             eig_tbl_svg = _pygetattr(la, :eig_tbl_svg)
             return _show_svg(_pycall(eig_tbl_svg, args...; clean...))
         end
     elseif name === :show_svd_tbl || name === :show_svd_table
         return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             svd_tbl_svg = _pygetattr(la, :svd_tbl_svg)
             return _show_svg(_pycall(svd_tbl_svg, args...; clean...))
@@ -144,7 +165,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         end
     elseif name === :show_qr
         return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             qr_svg = _pygetattr(la, :qr_svg)
             return _show_svg(_pycall(qr_svg, args...; clean...))
@@ -168,27 +189,31 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         end
     elseif name === :qr_tbl_svg
         return function (args...; kwargs...)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             qr_tbl_svg = _pygetattr(la, :qr_tbl_svg)
-            return _pycall(qr_tbl_svg, args...; kwargs...)
+            return _pycall(qr_tbl_svg, args...; clean...)
         end
     elseif name === :qr_svg
         return function (args...; kwargs...)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             qr_svg = _pygetattr(la, :qr_svg)
-            return _pycall(qr_svg, args...; kwargs...)
+            return _pycall(qr_svg, args...; clean...)
         end
     elseif name === :eig_tbl_svg
         return function (args...; kwargs...)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             eig_tbl_svg = _pygetattr(la, :eig_tbl_svg)
-            return _pycall(eig_tbl_svg, args...; kwargs...)
+            return _pycall(eig_tbl_svg, args...; clean...)
         end
     elseif name === :svd_tbl_svg
         return function (args...; kwargs...)
+            clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             svd_tbl_svg = _pygetattr(la, :svd_tbl_svg)
-            return _pycall(svd_tbl_svg, args...; kwargs...)
+            return _pycall(svd_tbl_svg, args...; clean...)
         end
     end
 
@@ -267,7 +292,7 @@ include("MatrixGeneration.jl")
 include("SolveProblems.jl")
 include("ge.jl")
 
-export load_la_figures, load_matrixlayout, nM, sympy
+export load_la_figures, load_matrixlayout, nM, sympy, sympy_matrix
 export symbol_vector, symbols_matrix, form_linear_combination
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix

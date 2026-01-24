@@ -357,7 +357,7 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
         kwargs[:fig_scale] = fig_scale
     end
     if tmp_dir !== nothing
-        kwargs[:output_dir] = tmp_dir
+        kwargs[:tmp_dir] = tmp_dir
     end
     svg = _pycall(backsubst_svg; kwargs...)
     return _show_svg(svg)
@@ -368,7 +368,8 @@ function _display_tex(tex)
         _ensure_pythoncall()
         tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     end
-    tex = replace(tex, r"\\+\$" => "\$")
+    tex = replace(tex, "\\\\$" => "\$")
+    tex = replace(tex, "\\$" => "\$")
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -743,8 +744,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     end
     mats = _ge_normalize_grid(mats)
     mats = _ge_grid_to_lists(mats)
-    pivot_list = _shift_specs(pivot_list, 2)
-    bg_for_entries = _shift_specs(bg_for_entries, 3)
+    # Keep legacy 0-based coordinates for pivot/background specs; ge_convenience expects them.
     pivot_list = _ge_to_pylist(pivot_list)
     bg_for_entries = _ge_to_pylist(bg_for_entries)
     ref_path_list = _ge_to_pylist(ref_path_list)
