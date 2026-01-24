@@ -120,7 +120,8 @@ raw"""function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables
 function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1 )   where T <: Number
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
-    pb.h = la.ge_tbl_svg(pb.A, rhs;
+    ge_tbl_svg = _pygetattr(la, :ge_tbl_svg)
+    pb.h = _pycall(ge_tbl_svg, pb.A, rhs;
         show_pivots=true,
         fig_scale=fig_scale,
         variable_summary=show_variables ? pb.basic_var : nothing,
@@ -320,16 +321,16 @@ function _relabel_cascade(lines, n; var_name::String="x", param_name::String="\\
     param_pat = Regex(string(replace(param_name, "\\" => "\\\\"), "_(\\d+)"))
     out = Vector{String}(undef, length(line_list))
     for (i, line) in enumerate(line_list)
-        line2 = replace(line, var_pat) do m
+        line2 = replace(line, var_pat => (m -> begin
             idx = parse(Int, m.captures[1])
             new_idx = n - idx + 1
-            return string(var_name, "_", new_idx)
-        end
-        line2 = replace(line2, param_pat) do m
+            string(var_name, "_", new_idx)
+        end))
+        line2 = replace(line2, param_pat => (m -> begin
             idx = parse(Int, m.captures[1])
             new_idx = n - idx + 1
-            return string(param_name, "_", new_idx)
-        end
+            string(param_name, "_", new_idx)
+        end))
         out[i] = line2
     end
     return out
@@ -353,6 +354,24 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
     kwargs[:show_system] = false
     kwargs[:show_cascade] = true
     kwargs[:show_solution] = false
+    if fig_scale !== nothing
+        kwargs[:fig_scale] = fig_scale
+    end
+    if tmp_dir !== nothing
+        kwargs[:tmp_dir] = tmp_dir
+    end
+    svg = _pycall(backsubst_svg; kwargs...)
+    return _show_svg(svg)
+end
+
+function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing)
+    ml = load_matrixlayout()
+    backsubst_svg = _pygetattr(ml, :backsubst_svg)
+    kwargs = Dict{Symbol, Any}()
+    kwargs[:solution_txt] = solution_tex
+    kwargs[:show_system] = false
+    kwargs[:show_cascade] = false
+    kwargs[:show_solution] = true
     if fig_scale !== nothing
         kwargs[:fig_scale] = fig_scale
     end
@@ -420,21 +439,21 @@ raw"""function show_solution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_n
 function show_solution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _display_tex(tex)
+    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_solution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
 function show_solution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _display_tex(tex)
+    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Integer"""
 function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _display_tex(tex)
+    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
 end
 # ==============================================================================================================
 raw"""
