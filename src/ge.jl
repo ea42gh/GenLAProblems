@@ -251,6 +251,24 @@ end
 
 function _backsub_ref(pb::ShowGe; b_col=1)
     Ab = pb.matrices[end][end]
+    if Ab isa AbstractArray{<:AbstractString} || any(x -> x isa AbstractString, Ab)
+        gj = false
+        if isdefined(pb, :desc)
+            for d in pb.desc
+                if hasproperty(d, :gj) && getproperty(d, :gj) === true
+                    gj = true
+                    break
+                end
+            end
+        end
+        if isdefined(pb, :B)
+            Ab_full = [pb.A pb.B]
+        else
+            Ab_full = pb.A
+        end
+        mats, _, _ = reduce_to_ref(Ab_full, n=size(pb.A, 2), gj=gj)
+        Ab = mats[end][end]
+    end
     A = Ab[:, 1:size(pb.A, 2)]
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
         b = Ab[:, size(pb.A, 2) + b_col]
