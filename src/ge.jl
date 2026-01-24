@@ -143,7 +143,7 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <
     end
     tex = load_la_figures().linear_system_tex(pb.A, b, var_name=var_name)
     _ensure_pythoncall()
-    tex = PythonCall.pyconvert(String, tex)
+    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -158,7 +158,7 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
     end
     tex = load_la_figures().linear_system_tex(A, b, var_name=var_name)
     _ensure_pythoncall()
-    tex = PythonCall.pyconvert(String, tex)
+    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -173,7 +173,7 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     end
     tex = load_la_figures().linear_system_tex(A, b, var_name=var_name)
     _ensure_pythoncall()
-    tex = PythonCall.pyconvert(String, tex)
+    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
@@ -203,6 +203,19 @@ function _encode_exact(x)
     return x
 end
 
+function _rhs_vector(b, b_col)
+    if b isa AbstractMatrix
+        if size(b, 2) == 1
+            return vec(b)
+        end
+        if b_col isa Integer && 1 <= b_col <= size(b, 2)
+            return b[:, b_col]
+        end
+        return b[:, 1]
+    end
+    return b
+end
+
 function _backsub_ref(pb::ShowGe; b_col=1)
     Ab = pb.matrices[end][end]
     A = Ab[:, 1:size(pb.A, 2)]
@@ -211,6 +224,7 @@ function _backsub_ref(pb::ShowGe; b_col=1)
     else
         b = zeros(eltype(A), size(A, 1), 1)
     end
+    b = _rhs_vector(b, b_col)
     if A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}
         A = _encode_exact.(A)
     end
@@ -227,6 +241,7 @@ function _forwardsub_ref(pb::ShowGe; b_col=1)
     else
         b = zeros(eltype(A), size(A, 1), 1)
     end
+    b = _rhs_vector(b, b_col)
     if A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}
         A = _encode_exact.(A)
     end
@@ -270,7 +285,7 @@ end
 function _display_tex(tex)
     if !(tex isa AbstractString)
         _ensure_pythoncall()
-        tex = PythonCall.pyconvert(String, tex)
+        tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     end
     display(MIME"text/latex"(), tex)
     return tex
@@ -490,7 +505,7 @@ function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_
         variable_colors=variable_colors,
     )
     _ensure_pythoncall()
-    return PythonCall.pyconvert(String, s)
+    return Base.invokelatest(PythonCall.pyconvert, String, s)
 end
 """
     SVGOut(svg::String)

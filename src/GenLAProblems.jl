@@ -28,6 +28,11 @@ function _pycall(f, args...; kwargs...)
     _ensure_pythoncall()
     return Base.invokelatest(PythonCall.pycall, f, args...; kwargs...)
 end
+
+function _pygetattr(obj, name::Symbol)
+    _ensure_pythoncall()
+    return Base.invokelatest(PythonCall.pygetattr, obj, String(name))
+end
 using Symbolics
 using AbstractAlgebra
 import AbstractAlgebra: charpoly
@@ -83,6 +88,11 @@ function (::NMProxy)()
 end
 
 function _show_svg(svg)
+    if _ensure_pythoncall() !== nothing && svg isa PythonCall.Py
+        svg = SVGOut(Base.invokelatest(PythonCall.pyconvert, String, svg))
+    elseif svg isa AbstractString
+        svg = SVGOut(svg)
+    end
     display(MIME"image/svg+xml"(), svg)
     return svg
 end
@@ -101,32 +111,44 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :show_eig_tbl
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return _show_svg(load_la_figures().eig_tbl_svg(args...; clean...))
+            la = load_la_figures()
+            eig_tbl_svg = _pygetattr(la, :eig_tbl_svg)
+            return _show_svg(_pycall(eig_tbl_svg, args...; clean...))
         end
     elseif name === :show_svd_tbl || name === :show_svd_table
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return _show_svg(load_la_figures().svd_tbl_svg(args...; clean...))
+            la = load_la_figures()
+            svd_tbl_svg = _pygetattr(la, :svd_tbl_svg)
+            return _show_svg(_pycall(svd_tbl_svg, args...; clean...))
         end
     elseif name === :show_ge_tbl
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return _show_svg(load_la_figures().ge_tbl_svg(args...; clean...))
+            la = load_la_figures()
+            ge_tbl_svg = _pygetattr(la, :ge_tbl_svg)
+            return _show_svg(_pycall(ge_tbl_svg, args...; clean...))
         end
     elseif name === :show_qr_tbl
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return _show_svg(load_la_figures().qr_tbl_svg(args...; clean...))
+            la = load_la_figures()
+            qr_tbl_svg = _pygetattr(la, :qr_tbl_svg)
+            return _show_svg(_pycall(qr_tbl_svg, args...; clean...))
         end
     elseif name === :show_ge
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return _show_svg(load_la_figures().svg(args...; clean...))
+            la = load_la_figures()
+            svg_fn = _pygetattr(la, :svg)
+            return _show_svg(_pycall(svg_fn, args...; clean...))
         end
     elseif name === :show_qr
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return _show_svg(load_la_figures().qr_svg(args...; clean...))
+            la = load_la_figures()
+            qr_svg = _pygetattr(la, :qr_svg)
+            return _show_svg(_pycall(qr_svg, args...; clean...))
         end
     elseif name === :la || name === :la_figures
         return load_la_figures()
@@ -135,16 +157,34 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :gram_schmidt_qr
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
-            return load_la_figures().gram_schmidt_qr(args...; clean...)
+            la = load_la_figures()
+            gram_schmidt_qr = _pygetattr(la, :gram_schmidt_qr)
+            return _pycall(gram_schmidt_qr, args...; clean...)
         end
     elseif name === :qr_tbl_svg
-        return getproperty(load_la_figures(), :qr_tbl_svg)
+        return function (args...; kwargs...)
+            la = load_la_figures()
+            qr_tbl_svg = _pygetattr(la, :qr_tbl_svg)
+            return _pycall(qr_tbl_svg, args...; kwargs...)
+        end
     elseif name === :qr_svg
-        return getproperty(load_la_figures(), :qr_svg)
+        return function (args...; kwargs...)
+            la = load_la_figures()
+            qr_svg = _pygetattr(la, :qr_svg)
+            return _pycall(qr_svg, args...; kwargs...)
+        end
     elseif name === :eig_tbl_svg
-        return getproperty(load_la_figures(), :eig_tbl_svg)
+        return function (args...; kwargs...)
+            la = load_la_figures()
+            eig_tbl_svg = _pygetattr(la, :eig_tbl_svg)
+            return _pycall(eig_tbl_svg, args...; kwargs...)
+        end
     elseif name === :svd_tbl_svg
-        return getproperty(load_la_figures(), :svd_tbl_svg)
+        return function (args...; kwargs...)
+            la = load_la_figures()
+            svd_tbl_svg = _pygetattr(la, :svd_tbl_svg)
+            return _pycall(svd_tbl_svg, args...; kwargs...)
+        end
     end
 
     _ensure_pythoncall()
