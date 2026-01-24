@@ -648,6 +648,60 @@ function _ge_normalize_grid(mats)
     return mats
 end
 
+function _needs_shift_locs(obj)
+    if obj isa Tuple && length(obj) == 2
+        if all(x -> x isa Integer, obj)
+            return any(x -> x == 0, obj)
+        end
+        if all(x -> x isa Tuple && length(x) == 2, obj)
+            return _needs_shift_locs(obj[1]) || _needs_shift_locs(obj[2])
+        end
+    elseif obj isa AbstractVector
+        return any(_needs_shift_locs, obj)
+    end
+    return false
+end
+
+function _shift_loc_pair(pair::Tuple)
+    return (pair[1] + 1, pair[2] + 1)
+end
+
+function _shift_locs(obj)
+    if obj isa Tuple && length(obj) == 2 && all(x -> x isa Integer, obj)
+        return _shift_loc_pair(obj)
+    elseif obj isa Tuple && length(obj) == 2 && all(x -> x isa Tuple && length(x) == 2, obj)
+        return (_shift_locs(obj[1]), _shift_locs(obj[2]))
+    elseif obj isa AbstractVector
+        return [_shift_locs(x) for x in obj]
+    end
+    return obj
+end
+
+function _shift_specs(specs, loc_index::Int)
+    if specs === nothing
+        return nothing
+    end
+    if specs isa AbstractVector && !isempty(specs) && all(x -> x isa AbstractVector, specs)
+        out = Vector{Any}(undef, length(specs))
+        for (i, spec) in enumerate(specs)
+            spec2 = copy(spec)
+            if length(spec2) >= loc_index && _needs_shift_locs(spec2[loc_index])
+                spec2[loc_index] = _shift_locs(spec2[loc_index])
+            end
+            out[i] = spec2
+        end
+        return out
+    end
+    if specs isa AbstractVector
+        spec2 = copy(specs)
+        if length(spec2) >= loc_index && _needs_shift_locs(spec2[loc_index])
+            spec2[loc_index] = _shift_locs(spec2[loc_index])
+        end
+        return spec2
+    end
+    return specs
+end
+
 function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
@@ -658,6 +712,9 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     end
     mats = _ge_normalize_grid(mats)
     mats = _ge_grid_to_lists(mats)
+    pivot_list = _shift_specs(pivot_list, 2)
+    bg_for_entries = _shift_specs(bg_for_entries, 3)
+    ref_path_list = _shift_specs(ref_path_list, 3)
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
