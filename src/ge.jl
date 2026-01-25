@@ -147,12 +147,13 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <
     tex = _pycall(linear_system_tex, pb.A, b; var_name=var_name)
     _ensure_pythoncall()
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    tex = replace(tex, raw"\\$" => "\$")
+    tex = replace(tex, raw"\$" => "\$")
     if !occursin("\$", tex)
         tex = "\$" * tex * "\$"
     end
-    display(MIME"text/latex"(), tex)
-    return tex
+    tex_out = LaTeXString(tex)
+    display(tex_out)
+    return tex_out
 end
 raw"""function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
 function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" )   where T <: Number
@@ -168,12 +169,13 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
     tex = _pycall(linear_system_tex, A, b; var_name=var_name)
     _ensure_pythoncall()
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    tex = replace(tex, raw"\\$" => "\$")
+    tex = replace(tex, raw"\$" => "\$")
     if !occursin("\$", tex)
         tex = "\$" * tex * "\$"
     end
-    display(MIME"text/latex"(), tex)
-    return tex
+    tex_out = LaTeXString(tex)
+    display(tex_out)
+    return tex_out
 end
 raw"""function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
 function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
@@ -189,12 +191,13 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     tex = _pycall(linear_system_tex, A, b; var_name=var_name)
     _ensure_pythoncall()
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    tex = replace(tex, raw"\\$" => "\$")
+    tex = replace(tex, raw"\$" => "\$")
     if !occursin("\$", tex)
         tex = "\$" * tex * "\$"
     end
-    display(MIME"text/latex"(), tex)
-    return tex
+    tex_out = LaTeXString(tex)
+    display(tex_out)
+    return tex_out
 end
 # --------------------------------------------------------------------------------------------------------------
 raw""" cascade = create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
