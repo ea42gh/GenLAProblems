@@ -142,7 +142,9 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <
     else
        b = zeros( eltype(pb.A), size(pb.A,1), 1)
     end
-    tex = load_la_figures().linear_system_tex(pb.A, b, var_name=var_name)
+    la = load_la_figures()
+    linear_system_tex = _pygetattr(la, :linear_system_tex)
+    tex = _pycall(linear_system_tex, pb.A, b; var_name=var_name)
     _ensure_pythoncall()
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     display(MIME"text/latex"(), tex)
@@ -157,7 +159,9 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
     else
        b = cnv.(zeros( eltype(pb.A), size(A,1), 1))
     end
-    tex = load_la_figures().linear_system_tex(A, b, var_name=var_name)
+    la = load_la_figures()
+    linear_system_tex = _pygetattr(la, :linear_system_tex)
+    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
     _ensure_pythoncall()
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     display(MIME"text/latex"(), tex)
@@ -172,7 +176,9 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     else
        b = cnv.(zeros( eltype(A), size(A,1), 1))
     end
-    tex = load_la_figures().linear_system_tex(A, b, var_name=var_name)
+    la = load_la_figures()
+    linear_system_tex = _pygetattr(la, :linear_system_tex)
+    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
     _ensure_pythoncall()
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     display(MIME"text/latex"(), tex)
@@ -413,27 +419,36 @@ function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", 
     return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number"""
-function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
+raw"""function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number"""
+function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number
     A, b = _forwardsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    if render_svg
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    end
     return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number"""
-function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
+raw"""function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number"""
+function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number
     A, b = _forwardsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    if render_svg
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    end
     return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer"""
-function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
+raw"""function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Integer"""
+function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Integer
     A, b = _forwardsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    if render_svg
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    end
     return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
@@ -474,18 +489,21 @@ function show_backsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir=
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""
-    show_forwardsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing)
+    show_forwardsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing, render_svg=true)
 
 Render the forward-substitution cascade for the lower-triangular system `A * x = b`
 using the la_figures backsubstitution cascade on a reversed system, then relabeling indices.
 Supports Integer/Float as well as exact `Rational` and `Complex{Rational}` inputs
 converted to tuples for exact SymPy reconstruction.
 """
-function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing)
+function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing, render_svg=true)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
     lines = load_la_figures().backsubstitution_tex(A2[end:-1:1, end:-1:1], b2[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
+    if render_svg
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file)
+    end
     return _display_cascade(lines)
 end
 # ==============================================================================================================
