@@ -722,6 +722,10 @@ function _ge_normalize_grid(mats)
 end
 
 function _ge_to_pylist(obj)
+    if obj isa AbstractDict
+        _ensure_pythoncall()
+        return Base.invokelatest(PythonCall.pydict, Dict(k => _ge_to_pylist(v) for (k, v) in obj))
+    end
     if obj isa AbstractArray
         _ensure_pythoncall()
         return Base.invokelatest(PythonCall.pylist, [_ge_to_pylist(x) for x in obj])
