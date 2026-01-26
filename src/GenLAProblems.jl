@@ -226,7 +226,7 @@ function Base.getproperty(::SympyProxy, name::Symbol)
     if _sympy[] === nothing
         _sympy[] = _pyimport("sympy")
     end
-    attr = getproperty(_sympy[], name)
+    attr = _pygetattr(_sympy[], name)
     builtins = _pyimport("builtins")
     if PythonCall.pyconvert(Bool, _pycall(builtins.callable, attr))
         return (args...; kwargs...) -> _pycall(attr, args...; kwargs...)

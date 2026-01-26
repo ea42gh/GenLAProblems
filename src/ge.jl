@@ -800,6 +800,8 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     comment_list = _ge_to_pylist(comment_list)
     variable_summary = _ge_to_pylist(variable_summary)
     array_names = _ge_to_pylist(array_names)
+    specs = get(kwargs, :specs, nothing)
+    specs = _ge_to_pylist(specs)
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
@@ -822,6 +824,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         comment_list=comment_list,
         variable_summary=variable_summary,
         array_names=array_names,
+        specs=specs,
         start_index=start_index,
         func=func,
         fig_scale=fig_scale,
