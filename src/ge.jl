@@ -733,6 +733,58 @@ function _ge_to_pylist(obj)
     return obj
 end
 
+function _bg_for_entries_to_decorators(bg_for_entries)
+    if bg_for_entries === nothing
+        return nothing
+    end
+    _ensure_pythoncall()
+    fmt = _pyimport("matrixlayout.formatting")
+    decorator_bg = Base.invokelatest(PythonCall.pygetattr, fmt, "decorator_bg")
+    sel_entry = Base.invokelatest(PythonCall.pygetattr, fmt, "sel_entry")
+    sel_box = Base.invokelatest(PythonCall.pygetattr, fmt, "sel_box")
+    specs = bg_for_entries
+    if !(specs isa AbstractVector)
+        specs = [specs]
+    elseif !isempty(specs) && length(specs) >= 3 &&
+           !(specs[1] isa AbstractVector) && !(specs[2] isa AbstractVector)
+        specs = [specs]
+    elseif !isempty(specs) && !all(x -> x isa AbstractVector, specs)
+        specs = [specs]
+    end
+    decorators = Vector{Any}()
+    for spec in specs
+        if !(spec isa AbstractVector) || length(spec) < 3
+            continue
+        end
+        gM = Int(spec[1])
+        gN = Int(spec[2])
+        entries = spec[3]
+        color = length(spec) >= 4 ? string(spec[4]) : "red!15"
+        if !(entries isa AbstractVector)
+            entries = [entries]
+        end
+        entry_selectors = Vector{Any}()
+        for entry in entries
+            if (entry isa AbstractVector || entry isa Tuple) && length(entry) == 2 &&
+               (entry[1] isa AbstractVector || entry[1] isa Tuple) &&
+               (entry[2] isa AbstractVector || entry[2] isa Tuple)
+                i0, j0 = entry[1]
+                i1, j1 = entry[2]
+                push!(entry_selectors, Base.invokelatest(sel_box, (Int(i0), Int(j0)), (Int(i1), Int(j1))))
+            else
+                i0, j0 = entry
+                push!(entry_selectors, Base.invokelatest(sel_entry, Int(i0), Int(j0)))
+            end
+        end
+        push!(decorators, Dict(
+            "grid" => (gM, gN),
+            "entries" => entry_selectors,
+            "decorator" => Base.invokelatest(decorator_bg, color),
+        ))
+    end
+    return isempty(decorators) ? nothing : decorators
+end
+
 function _needs_shift_locs(obj)
     if obj isa Tuple && length(obj) == 2
         if all(x -> x isa Integer, obj)
@@ -799,13 +851,26 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     mats = _ge_grid_to_lists(mats)
     # Keep legacy 0-based coordinates for pivot/background specs; ge_convenience expects them.
     pivot_list = _ge_to_pylist(pivot_list)
-    bg_for_entries = _ge_to_pylist(bg_for_entries)
+    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries)
+    if decorators_from_bg !== nothing
+        bg_for_entries = nothing
+    else
+        bg_for_entries = _ge_to_pylist(bg_for_entries)
+    end
     ref_path_list = _ge_to_pylist(ref_path_list)
     comment_list = _ge_to_pylist(comment_list)
     variable_summary = _ge_to_pylist(variable_summary)
     array_names = _ge_to_pylist(array_names)
     specs = get(kwargs, :specs, nothing)
     specs = _ge_to_pylist(specs)
+    decorators = get(kwargs, :decorators, nothing)
+    if decorators !== nothing && !(decorators isa AbstractVector)
+        decorators = [decorators]
+    end
+    if decorators_from_bg !== nothing
+        decorators = decorators === nothing ? decorators_from_bg : vcat(decorators_from_bg, decorators)
+    end
+    decorators = _ge_to_pylist(decorators)
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
@@ -829,6 +894,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         variable_summary=variable_summary,
         array_names=array_names,
         specs=specs,
+        decorators=decorators,
         start_index=start_index,
         func=func,
         fig_scale=fig_scale,
