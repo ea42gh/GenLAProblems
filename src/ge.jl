@@ -764,6 +764,7 @@ function _bg_for_entries_to_decorators(bg_for_entries)
             entries = [entries]
         end
         entry_selectors = Vector{Any}()
+        decorator = Base.invokelatest(decorator_bg, color)
         for entry in entries
             if (entry isa AbstractVector || entry isa Tuple) && length(entry) == 2 &&
                (entry[1] isa AbstractVector || entry[1] isa Tuple) &&
@@ -779,7 +780,7 @@ function _bg_for_entries_to_decorators(bg_for_entries)
         push!(decorators, Dict(
             "grid" => (gM, gN),
             "entries" => entry_selectors,
-            "decorator" => Base.invokelatest(decorator_bg, color),
+            "decorator" => decorator,
         ))
     end
     return isempty(decorators) ? nothing : decorators
