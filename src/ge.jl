@@ -142,9 +142,17 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <
     else
        b = zeros( eltype(pb.A), size(pb.A,1), 1)
     end
-    cascade = nM.BacksubstitutionCascade(pb.A, b, var_name=var_name)
-    return cascade.show(pb.A, b, show_system=true, show_cascade=false,
-                        tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    la = load_la_figures()
+    linear_system_tex = _pygetattr(la, :linear_system_tex)
+    tex = _pycall(linear_system_tex, pb.A, b; var_name=var_name)
+    _ensure_pythoncall()
+    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
+    bs = _pyimport("matrixlayout.backsubst")
+    backsubst_svg = _pygetattr(bs, :backsubst_svg)
+    svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
+                  show_cascade=false, show_solution=false,
+                  tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+    return _show_svg(svg)
 end
 raw"""function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
 function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" )   where T <: Number
@@ -155,9 +163,17 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
     else
        b = cnv.(zeros( eltype(pb.A), size(A,1), 1))
     end
-    cascade = nM.BacksubstitutionCascade(A, b, var_name=var_name)
-    return cascade.show(A, b, show_system=true, show_cascade=false,
-                        tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    la = load_la_figures()
+    linear_system_tex = _pygetattr(la, :linear_system_tex)
+    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
+    _ensure_pythoncall()
+    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
+    bs = _pyimport("matrixlayout.backsubst")
+    backsubst_svg = _pygetattr(bs, :backsubst_svg)
+    svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
+                  show_cascade=false, show_solution=false,
+                  tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+    return _show_svg(svg)
 end
 raw"""function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
 function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
@@ -168,9 +184,17 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     else
        b = cnv.(zeros( eltype(A), size(A,1), 1))
     end
-    cascade = nM.BacksubstitutionCascade(A, b, var_name=var_name)
-    return cascade.show(A, b, show_system=true, show_cascade=false,
-                        tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    la = load_la_figures()
+    linear_system_tex = _pygetattr(la, :linear_system_tex)
+    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
+    _ensure_pythoncall()
+    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
+    bs = _pyimport("matrixlayout.backsubst")
+    backsubst_svg = _pygetattr(bs, :backsubst_svg)
+    svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
+                  show_cascade=false, show_solution=false,
+                  tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+    return _show_svg(svg)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw""" cascade = create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
