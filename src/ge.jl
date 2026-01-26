@@ -142,18 +142,9 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <
     else
        b = zeros( eltype(pb.A), size(pb.A,1), 1)
     end
-    la = load_la_figures()
-    linear_system_tex = _pygetattr(la, :linear_system_tex)
-    tex = _pycall(linear_system_tex, pb.A, b; var_name=var_name)
-    _ensure_pythoncall()
-    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    tex = replace(tex, raw"\$" => "\$")
-    if !occursin("\$", tex)
-        tex = "\$" * tex * "\$"
-    end
-    tex_out = LaTeXString(tex)
-    display(tex_out)
-    return tex_out
+    cascade = nM.BacksubstitutionCascade(pb.A, b, var_name=var_name)
+    return cascade.show(pb.A, b, show_system=true, show_cascade=false,
+                        tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 raw"""function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
 function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" )   where T <: Number
@@ -164,18 +155,9 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
     else
        b = cnv.(zeros( eltype(pb.A), size(A,1), 1))
     end
-    la = load_la_figures()
-    linear_system_tex = _pygetattr(la, :linear_system_tex)
-    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
-    _ensure_pythoncall()
-    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    tex = replace(tex, raw"\$" => "\$")
-    if !occursin("\$", tex)
-        tex = "\$" * tex * "\$"
-    end
-    tex_out = LaTeXString(tex)
-    display(tex_out)
-    return tex_out
+    cascade = nM.BacksubstitutionCascade(A, b, var_name=var_name)
+    return cascade.show(A, b, show_system=true, show_cascade=false,
+                        tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 raw"""function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
 function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
@@ -186,18 +168,9 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     else
        b = cnv.(zeros( eltype(A), size(A,1), 1))
     end
-    la = load_la_figures()
-    linear_system_tex = _pygetattr(la, :linear_system_tex)
-    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
-    _ensure_pythoncall()
-    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    tex = replace(tex, raw"\$" => "\$")
-    if !occursin("\$", tex)
-        tex = "\$" * tex * "\$"
-    end
-    tex_out = LaTeXString(tex)
-    display(tex_out)
-    return tex_out
+    cascade = nM.BacksubstitutionCascade(A, b, var_name=var_name)
+    return cascade.show(A, b, show_system=true, show_cascade=false,
+                        tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw""" cascade = create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
