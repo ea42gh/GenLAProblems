@@ -43,6 +43,7 @@ using Hadamard
 
 using Reexport
 @reexport using LAlatex
+using LaTeXStrings: LaTeXString
 using PrecompileTools
 
 """
