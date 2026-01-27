@@ -733,7 +733,7 @@ function _ge_to_pylist(obj)
     return obj
 end
 
-function _bg_for_entries_to_decorators(bg_for_entries)
+function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
     if bg_for_entries === nothing
         return nothing
     end
@@ -758,6 +758,30 @@ function _bg_for_entries_to_decorators(bg_for_entries)
         end
         gM = Int(spec[1])
         gN = Int(spec[2])
+        nrows = ncols = 0
+        if mats_raw !== nothing
+            try
+                grid = mats_raw[gM + 1]
+                mat = grid[gN + 1]
+                if mat === nothing
+                    nrows = 0
+                    ncols = 0
+                elseif mat isa AbstractMatrix
+                    nrows, ncols = size(mat)
+                elseif mat isa AbstractArray && ndims(mat) == 2
+                    nrows, ncols = size(mat)
+                elseif mat isa AbstractVector
+                    nrows = length(mat)
+                    ncols = nrows == 0 ? 0 : length(mat[1])
+                elseif mat isa AbstractString
+                    nrows = 0
+                    ncols = 0
+                end
+            catch
+                nrows = 0
+                ncols = 0
+            end
+        end
         entries = spec[3]
         color = length(spec) >= 4 ? string(spec[4]) : "red!15"
         if !(entries isa AbstractVector)
@@ -771,9 +795,19 @@ function _bg_for_entries_to_decorators(bg_for_entries)
                (entry[2] isa AbstractVector || entry[2] isa Tuple)
                 i0, j0 = entry[1]
                 i1, j1 = entry[2]
+                if nrows > 0 && ncols > 0
+                    i0 = clamp(Int(i0), 0, nrows - 1)
+                    i1 = clamp(Int(i1), 0, nrows - 1)
+                    j0 = clamp(Int(j0), 0, ncols - 1)
+                    j1 = clamp(Int(j1), 0, ncols - 1)
+                end
                 push!(entry_selectors, Base.invokelatest(sel_box, (Int(i0), Int(j0)), (Int(i1), Int(j1))))
             else
                 i0, j0 = entry
+                if nrows > 0 && ncols > 0
+                    i0 = clamp(Int(i0), 0, nrows - 1)
+                    j0 = clamp(Int(j0), 0, ncols - 1)
+                end
                 push!(entry_selectors, Base.invokelatest(sel_entry, Int(i0), Int(j0)))
             end
         end
