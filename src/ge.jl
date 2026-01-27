@@ -886,7 +886,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     mats = _ge_grid_to_lists(mats)
     # Keep legacy 0-based coordinates for pivot/background specs; ge_convenience expects them.
     pivot_list = _ge_to_pylist(pivot_list)
-    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries)
+    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries, matrices)
     if decorators_from_bg !== nothing
         bg_for_entries = nothing
     else
