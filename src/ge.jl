@@ -120,7 +120,7 @@ raw"""function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables
 function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1 )   where T <: Number
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
-    ge_tbl_svg = _pygetattr(la, :ge_tbl_svg)
+    ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
     pb.h = _pycall(ge_tbl_svg, pb.A, rhs;
         show_pivots=true,
         fig_scale=fig_scale,
@@ -636,7 +636,9 @@ function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_
         A = Ab
         rhs = nothing
     end
-    s = load_la_figures().ge_tbl_svg(A, rhs;
+    la = load_la_figures()
+    ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
+    s = _pycall(ge_tbl_svg, A, rhs;
         fig_scale=fig_scale,
         array_names=array_names,
         variable_summary=variable_summary,

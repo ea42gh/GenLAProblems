@@ -33,6 +33,17 @@ function _pygetattr(obj, name::Symbol)
     _ensure_pythoncall()
     return Base.invokelatest(PythonCall.pygetattr, obj, String(name))
 end
+
+function _pygetattr_fallback(obj, name::Symbol, mod::String)
+    _ensure_pythoncall()
+    builtins = _pyimport("builtins")
+    has = Base.invokelatest(PythonCall.pycall, _pygetattr(builtins, :hasattr), obj, String(name))
+    if Base.invokelatest(PythonCall.pyconvert, Bool, has)
+        return _pygetattr(obj, name)
+    end
+    sub = _pyimport(mod)
+    return _pygetattr(sub, name)
+end
 using Symbolics
 using AbstractAlgebra
 import AbstractAlgebra: charpoly
@@ -170,7 +181,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
             la = load_la_figures()
-            ge_tbl_svg = _pygetattr(la, :ge_tbl_svg)
+            ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
             return _show_svg(_pycall(ge_tbl_svg, args...; clean...))
         end
     elseif name === :show_qr_tbl
