@@ -135,8 +135,8 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
     return svg
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_system(  pb::ShowGe{T}; b_col=1, var\\_name::String="x")   where T <: Number"""
-function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <: Number
+raw"""function show_system(  pb::ShowGe{T}; b_col=1, var\\_name::String="x", fig\\_scale=1)   where T <: Number"""
+function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1)   where T <: Number
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
        b = pb.B[:,b_col]
     else
@@ -151,11 +151,11 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x")   where T <
     backsubst_svg = _pygetattr(bs, :backsubst_svg)
     svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
                   show_cascade=false, show_solution=false,
-                  tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
     return _show_svg(svg)
 end
-raw"""function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
-function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" )   where T <: Number
+raw"""function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x", fig\\_scale=1 )   where T <: Number"""
+function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     cnv(x) = (numerator(x),denominator(x))
     A = cnv.(pb.A)
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
@@ -172,11 +172,11 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" ) 
     backsubst_svg = _pygetattr(bs, :backsubst_svg)
     svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
                   show_cascade=false, show_solution=false,
-                  tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
     return _show_svg(svg)
 end
-raw"""function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
-function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
+raw"""function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x", fig\\_scale=1 )   where T <: Number"""
+function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     cnv(x) = (numerator(x),denominator(x))
     A = cnv.(pb.A)
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
@@ -193,7 +193,7 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     backsubst_svg = _pygetattr(bs, :backsubst_svg)
     svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
                   show_cascade=false, show_solution=false,
-                  tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
     return _show_svg(svg)
 end
 # --------------------------------------------------------------------------------------------------------------
@@ -380,11 +380,14 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
     if tmp_dir !== nothing
         kwargs[:tmp_dir] = tmp_dir
     end
+    if keep_file !== nothing
+        kwargs[:keep_file] = keep_file
+    end
     svg = _pycall(backsubst_svg; kwargs...)
     return _show_svg(svg)
 end
 
-function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing)
+function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing)
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
@@ -397,6 +400,9 @@ function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing)
     end
     if tmp_dir !== nothing
         kwargs[:tmp_dir] = tmp_dir
+    end
+    if keep_file !== nothing
+        kwargs[:keep_file] = keep_file
     end
     svg = _pycall(backsubst_svg; kwargs...)
     return _show_svg(svg)
@@ -931,8 +937,8 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
 end
 
 # ------------------------------------------------------------------------------------------
-raw"""function show_solution( matrices; var_name::String="x", tmp\\_dir=nothing )"""
-function show_solution( matrices; var_name::String="x", tmp_dir=nothing )
+raw"""function show_solution( matrices; var_name::String="x", fig\\_scale=1, tmp\\_dir=nothing, keep\\_file=nothing, render\\_svg=true )"""
+function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true )
     Ab = matrices[end][end]
     A = Ab[:, 1:(size(Ab, 2) - 1)]
     b = Ab[:, end]
@@ -943,5 +949,8 @@ function show_solution( matrices; var_name::String="x", tmp_dir=nothing )
         b = _encode_exact.(b)
     end
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
+    if render_svg
+        return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file)
+    end
     return _display_tex(tex)
 end
