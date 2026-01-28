@@ -795,19 +795,9 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
                (entry[2] isa AbstractVector || entry[2] isa Tuple)
                 i0, j0 = entry[1]
                 i1, j1 = entry[2]
-                if nrows > 0 && ncols > 0
-                    i0 = clamp(Int(i0), 0, nrows - 1)
-                    i1 = clamp(Int(i1), 0, nrows - 1)
-                    j0 = clamp(Int(j0), 0, ncols - 1)
-                    j1 = clamp(Int(j1), 0, ncols - 1)
-                end
                 push!(entry_selectors, Base.invokelatest(sel_box, (Int(i0), Int(j0)), (Int(i1), Int(j1))))
             else
                 i0, j0 = entry
-                if nrows > 0 && ncols > 0
-                    i0 = clamp(Int(i0), 0, nrows - 1)
-                    j0 = clamp(Int(j0), 0, ncols - 1)
-                end
                 push!(entry_selectors, Base.invokelatest(sel_entry, Int(i0), Int(j0)))
             end
         end
@@ -886,7 +876,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     mats = _ge_grid_to_lists(mats)
     # Keep legacy 0-based coordinates for pivot/background specs; ge_convenience expects them.
     pivot_list = _ge_to_pylist(pivot_list)
-    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries, matrices)
+    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries, mats)
     if decorators_from_bg !== nothing
         bg_for_entries = nothing
     else

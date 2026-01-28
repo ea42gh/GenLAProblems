@@ -108,6 +108,29 @@ function _show_svg(svg)
     return svg
 end
 
+"""
+    py_show_svg(svg)
+
+Display an SVG in a Python notebook (e.g., %%julia cell) via IPython.display.SVG.
+Accepts `SVGOut`, raw SVG strings, or PythonCall.Py SVG objects.
+"""
+function py_show_svg(svg)
+    _ensure_pythoncall()
+    ip = _pyimport("IPython.display")
+    py_display = _pygetattr(ip, :display)
+    py_svg = _pygetattr(ip, :SVG)
+    if svg isa SVGOut
+        return _pycall(py_display, _pycall(py_svg, svg.svg))
+    elseif svg isa AbstractString
+        return _pycall(py_display, _pycall(py_svg, svg))
+    elseif svg isa PythonCall.Py
+        s = Base.invokelatest(PythonCall.pyconvert, String, svg)
+        return _pycall(py_display, _pycall(py_svg, s))
+    else
+        error("py_show_svg expects SVGOut, SVG string, or PythonCall.Py")
+    end
+end
+
 function _clean_tmp_kwargs(kwargs)
     clean = Dict(kwargs)
     pop!(clean, :tmp_dir, nothing)
@@ -315,7 +338,7 @@ export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eige
 export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 export charpoly
-export ge, show_solution
+export ge, show_solution, py_show_svg
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions
 export round_value, round_matrices
