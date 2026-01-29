@@ -56,6 +56,7 @@ using Reexport
 @reexport using LAlatex
 using LaTeXStrings: LaTeXString
 using PrecompileTools
+include("SymPyHelpers.jl")
 
 """
     sympy_matrix(x)

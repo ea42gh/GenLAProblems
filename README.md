@@ -17,6 +17,22 @@ GE/GJ visualizations are rendered via the Python `la_figures` + `matrixlayout` s
 through `PythonCall`. Ensure those Python packages are available in the active
 Python environment.
 
+## SymPy helpers (optional)
+
+When mixing Julia arrays with SymPy objects, PythonCall does not auto-convert
+types the way PyCall does. For convenience, GenLAProblems provides a small
+optional helper module:
+
+```julia
+using GenLAProblems.SymPyHelpers
+
+P = circular_shift_matrix(length(v))
+Pv = sym_mul(P, v)
+@show sym_vec_zero(circular_shift(v) .- Pv)
+```
+
+Import this submodule only when needed; it is not re-exported by default.
+
 ## Local development
 
 If you are working from this monorepo, install the local `LAlatex` checkout in the
