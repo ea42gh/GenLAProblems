@@ -213,12 +213,9 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
     return _show_svg(svg)
 end
 """
-    create_cascade!(pb; b_col=1, var_name="x")
+    create_cascade!(pb::ShowGe{Complex{Rational}}; b_col=1, var_name="x")
 
 Initialize cascade state for substitution displays.
-"""
-"""
-    create_cascade!(pb::ShowGe{Complex{Rational}}; b_col=1, var_name="x")
 """
 function create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
     pb.cascade = nothing
