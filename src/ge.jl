@@ -985,7 +985,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         keep_file=keep_file,
     )
     svg_str = Base.invokelatest(PythonCall.pyconvert, String, svg)
-    return SVGOut(svg_str), nothing
+    return SVGOut(svg_str)
 end
 
 # ------------------------------------------------------------------------------------------

@@ -143,6 +143,13 @@ function py_show_svg(svg)
     end
 end
 
+"""
+    show_svg(svg)
+
+Alias for `py_show_svg`, for notebook-friendly SVG display.
+"""
+show_svg(svg) = py_show_svg(svg)
+
 function _clean_tmp_kwargs(kwargs)
     clean = Dict(kwargs)
     pop!(clean, :tmp_dir, nothing)
@@ -350,7 +357,7 @@ export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eige
 export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 export charpoly
-export ge, show_solution, py_show_svg
+export ge, show_solution, py_show_svg, show_svg
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions
 export round_value, round_matrices
