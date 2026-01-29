@@ -168,6 +168,14 @@ function _map_tmp_to_output(kwargs)
     return clean
 end
 
+function _bundle_result(dict)
+    _ensure_pythoncall()
+    py_get = Base.invokelatest(PythonCall.pygetattr, dict, "get")
+    spec = _pycall(py_get, "spec")
+    svg = _pycall(py_get, "svg")
+    return spec, svg
+end
+
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :ge || name === :_to_svg_str
         return matrixlayout_ge
@@ -175,15 +183,17 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return function (args...; kwargs...)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
-            eig_tbl_svg = _pygetattr(la, :eig_tbl_svg)
-            return _show_svg(_pycall(eig_tbl_svg, args...; clean...))
+            eig_tbl_bundle = _pygetattr(la, :eig_tbl_bundle)
+            spec, svg = _bundle_result(_pycall(eig_tbl_bundle, args...; clean...))
+            return _show_svg(svg), spec
         end
     elseif name === :show_svd_tbl || name === :show_svd_table
         return function (args...; kwargs...)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
-            svd_tbl_svg = _pygetattr(la, :svd_tbl_svg)
-            return _show_svg(_pycall(svd_tbl_svg, args...; clean...))
+            svd_tbl_bundle = _pygetattr(la, :svd_tbl_bundle)
+            spec, svg = _bundle_result(_pycall(svd_tbl_bundle, args...; clean...))
+            return _show_svg(svg), spec
         end
     elseif name === :show_ge_tbl
         return function (args...; kwargs...)
@@ -196,8 +206,9 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return function (args...; kwargs...)
             clean = _clean_tmp_kwargs(kwargs)
             la = load_la_figures()
-            qr_tbl_svg = _pygetattr(la, :qr_tbl_svg)
-            return _show_svg(_pycall(qr_tbl_svg, args...; clean...))
+            qr_tbl_bundle = _pygetattr(la, :qr_tbl_bundle)
+            spec, svg = _bundle_result(_pycall(qr_tbl_bundle, args...; clean...))
+            return _show_svg(svg), spec
         end
     elseif name === :show_ge
         return function (args...; kwargs...)
@@ -211,7 +222,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             qr_svg = _pygetattr(la, :qr_svg)
-            return _show_svg(_pycall(qr_svg, args...; clean...))
+            return _show_svg(_pycall(qr_svg, args...; clean...)), args[1]
         end
     elseif name === :la || name === :la_figures
         return load_la_figures()
@@ -226,37 +237,44 @@ function Base.getproperty(p::NMProxy, name::Symbol)
             pop!(clean, :tmp_dir, nothing)
             pop!(clean, :keep_file, nothing)
             la = load_la_figures()
-            gram_schmidt_qr = _pygetattr(la, :gram_schmidt_qr)
-            svg = _show_svg(_pycall(gram_schmidt_qr, args...; clean...))
-            return svg
+            gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
+            qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
+            matrices = _pycall(gram_schmidt_qr_matrices, args...; clean...)
+            spec = _pycall(qr_tbl_spec_from_matrices, matrices; clean...)
+            qr_grid_svg = _pygetattr(load_matrixlayout(), :qr_grid_svg)
+            svg = _pycall(qr_grid_svg; spec=spec, clean...)
+            return _show_svg(svg), matrices
         end
     elseif name === :qr_tbl_svg
         return function (args...; kwargs...)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
-            qr_tbl_svg = _pygetattr(la, :qr_tbl_svg)
-            return _pycall(qr_tbl_svg, args...; clean...)
+            qr_tbl_bundle = _pygetattr(la, :qr_tbl_bundle)
+            spec, svg = _bundle_result(_pycall(qr_tbl_bundle, args...; clean...))
+            return svg, spec
         end
     elseif name === :qr_svg
         return function (args...; kwargs...)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
             qr_svg = _pygetattr(la, :qr_svg)
-            return _pycall(qr_svg, args...; clean...)
+            return _pycall(qr_svg, args...; clean...), args[1]
         end
     elseif name === :eig_tbl_svg
         return function (args...; kwargs...)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
-            eig_tbl_svg = _pygetattr(la, :eig_tbl_svg)
-            return _pycall(eig_tbl_svg, args...; clean...)
+            eig_tbl_bundle = _pygetattr(la, :eig_tbl_bundle)
+            spec, svg = _bundle_result(_pycall(eig_tbl_bundle, args...; clean...))
+            return svg, spec
         end
     elseif name === :svd_tbl_svg
         return function (args...; kwargs...)
             clean = _map_tmp_to_output(kwargs)
             la = load_la_figures()
-            svd_tbl_svg = _pygetattr(la, :svd_tbl_svg)
-            return _pycall(svd_tbl_svg, args...; clean...)
+            svd_tbl_bundle = _pygetattr(la, :svd_tbl_bundle)
+            spec, svg = _bundle_result(_pycall(svd_tbl_bundle, args...; clean...))
+            return svg, spec
         end
     end
 
@@ -357,7 +375,7 @@ export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eige
 export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 export charpoly
-export ge, show_solution, py_show_svg, show_svg
+export show_ge_final, show_solution, py_show_svg, show_svg
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions
 export round_value, round_matrices

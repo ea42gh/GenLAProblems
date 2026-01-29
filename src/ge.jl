@@ -668,7 +668,7 @@ end
 #  Xh = similar(pb.A, size(pb.A,1), A - pb.rank)
 #end
 # ==============================================================================================================
-raw"""function ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing, <br>
+raw"""function show_ge_final( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing, <br>
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],  <br>
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing, <br>
              start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing )
@@ -700,7 +700,7 @@ end
 """
     SVGOut(svg::String)
 
-Wrapper type for SVG output from `ge`, enabling rich display in IJulia.
+Wrapper type for SVG output from `show_ge_final`, enabling rich display in IJulia.
 """
 struct SVGOut
     svg::String
@@ -932,7 +932,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     end
     mats = _ge_normalize_grid(mats)
     mats = _ge_grid_to_lists(mats)
-    # Keep legacy 0-based coordinates for pivot/background specs; ge_convenience expects them.
+    # Use 0-based coordinates for pivot/background specs; ge_convenience expects them.
     pivot_list = _ge_to_pylist(pivot_list)
     decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries, mats)
     if decorators_from_bg !== nothing

@@ -6,10 +6,9 @@
 
 GenLAProblems depends on `LAlatex` for LaTeX rendering utilities and display helpers.
 
-## Migration status
+## Overview
 
-GenLAProblems is the new home for linear algebra problem generation and GE/GJ helpers.
-The legacy `GenLinAlgProblems` package is treated as read-only during the split.
+GenLAProblems provides linear algebra problem generators and GE/GJ helpers.
 
 ## Display backend
 
