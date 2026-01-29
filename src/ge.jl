@@ -90,7 +90,11 @@ mutable struct ShowGe{T<:Number}
   end
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal\\_eq::Bool=false )  where T <: Number"""
+"""
+    ref!(pb; N_rhs=:None, gj=false, normal_eq=false)
+
+Compute REF/RREF data for a `ShowGe` problem and attach pivot metadata.
+"""
 function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false )  where T <: Number
     M,N = size(pb.A)
     if isdefined( pb, :B)
@@ -116,7 +120,11 @@ function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false
     nothing
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig\\_scale=1 )   where T <: Number"""
+"""
+    show_layout!(pb; array_names=nothing, show_variables=true, fig_scale=1)
+
+Render the GE layout for a `ShowGe` problem as SVG.
+"""
 function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1 )   where T <: Number
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
@@ -135,7 +143,11 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
     return svg
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_system(  pb::ShowGe{T}; b_col=1, var\\_name::String="x", fig\\_scale=1)   where T <: Number"""
+"""
+    show_system(pb; b_col=1, var_name="x", fig_scale=1)
+
+Render the linear system associated with a `ShowGe` problem.
+"""
 function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1)   where T <: Number
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
        b = pb.B[:,b_col]
@@ -154,7 +166,9 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1
                   fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
     return _show_svg(svg)
 end
-raw"""function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x", fig\\_scale=1 )   where T <: Number"""
+"""
+    show_system(pb::ShowGe{Rational}; b_col=1, var_name="x", fig_scale=1)
+"""
 function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     cnv(x) = (numerator(x),denominator(x))
     A = cnv.(pb.A)
@@ -175,7 +189,9 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", f
                   fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
     return _show_svg(svg)
 end
-raw"""function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x", fig\\_scale=1 )   where T <: Number"""
+"""
+    show_system(pb::ShowGe{Complex{Rational}}; b_col=1, var_name="x", fig_scale=1)
+"""
 function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     cnv(x) = (numerator(x),denominator(x))
     A = cnv.(pb.A)
@@ -196,18 +212,28 @@ function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::Stri
                   fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
     return _show_svg(svg)
 end
-# --------------------------------------------------------------------------------------------------------------
-raw""" cascade = create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
+"""
+    create_cascade!(pb; b_col=1, var_name="x")
+
+Initialize cascade state for substitution displays.
+"""
+"""
+    create_cascade!(pb::ShowGe{Complex{Rational}}; b_col=1, var_name="x")
+"""
 function create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
     pb.cascade = nothing
 end
 # --------------------------------------------------------------------------------------------------------------
-raw""" cascade = create_cascade!(  pb::ShowGe{Rational{T}}; b_col=1, var\\_name::String="x" )   where T <: Number"""
+"""
+    create_cascade!(pb::ShowGe{Rational}; b_col=1, var_name="x")
+"""
 function create_cascade!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" )   where T <: Number
     pb.cascade = nothing
 end
 # --------------------------------------------------------------------------------------------------------------
-raw""" cascade = create_cascade!(  pb::ShowGe{T}; b_col=nothing, var\\_name::String="x" )   where T <: Integer"""
+"""
+    create_cascade!(pb::ShowGe{<:Integer}; b_col=1, var_name="x")
+"""
 function create_cascade!(  pb::ShowGe{T}; b_col=1, var_name::String="x" )   where T <: Integer
     pb.cascade = nothing
 end
@@ -416,21 +442,29 @@ function _display_tex(tex)
     display(MIME"text/latex"(), tex)
     return tex
 end
-raw"""function show_backsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
+"""
+    show_backsubstitution!(pb; b_col=1, var_name="x", fig_scale=1)
+
+Render the back-substitution cascade for a `ShowGe` problem.
+"""
 function show_backsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
     return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_backsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
+"""
+    show_backsubstitution!(pb::ShowGe{Rational}; b_col=1, var_name="x", fig_scale=1)
+"""
 function show_backsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
     return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Integer"""
+"""
+    show_backsubstitution!(pb::ShowGe{<:Integer}; b_col=1, var_name="x", fig_scale=1)
+"""
 function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
@@ -470,21 +504,29 @@ function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x
     return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_solution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
+"""
+    show_solution!(pb; b_col=1, var_name="x", fig_scale=1)
+
+Render the solution vector/form for a `ShowGe` problem.
+"""
 function show_solution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
     return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_solution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Number"""
+"""
+    show_solution!(pb::ShowGe{Rational}; b_col=1, var_name="x", fig_scale=1)
+"""
 function show_solution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
     return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
 end
 # --------------------------------------------------------------------------------------------------------------
-raw"""function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig\\_scale=1 )   where T <: Integer"""
+"""
+    show_solution!(pb::ShowGe{<:Integer}; b_col=1, var_name="x", fig_scale=1)
+"""
 function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
@@ -526,6 +568,11 @@ function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_d
 end
 # ==============================================================================================================
 raw"""Xp, Xh = solutions(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number"""
+"""
+    solutions(pb::ShowGe) -> xp, xh
+
+Compute a particular and homogeneous solution for the stored GE data.
+"""
 function solutions(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number
     M,N                        = size(pb.A)
     matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][1:pb.rank,1:end], n = N, gj = true )
@@ -550,6 +597,9 @@ function solutions(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number
     Xp, Xh
 end
 raw"""Xp, Xh = solutions(pb::ShowGe{Rational{T}} )   where T <: Number"""
+"""
+    solutions(pb::ShowGe{Rational}) -> xp, xh
+"""
 function solutions(pb::ShowGe{Rational{T}} )   where T <: Number
     M,N                        = size(pb.A)
     matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][1:pb.rank,1:end], n = N, gj = true )
@@ -573,6 +623,9 @@ function solutions(pb::ShowGe{Rational{T}} )   where T <: Number
     Xp, Xh
 end
 raw"""Xp, Xh = solutions(pb::ShowGe{T} )   where T <: Number"""
+"""
+    solutions(pb::ShowGe) -> xp, xh
+"""
 function solutions(pb::ShowGe{T} )   where T <: Number
     M,N                        = size(pb.A)
     matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][1:pb.rank,1:end], n = N, gj = true )
@@ -939,7 +992,11 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
 end
 
 # ------------------------------------------------------------------------------------------
-raw"""function show_solution( matrices; var_name::String="x", fig\\_scale=1, tmp\\_dir=nothing, keep\\_file=nothing, render\\_svg=true )"""
+"""
+    show_solution(matrices; var_name="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true)
+
+Render the standard solution form from the final augmented matrix.
+"""
 function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true )
     Ab = matrices[end][end]
     A = Ab[:, 1:(size(Ab, 2) - 1)]

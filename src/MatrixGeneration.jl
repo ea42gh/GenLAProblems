@@ -263,7 +263,11 @@ function gen_gj_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false
     pivot_cols, A
 end
 # ------------------------------------------------------------------------------
-raw""" X,B = gen_rhs( A, pivot_cols; maxint=3,num_rhs=1,has_zeros=false) """
+"""
+    gen_rhs(A, pivot_cols; maxint=3, num_rhs=1, has_zeros=false) -> X, B
+
+Generate a random RHS matrix `B = A*X` consistent with given pivot columns.
+"""
 function gen_rhs( A, pivot_cols; maxint=3,num_rhs=1,has_zeros=false)
     rng = _int_range(maxint,has_zeros)
     X   = zeros(Int64, (size(A,2),num_rhs))
@@ -554,7 +558,11 @@ end
 # ------------------------------------------------------------------------------
 # ---------------------------------------------------------------- Eigenproblems
 # ------------------------------------------------------------------------------
-raw""" S,Λ,S_inv,A = function gen_eigenproblem( e_vals; maxint=3 ) """
+"""
+    gen_eigenproblem(e_vals; maxint=3) -> S, Λ, S_inv, A
+
+Generate a random eigenproblem with prescribed eigenvalues.
+"""
 function gen_eigenproblem( e_vals; maxint=3 )
     Λ = Diagonal( e_vals )
     S,S_inv = gen_inv_pb( size(e_vals,1), maxint=maxint )
@@ -562,6 +570,11 @@ function gen_eigenproblem( e_vals; maxint=3 )
 end
 # ------------------------------------------------------------------------------
 raw""" S,Λ,S_inv,A = gen_cx_eigenproblem( evals_no_conj; maxint=1 ) """
+"""
+    gen_cx_eigenproblem(evals_no_conj; maxint=1) -> S, Λ, S_inv, A
+
+Generate a complex eigenproblem from non-conjugate eigenvalues.
+"""
 function gen_cx_eigenproblem( evals_no_conj; maxint=1 )
     function construct_diagonal_blocks()
         t = typeof( real( evals_no_conj[1] ))
@@ -590,6 +603,11 @@ function gen_cx_eigenproblem( evals_no_conj; maxint=1 )
 end
 # ------------------------------------------------------------------------------
 raw""" S, Λ, A = gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false, general=false ) """
+"""
+    gen_symmetric_eigenproblem(e_vals; maxint=5, with_zeros=false, general=true) -> Q, Λ, A
+
+Generate a symmetric eigenproblem with prescribed eigenvalues.
+"""
 function gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false, general=true )
     S = Q_matrix( size(e_vals,1); maxint=maxint, with_zeros=with_zeros, general=general )
     Λ = Diagonal( e_vals )
@@ -667,6 +685,11 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
 end
 # ------------------------------------------------------------------------------
 raw""" U, Σ, Vt, U * Σ * Vt = gen_svd_problem(m,n,σ; maxint = 3) """
+"""
+    gen_svd_problem(m, n, σ; maxint=3) -> A, U, Σ, V
+
+Generate an SVD problem with specified singular values.
+"""
 function gen_svd_problem(m,n,σ; maxint = 3)
     U  = sparse_Q_matrix( m, maxint=maxint)
     Vt = sparse_Q_matrix( n, maxint=maxint)
