@@ -717,11 +717,11 @@ function show(io::IO, ::MIME"image/svg+xml", x::SVGOut)
     print(io, x.svg)
 end
 """
-    ge(args...; kwargs...) -> SVGOut
+    show_ge_final(args...; kwargs...) -> SVGOut
 
-Return an SVG wrapper for `julia_ge` suitable for notebook display.
+Render only the final GE table from `matrices[end][end]`.
 """
-ge(args...; kwargs...) = SVGOut(julia_ge(args...; kwargs...))
+show_ge_final(args...; kwargs...) = SVGOut(julia_ge(args...; kwargs...))
 
 function _matrices_are_strings(mats)
     for row in mats
