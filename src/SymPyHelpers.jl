@@ -1,6 +1,7 @@
 module SymPyHelpers
 
 export sympy_mat, sympy_vec, sympy_zero, sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
+export sympy_to_julia_vec, sympy_to_julia_mat
 
 using PythonCall
 using ..GenLAProblems: import_sympy
@@ -26,5 +27,8 @@ sym_is_zero(x) = PythonCall.pyconvert(Bool, _sympy_module().simplify(x).is_zero_
 sym_eq(A, B) = sym_is_zero(sympy_mat(A) - sympy_mat(B))
 
 sym_vec_zero(v) = all(PythonCall.pyconvert(Bool, _sympy_module().simplify(e) == 0) for e in v)
+
+sympy_to_julia_vec(x) = x isa PythonCall.Py ? Base.invokelatest(PythonCall.pyconvert, Vector{Any}, x) : x
+sympy_to_julia_mat(x) = x isa PythonCall.Py ? Base.invokelatest(PythonCall.pyconvert, Matrix{Any}, x) : x
 
 end
