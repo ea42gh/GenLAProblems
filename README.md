@@ -30,6 +30,9 @@ Pv = sym_mul(P, v)
 @show sym_vec_zero(circular_shift(v) .- Pv)
 ```
 
+`sympy_subs_numeric` is useful for substitution: it returns a SymPy matrix if
+symbols remain, and a Julia numeric array once fully numeric.
+
 Import this submodule only when needed; it is not re-exported by default.
 
 ## Local development
