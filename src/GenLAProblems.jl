@@ -70,6 +70,49 @@ function sympy_matrix(x)
 end
 
 """
+    svd_matrices_from_spec(spec; reduced=true)
+
+Build `(U, Σ, V, rank)` from an SVD spec dictionary (as returned by
+`nM.show_svd_table` / `la_figures.svd_tbl_spec`). The matrix type is preserved:
+if the spec contains SymPy objects, returns SymPy matrices; otherwise returns
+Julia matrices. When `reduced=true`, only nonzero singular value groups are included.
+"""
+function svd_matrices_from_spec(spec; reduced::Bool=true)
+    _ensure_pythoncall()
+    la = load_la_figures()
+    svd_from_spec = _pygetattr(la, :svd_matrices_from_spec)
+    return _pycall(svd_from_spec, spec; reduced=reduced)
+end
+
+"""
+    eig_matrices_from_spec(spec; orthonormal=true)
+
+Build `(Λ, V)` from an eigen-table spec dictionary (as returned by
+`nM.show_eig_tbl` / `la_figures.eig_tbl_spec`). Uses `qvecs` when available
+and `orthonormal=true`, otherwise uses `evecs`. The matrix type is preserved.
+"""
+function eig_matrices_from_spec(spec; orthonormal::Bool=true)
+    _ensure_pythoncall()
+    la = load_la_figures()
+    eig_from_spec = _pygetattr(la, :eig_matrices_from_spec)
+    return _pycall(eig_from_spec, spec; orthonormal=orthonormal)
+end
+
+"""
+    qr_matrices_from_grid(mats)
+
+Extract QR-related matrices from a Gram–Schmidt QR grid (as returned by
+`nM.gram_schmidt_qr`). Returns `(A, W, WtA, WtW, S, Qt, Q, R)` as a named tuple.
+The matrix type is preserved (Julia or SymPy).
+"""
+function qr_matrices_from_grid(mats)
+    _ensure_pythoncall()
+    la = load_la_figures()
+    qr_from_grid = _pygetattr(la, :qr_matrices_from_grid)
+    return _pycall(qr_from_grid, mats)
+end
+
+"""
     Base.adjoint(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
 
 Return `p` unchanged to avoid accidental polynomial adjoints.
@@ -231,18 +274,25 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :gram_schmidt_qr
         return function (args...; kwargs...)
             clean = Dict(kwargs)
-            if haskey(clean, :tmp_dir) && !haskey(clean, :output_dir)
-                clean[:output_dir] = clean[:tmp_dir]
+            # Rendering kwargs
+            render_kw = Dict(clean)
+            if haskey(render_kw, :tmp_dir) && !haskey(render_kw, :output_dir)
+                render_kw[:output_dir] = render_kw[:tmp_dir]
             end
-            pop!(clean, :tmp_dir, nothing)
-            pop!(clean, :keep_file, nothing)
+            pop!(render_kw, :tmp_dir, nothing)
+            pop!(render_kw, :keep_file, nothing)
+            # Compute/spec kwargs should not include output_dir/tmp_dir/keep_file
+            compute_kw = Dict(clean)
+            pop!(compute_kw, :tmp_dir, nothing)
+            pop!(compute_kw, :output_dir, nothing)
+            pop!(compute_kw, :keep_file, nothing)
             la = load_la_figures()
             gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
             qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
-            matrices = _pycall(gram_schmidt_qr_matrices, args...; clean...)
-            spec = _pycall(qr_tbl_spec_from_matrices, matrices; clean...)
-            qr_grid_svg = _pygetattr(load_matrixlayout(), :qr_grid_svg)
-            svg = _pycall(qr_grid_svg; spec=spec, clean...)
+            matrices = _pycall(gram_schmidt_qr_matrices, args...; compute_kw...)
+            spec = _pycall(qr_tbl_spec_from_matrices, matrices; compute_kw...)
+            render_qr_svg = _pygetattr(load_matrixlayout(), :render_qr_svg)
+            svg = _pycall(render_qr_svg; spec=spec, render_kw...)
             return _show_svg(svg), matrices
         end
     elseif name === :qr_tbl_svg
@@ -379,6 +429,7 @@ export show_ge_final, show_solution, py_show_svg, show_svg
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions
 export round_value, round_matrices
+export svd_matrices_from_spec, eig_matrices_from_spec, qr_matrices_from_grid
 
 # Precompile pure-Julia workloads to reduce latency without PythonCall.
 @compile_workload begin
