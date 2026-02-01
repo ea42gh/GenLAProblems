@@ -404,7 +404,8 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
         kwargs[:tmp_dir] = tmp_dir
     end
     if keep_file !== nothing
-        kwargs[:keep_file] = keep_file
+        # backsubst_svg does not accept keep_file; map to output_dir
+        kwargs[:output_dir] = dirname(String(keep_file))
     end
     svg = _pycall(backsubst_svg; kwargs...)
     return _show_svg(svg)
@@ -425,7 +426,8 @@ function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, 
         kwargs[:tmp_dir] = tmp_dir
     end
     if keep_file !== nothing
-        kwargs[:keep_file] = keep_file
+        # backsubst_svg does not accept keep_file; map to output_dir
+        kwargs[:output_dir] = dirname(String(keep_file))
     end
     svg = _pycall(backsubst_svg; kwargs...)
     return _show_svg(svg)
