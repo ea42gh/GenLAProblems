@@ -69,6 +69,12 @@ function sympy_subs_numeric(A, subs)
     sympy = _sympy_module()
     symA = sympy_mat(A)
     sub_list = subs isa AbstractDict ? collect(pairs(subs)) : subs
+    if sub_list isa Pair
+        sub_list = [sub_list]
+    end
+    if sub_list isa AbstractVector
+        sub_list = [(p.first, p.second) for p in sub_list]
+    end
     subbed = symA.subs(sub_list)
     free = Base.invokelatest(PythonCall.pygetattr, subbed, "free_symbols")
     blen = Base.invokelatest(PythonCall.pybuiltins.len, free)
