@@ -251,6 +251,44 @@ function _nm_svg_wrapper(svg_sym::Symbol;
     end
 end
 
+function _split_qr_kw(kwargs)
+    clean = Dict(kwargs)
+    # Rendering kwargs
+    render_kw = Dict(clean)
+    if haskey(render_kw, :tmp_dir) && !haskey(render_kw, :output_dir)
+        render_kw[:output_dir] = render_kw[:tmp_dir]
+    end
+    pop!(render_kw, :tmp_dir, nothing)
+    pop!(render_kw, :keep_file, nothing)
+    # Compute/spec kwargs should not include output_dir/tmp_dir/keep_file
+    compute_kw = Dict(clean)
+    pop!(compute_kw, :tmp_dir, nothing)
+    pop!(compute_kw, :output_dir, nothing)
+    pop!(compute_kw, :keep_file, nothing)
+    return compute_kw, render_kw
+end
+
+function _qr_spec_from_args(args...; compute_kw...)
+    la = load_la_figures()
+    gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
+    qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
+    matrices = _pycall(gram_schmidt_qr_matrices, args...; compute_kw...)
+    spec = _pycall(qr_tbl_spec_from_matrices, matrices; compute_kw...)
+    return spec, matrices
+end
+
+function _render_qr_from_spec(spec; render_kw...)
+    render_qr_svg = _pygetattr(load_matrixlayout(), :render_qr_svg)
+    return _pycall(render_qr_svg; spec=spec, render_kw...)
+end
+
+function _nm_gram_schmidt_qr(args...; kwargs...)
+    compute_kw, render_kw = _split_qr_kw(kwargs)
+    spec, matrices = _qr_spec_from_args(args...; compute_kw...)
+    svg = _render_qr_from_spec(spec; render_kw...)
+    return _show_svg(svg), matrices
+end
+
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :ge || name === :_to_svg_str
         return matrixlayout_ge
@@ -271,29 +309,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :ml || name === :matrixlayout
         return load_matrixlayout()
     elseif name === :gram_schmidt_qr
-        return function (args...; kwargs...)
-            clean = Dict(kwargs)
-            # Rendering kwargs
-            render_kw = Dict(clean)
-            if haskey(render_kw, :tmp_dir) && !haskey(render_kw, :output_dir)
-                render_kw[:output_dir] = render_kw[:tmp_dir]
-            end
-            pop!(render_kw, :tmp_dir, nothing)
-            pop!(render_kw, :keep_file, nothing)
-            # Compute/spec kwargs should not include output_dir/tmp_dir/keep_file
-            compute_kw = Dict(clean)
-            pop!(compute_kw, :tmp_dir, nothing)
-            pop!(compute_kw, :output_dir, nothing)
-            pop!(compute_kw, :keep_file, nothing)
-            la = load_la_figures()
-            gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
-            qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
-            matrices = _pycall(gram_schmidt_qr_matrices, args...; compute_kw...)
-            spec = _pycall(qr_tbl_spec_from_matrices, matrices; compute_kw...)
-            render_qr_svg = _pygetattr(load_matrixlayout(), :render_qr_svg)
-            svg = _pycall(render_qr_svg; spec=spec, render_kw...)
-            return _show_svg(svg), matrices
-        end
+        return _nm_gram_schmidt_qr
     elseif name === :qr_tbl_svg
         return _nm_bundle_wrapper(:qr_tbl_bundle; wrap_svg=false)
     elseif name === :qr_svg

@@ -459,99 +459,36 @@ function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_d
     return _display_cascade(lines)
 end
 # ==============================================================================================================
-raw"""Xp, Xh = solutions(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number"""
-"""
-    solutions(pb::ShowGe) -> xp, xh
-
-Compute a particular and homogeneous solution for the stored GE data.
-"""
-function solutions(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number
-    M,N                        = size(pb.A)
-    matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][1:pb.rank,1:end], n = N, gj = true )
-
-    if sum(pb.num_rhs) > 0
-      Xp                         = zeros(Complex{Rational{T}}, N, sum(pb.num_rhs))
-      F                          = matrices[end][end][1:pb.rank,N+1:end]
-      Xp[pivot_cols,:]           = F
-    else
-      Xp                         = zeros(Complex{Rational{T}}, N, 1)
-    end
-
-    if length(pb.free_cols) > 0
-        Xh = zeros(Complex{Rational{T}}, N, N-pb.rank)
-        F  = matrices[end][end][1:pb.rank,pb.free_cols]
-        for (col,row) in enumerate(pb.free_cols)  Xh[row,col] = 1  end
-        Xh[pivot_cols,:] = -F
-    else
-        Xh = zeros(Complex{Rational{T}}, N, 1)
-    end
-
-    Xp, Xh
-end
-raw"""Xp, Xh = solutions(pb::ShowGe{Rational{T}} )   where T <: Number"""
-"""
-    solutions(pb::ShowGe{Rational}) -> xp, xh
-"""
-function solutions(pb::ShowGe{Rational{T}} )   where T <: Number
-    M,N                        = size(pb.A)
-    matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][1:pb.rank,1:end], n = N, gj = true )
-
-    if sum(pb.num_rhs) > 0
-      Xp                         = zeros(Rational{T}, N, sum(pb.num_rhs))
-      F                          = matrices[end][end][1:pb.rank,N+1:end]
-      Xp[pivot_cols,:]           = F
-    else
-      Xp                         = zeros(Rational{T}, N, 1)
-    end
-
-    if length(pb.free_cols) > 0
-      Xh = zeros(Rational{T}, N, N-pb.rank)
-      F  = matrices[end][end][1:pb.rank,pb.free_cols]
-      for (col,row) in enumerate(pb.free_cols)  Xh[row,col] = 1  end
-      Xh[pivot_cols,:] = -F
-    else
-      Xh = zeros(Rational{T}, N, 1)
-    end
-    Xp, Xh
-end
-raw"""Xp, Xh = solutions(pb::ShowGe{T} )   where T <: Number"""
 """
     solutions(pb::ShowGe) -> xp, xh
 """
 function solutions(pb::ShowGe{T} )   where T <: Number
-    M,N                        = size(pb.A)
-    matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][1:pb.rank,1:end], n = N, gj = true )
+    _, N = size(pb.A)
+    matrices, pivot_cols, _ = reduce_to_ref(pb.matrices[end][end][1:pb.rank, 1:end], n=N, gj=true)
 
     if sum(pb.num_rhs) > 0
-      Xp                         = zeros(T, N, sum(pb.num_rhs))
-      F                          = matrices[end][end][1:pb.rank,N+1:end]
-      Xp[pivot_cols,:]           = F
+        Xp = zeros(T, N, sum(pb.num_rhs))
+        F = matrices[end][end][1:pb.rank, N+1:end]
+        Xp[pivot_cols, :] = F
     else
-      Xp                         = zeros(T, N, 1)
+        Xp = zeros(T, N, 1)
     end
 
     if length(pb.free_cols) > 0
-      Xh = zeros(T, N, N-pb.rank)
-      F  = matrices[end][end][1:pb.rank,pb.free_cols]
-      for (col,row) in enumerate(pb.free_cols)  Xh[row,col] = 1  end
-      Xh[pivot_cols,:] = -F
+        Xh = zeros(T, N, N - pb.rank)
+        F = matrices[end][end][1:pb.rank, pb.free_cols]
+        for (col, row) in enumerate(pb.free_cols)
+            Xh[row, col] = 1
+        end
+        Xh[pivot_cols, :] = -F
     else
-      Xh = zeros(T, N, 1)
+        Xh = zeros(T, N, 1)
     end
-    Xp, Xh
+    return Xp, Xh
 end
 # ------------------------------------------------------------------------------------------
-raw"""Xp, xH = solve!(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number"""
-function solve!(pb::ShowGe{Complex{Rational{T}}} )   where T <: Number
-    pb.xp, pb.xh = solutions( pb )
-end
-raw"""solve!(pb::ShowGe{Rational{T}} )   where T <: Number"""
-function solve!(pb::ShowGe{Rational{T}} )   where T <: Number
-    pb.xp, pb.xh = solutions( pb )
-end
-raw"""Xp, Xh = solve!(pb::ShowGe{T} )   where T <: Number"""
 function solve!(pb::ShowGe{T} )   where T <: Number
-    pb.xp, pb.xh = solutions( pb )
+    pb.xp, pb.xh = solutions(pb)
 end
 # ==============================================================================================================
 # function column_view( Xp, Xh, pivot_cols, rhs )
