@@ -148,35 +148,24 @@ end
 
 Render the linear system associated with a `ShowGe` problem.
 """
-function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1)   where T <: Number
+function _system_matrix_rhs(pb::ShowGe{T}; b_col=1) where T <: Number
+    A = pb.A
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
        b = pb.B[:,b_col]
     else
-       b = zeros( eltype(pb.A), size(pb.A,1), 1)
+       b = zeros(eltype(pb.A), size(A,1), 1)
     end
-    la = load_la_figures()
-    linear_system_tex = _pygetattr(la, :linear_system_tex)
-    tex = _pycall(linear_system_tex, pb.A, b; var_name=var_name)
-    _ensure_pythoncall()
-    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    bs = _pyimport("matrixlayout.backsubst")
-    backsubst_svg = _pygetattr(bs, :backsubst_svg)
-    svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
-                  show_cascade=false, show_solution=false,
-                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
-    return _show_svg(svg)
+    if A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}
+        A = _encode_exact.(A)
+    end
+    if b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}
+        b = _encode_exact.(b)
+    end
+    return A, b
 end
-"""
-    show_system(pb::ShowGe{Rational}; b_col=1, var_name="x", fig_scale=1)
-"""
-function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    cnv(x) = (numerator(x),denominator(x))
-    A = cnv.(pb.A)
-    if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
-       b = cnv.(pb.B[:,b_col])
-    else
-       b = cnv.(zeros( eltype(pb.A), size(A,1), 1))
-    end
+
+function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1) where T <: Number
+    A, b = _system_matrix_rhs(pb; b_col=b_col)
     la = load_la_figures()
     linear_system_tex = _pygetattr(la, :linear_system_tex)
     tex = _pycall(linear_system_tex, A, b; var_name=var_name)
@@ -190,48 +179,11 @@ function show_system(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", f
     return _show_svg(svg)
 end
 """
-    show_system(pb::ShowGe{Complex{Rational}}; b_col=1, var_name="x", fig_scale=1)
-"""
-function show_system(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    cnv(x) = (numerator(x),denominator(x))
-    A = cnv.(pb.A)
-    if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
-       b = cnv.(pb.B[:,b_col])
-    else
-       b = cnv.(zeros( eltype(A), size(A,1), 1))
-    end
-    la = load_la_figures()
-    linear_system_tex = _pygetattr(la, :linear_system_tex)
-    tex = _pycall(linear_system_tex, A, b; var_name=var_name)
-    _ensure_pythoncall()
-    tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
-    bs = _pyimport("matrixlayout.backsubst")
-    backsubst_svg = _pygetattr(bs, :backsubst_svg)
-    svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
-                  show_cascade=false, show_solution=false,
-                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
-    return _show_svg(svg)
-end
-"""
-    create_cascade!(pb::ShowGe{Complex{Rational}}; b_col=1, var_name="x")
+    create_cascade!(pb::ShowGe; b_col=1, var_name="x")
 
 Initialize cascade state for substitution displays.
 """
-function create_cascade!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x" )   where T <: Number
-    pb.cascade = nothing
-end
-# --------------------------------------------------------------------------------------------------------------
-"""
-    create_cascade!(pb::ShowGe{Rational}; b_col=1, var_name="x")
-"""
-function create_cascade!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x" )   where T <: Number
-    pb.cascade = nothing
-end
-# --------------------------------------------------------------------------------------------------------------
-"""
-    create_cascade!(pb::ShowGe{<:Integer}; b_col=1, var_name="x")
-"""
-function create_cascade!(  pb::ShowGe{T}; b_col=1, var_name::String="x" )   where T <: Integer
+function create_cascade!(  pb::ShowGe{T}; b_col=1, var_name::String="x" ) where T <: Number
     pb.cascade = nothing
 end
 # --------------------------------------------------------------------------------------------------------------
@@ -446,54 +398,13 @@ end
 
 Render the back-substitution cascade for a `ShowGe` problem.
 """
-function show_backsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
+function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 ) where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
     return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
 end
 # --------------------------------------------------------------------------------------------------------------
-"""
-    show_backsubstitution!(pb::ShowGe{Rational}; b_col=1, var_name="x", fig_scale=1)
-"""
-function show_backsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    A, b = _backsub_ref(pb; b_col=b_col)
-    lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
-end
-# --------------------------------------------------------------------------------------------------------------
-"""
-    show_backsubstitution!(pb::ShowGe{<:Integer}; b_col=1, var_name="x", fig_scale=1)
-"""
-function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
-    A, b = _backsub_ref(pb; b_col=b_col)
-    lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
-end
-# --------------------------------------------------------------------------------------------------------------
-raw"""function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number"""
-function show_forwardsubstitution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number
-    A, b = _forwardsub_ref(pb; b_col=b_col)
-    lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
-    lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
-    if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
-    end
-    return _display_cascade(lines)
-end
-# --------------------------------------------------------------------------------------------------------------
-raw"""function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number"""
-function show_forwardsubstitution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Number
-    A, b = _forwardsub_ref(pb; b_col=b_col)
-    lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
-    lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
-    if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
-    end
-    return _display_cascade(lines)
-end
-# --------------------------------------------------------------------------------------------------------------
-raw"""function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Integer"""
-function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true )   where T <: Integer
+function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true ) where T <: Number
     A, b = _forwardsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
@@ -508,25 +419,7 @@ end
 
 Render the solution vector/form for a `ShowGe` problem.
 """
-function show_solution!(  pb::ShowGe{Complex{Rational{T}}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    A, b = _backsub_ref(pb; b_col=b_col)
-    tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
-end
-# --------------------------------------------------------------------------------------------------------------
-"""
-    show_solution!(pb::ShowGe{Rational}; b_col=1, var_name="x", fig_scale=1)
-"""
-function show_solution!(  pb::ShowGe{Rational{T}}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Number
-    A, b = _backsub_ref(pb; b_col=b_col)
-    tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
-end
-# --------------------------------------------------------------------------------------------------------------
-"""
-    show_solution!(pb::ShowGe{<:Integer}; b_col=1, var_name="x", fig_scale=1)
-"""
-function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 )   where T <: Integer
+function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 ) where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
     return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
@@ -750,6 +643,14 @@ function _ge_block_to_list(block)
     if block === nothing || block === :none
         return nothing
     end
+    if block isa LinearAlgebra.Adjoint
+        parent_block = parent(block)
+        # For non-numeric entries (e.g., latex string cells), avoid element-wise
+        # adjoint application and perform a plain transpose of the container.
+        block = eltype(parent_block) <: Number ? Matrix(block) : permutedims(parent_block)
+    elseif block isa LinearAlgebra.Transpose
+        block = permutedims(parent(block))
+    end
     if block isa AbstractArray
         rows = Vector{Any}()
         for i in axes(block, 1)
@@ -793,6 +694,45 @@ function _ge_to_pylist(obj)
     return obj
 end
 
+function _normalize_bg_specs(specs)
+    if !(specs isa AbstractVector)
+        return [specs]
+    end
+    if isempty(specs)
+        return specs
+    end
+    if length(specs) >= 3 && !(specs[1] isa AbstractVector) && !(specs[2] isa AbstractVector)
+        return [specs]
+    end
+    if !all(x -> x isa AbstractVector, specs)
+        return [specs]
+    end
+    return specs
+end
+
+function _matrix_shape_from_grid(mats_raw, gM::Int, gN::Int)
+    if mats_raw === nothing
+        return 0, 0
+    end
+    try
+        grid = mats_raw[gM + 1]
+        mat = grid[gN + 1]
+        if mat === nothing || mat isa AbstractString
+            return 0, 0
+        elseif mat isa AbstractMatrix
+            return size(mat)
+        elseif mat isa AbstractArray && ndims(mat) == 2
+            return size(mat)
+        elseif mat isa AbstractVector
+            nrows = length(mat)
+            ncols = nrows == 0 ? 0 : length(mat[1])
+            return nrows, ncols
+        end
+    catch
+    end
+    return 0, 0
+end
+
 function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
     if bg_for_entries === nothing
         return nothing
@@ -802,15 +742,7 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
     decorator_bg = Base.invokelatest(PythonCall.pygetattr, fmt, "decorator_bg")
     sel_entry = Base.invokelatest(PythonCall.pygetattr, fmt, "sel_entry")
     sel_box = Base.invokelatest(PythonCall.pygetattr, fmt, "sel_box")
-    specs = bg_for_entries
-    if !(specs isa AbstractVector)
-        specs = [specs]
-    elseif !isempty(specs) && length(specs) >= 3 &&
-           !(specs[1] isa AbstractVector) && !(specs[2] isa AbstractVector)
-        specs = [specs]
-    elseif !isempty(specs) && !all(x -> x isa AbstractVector, specs)
-        specs = [specs]
-    end
+    specs = _normalize_bg_specs(bg_for_entries)
     decorators = Vector{Any}()
     for spec in specs
         if !(spec isa AbstractVector) || length(spec) < 3
@@ -818,30 +750,7 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
         end
         gM = Int(spec[1])
         gN = Int(spec[2])
-        nrows = ncols = 0
-        if mats_raw !== nothing
-            try
-                grid = mats_raw[gM + 1]
-                mat = grid[gN + 1]
-                if mat === nothing
-                    nrows = 0
-                    ncols = 0
-                elseif mat isa AbstractMatrix
-                    nrows, ncols = size(mat)
-                elseif mat isa AbstractArray && ndims(mat) == 2
-                    nrows, ncols = size(mat)
-                elseif mat isa AbstractVector
-                    nrows = length(mat)
-                    ncols = nrows == 0 ? 0 : length(mat[1])
-                elseif mat isa AbstractString
-                    nrows = 0
-                    ncols = 0
-                end
-            catch
-                nrows = 0
-                ncols = 0
-            end
-        end
+        nrows, ncols = _matrix_shape_from_grid(mats_raw, gM, gN)
         entries = spec[3]
         color = length(spec) >= 4 ? string(spec[4]) : "red!15"
         if !(entries isa AbstractVector)
@@ -870,116 +779,82 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
     return isempty(decorators) ? nothing : decorators
 end
 
-function _needs_shift_locs(obj)
-    if obj isa Tuple && length(obj) == 2
-        if all(x -> x isa Integer, obj)
-            return any(x -> x == 0, obj)
-        end
-        if all(x -> x isa Tuple && length(x) == 2, obj)
-            return _needs_shift_locs(obj[1]) || _needs_shift_locs(obj[2])
-        end
-    elseif obj isa AbstractVector
-        return any(_needs_shift_locs, obj)
+function _prepare_ge_mats(matrices, formater)
+    mats = matrices
+    if !_matrices_are_strings(mats)
+        mats = formater(mats)
     end
-    return false
+    mats = _ge_normalize_grid(mats)
+    return _ge_grid_to_lists(mats)
 end
 
-function _shift_loc_pair(pair::Tuple)
-    return (pair[1] + 1, pair[2] + 1)
+function _merge_bg_decorators(bg_for_entries, decorators, mats)
+    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries, mats)
+    if decorators !== nothing && !(decorators isa AbstractVector)
+        decorators = [decorators]
+    end
+    if decorators_from_bg !== nothing
+        bg_for_entries = nothing
+        decorators = decorators === nothing ? decorators_from_bg : vcat(decorators_from_bg, decorators)
+    end
+    return bg_for_entries, decorators
 end
 
-function _shift_locs(obj)
-    if obj isa Tuple && length(obj) == 2 && all(x -> x isa Integer, obj)
-        return _shift_loc_pair(obj)
-    elseif obj isa Tuple && length(obj) == 2 && all(x -> x isa Tuple && length(x) == 2, obj)
-        return (_shift_locs(obj[1]), _shift_locs(obj[2]))
-    elseif obj isa AbstractVector
-        return [_shift_locs(x) for x in obj]
-    end
-    return obj
+function _call_ge_convenience(mats_py; kwargs...)
+    _ensure_pythoncall()
+    ge_conv = _pyimport("la_figures.ge_convenience")
+    ge_fn = Base.invokelatest(PythonCall.pygetattr, ge_conv, "ge")
+    return _pycall(ge_fn, mats_py; kwargs...)
 end
 
-function _shift_specs(specs, loc_index::Int)
-    if specs === nothing
-        return nothing
-    end
-    if specs isa AbstractVector && !isempty(specs) && all(x -> x isa AbstractVector, specs)
-        out = Vector{Any}(undef, length(specs))
-        for (i, spec) in enumerate(specs)
-            spec2 = copy(spec)
-            if length(spec2) >= loc_index && _needs_shift_locs(spec2[loc_index])
-                spec2[loc_index] = _shift_locs(spec2[loc_index])
-            end
-            out[i] = spec2
-        end
-        return out
-    end
-    if specs isa AbstractVector
-        spec2 = copy(specs)
-        if length(spec2) >= loc_index && _needs_shift_locs(spec2[loc_index])
-            spec2[loc_index] = _shift_locs(spec2[loc_index])
-        end
-        return spec2
-    end
-    return specs
+function _ge_pyify_payload(mats, pivot_list, bg_for_entries, ref_path_list, comment_list, variable_summary, array_names, specs, decorators)
+    return (
+        mats=_ge_to_pylist(mats),
+        pivot_list=_ge_to_pylist(pivot_list),
+        bg_for_entries=_ge_to_pylist(bg_for_entries),
+        ref_path_list=_ge_to_pylist(ref_path_list),
+        comment_list=_ge_to_pylist(comment_list),
+        variable_summary=_ge_to_pylist(variable_summary),
+        array_names=_ge_to_pylist(array_names),
+        specs=_ge_to_pylist(specs),
+        decorators=_ge_to_pylist(decorators),
+    )
 end
 
 function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"], pivot_text_color=nothing,
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
              start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, kwargs... )
-    mats = matrices
-    if !_matrices_are_strings(mats)
-        mats = formater(mats)
-    end
-    mats = _ge_normalize_grid(mats)
-    mats = _ge_grid_to_lists(mats)
+    mats = _prepare_ge_mats(matrices, formater)
     # Use 0-based coordinates for pivot/background specs; ge_convenience expects them.
-    pivot_list = _ge_to_pylist(pivot_list)
-    decorators_from_bg = _bg_for_entries_to_decorators(bg_for_entries, mats)
-    if decorators_from_bg !== nothing
-        bg_for_entries = nothing
-    else
-        bg_for_entries = _ge_to_pylist(bg_for_entries)
-    end
-    ref_path_list = _ge_to_pylist(ref_path_list)
-    comment_list = _ge_to_pylist(comment_list)
-    variable_summary = _ge_to_pylist(variable_summary)
-    array_names = _ge_to_pylist(array_names)
-    specs = get(kwargs, :specs, nothing)
-    specs = _ge_to_pylist(specs)
     decorators = get(kwargs, :decorators, nothing)
-    if decorators !== nothing && !(decorators isa AbstractVector)
-        decorators = [decorators]
-    end
-    if decorators_from_bg !== nothing
-        decorators = decorators === nothing ? decorators_from_bg : vcat(decorators_from_bg, decorators)
-    end
-    decorators = _ge_to_pylist(decorators)
+    bg_for_entries, decorators = _merge_bg_decorators(bg_for_entries, decorators, mats)
+    specs = get(kwargs, :specs, nothing)
+    payload = _ge_pyify_payload(
+        mats, pivot_list, bg_for_entries, ref_path_list,
+        comment_list, variable_summary, array_names, specs, decorators
+    )
+
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
-    ge_conv = _pyimport("la_figures.ge_convenience")
-    ge_fn = Base.invokelatest(PythonCall.pygetattr, ge_conv, "ge")
     if pivot_text_color === nothing
         pivot_text_color = pivot_colors[1]
     end
-    mats_py = _ge_to_pylist(mats)
-    svg = _pycall(
-        ge_fn,
-        mats_py;
+    svg = _call_ge_convenience(
+        payload.mats;
         Nrhs=Nrhs,
         formatter=py_str,
-        pivot_list=pivot_list,
-        bg_for_entries=bg_for_entries,
+        pivot_list=payload.pivot_list,
+        bg_for_entries=payload.bg_for_entries,
         variable_colors=variable_colors,
         pivot_text_color=pivot_text_color,
-        ref_path_list=ref_path_list,
-        comment_list=comment_list,
-        variable_summary=variable_summary,
-        array_names=array_names,
-        specs=specs,
-        decorators=decorators,
+        ref_path_list=payload.ref_path_list,
+        comment_list=payload.comment_list,
+        variable_summary=payload.variable_summary,
+        array_names=payload.array_names,
+        specs=payload.specs,
+        decorators=payload.decorators,
         start_index=start_index,
         func=func,
         fig_scale=fig_scale,

@@ -1,5 +1,31 @@
-using GenLAProblems
 using Test
+
+# Ensure Python modules in local workspace are importable during tests.
+let
+    # Pin PythonCall to the same interpreter used for local notebook/runtime checks.
+    if !haskey(ENV, "JULIA_PYTHONCALL_EXE")
+        ENV["JULIA_PYTHONCALL_EXE"] = get(ENV, "PYTHON", Sys.which("python3"))
+    end
+    # Avoid CondaPkg creating an isolated Python during tests.
+    ENV["JULIA_CONDAPKG_BACKEND"] = get(ENV, "JULIA_CONDAPKG_BACKEND", "Null")
+    ENV["CONDAPKG_BACKEND"] = get(ENV, "CONDAPKG_BACKEND", "Null")
+
+    repo = normpath(joinpath(@__DIR__, "..", "..", ".."))
+    py_paths = [
+        joinpath(repo, "0_ITIKZ", "la_figures"),
+        joinpath(repo, "0_ITIKZ", "matrixlayout"),
+    ]
+    existing = get(ENV, "PYTHONPATH", "")
+    parts = isempty(existing) ? String[] : split(existing, ':')
+    for p in reverse(py_paths)
+        if !(p in parts)
+            pushfirst!(parts, p)
+        end
+    end
+    ENV["PYTHONPATH"] = join(parts, ':')
+end
+
+using GenLAProblems
 
 @testset "GenLAProblems.jl" begin
     @testset "Matrix generation" begin
@@ -24,34 +50,47 @@ using Test
         R_RHS = [1 0 2 5; 0 1 -1 3]
         R, RHS = split_R_RHS(R_RHS, 1)
         @test R == [1 0 2; 0 1 -1]
-        @test RHS == [5; 3]
+        @test RHS == [5; 3;;]
 
         pivots = [1, 2]
         Xp = particular_solution(R, RHS, pivots)
-        @test Xp == [5; 3; 0]
+        @test Xp == [5; 3; 0;;]
 
         H = homogeneous_solutions(R, pivots)
-        @test H == [-2; 1; 1]
+        @test H == [-2; 1; 1;;]
 
         A = [0 2 0; 0 0 3; 4 5 6]
-        @test find_pivot(A, 1, 1) == 3
-        @test find_pivot(A, 2, 2) == 3
-        @test find_pivot(A, 2, 1) == 3
-        @test find_pivot(A, 3, 2) == -1
-        @test find_diag_pivot(A, 1, 1) == 3
-        @test find_diag_pivot(A, 2, 2) == 3
-        @test find_diag_pivot(A, 3, 3) == 3
-        @test find_diag_pivot(zeros(2, 2), 1, 1) == -1
+        @test GenLAProblems.find_pivot(A, 1, 1) == 3
+        @test GenLAProblems.find_pivot(A, 2, 2) == 3
+        @test GenLAProblems.find_pivot(A, 2, 1) == 3
+        @test GenLAProblems.find_pivot(A, 3, 2) == 3
+        @test GenLAProblems.find_diag_pivot(A, 1, 1) == 3
+        @test GenLAProblems.find_diag_pivot(A, 2, 2) == 3
+        @test GenLAProblems.find_diag_pivot(A, 3, 3) == 3
+        @test GenLAProblems.find_diag_pivot(zeros(2, 2), 1, 1) == -1
 
         B = [1 0 0; 0 0 2; 0 3 0]
-        @test non_zero_entry(B, 1, 2, false)
-        @test !non_zero_entry(B, 2, 2, false)
-        @test non_zero_entry(B, 2, 2, true)
+        @test GenLAProblems.non_zero_entry(B, 1, 2, false)
+        @test GenLAProblems.non_zero_entry(B, 2, 2, false)
+        @test GenLAProblems.non_zero_entry(B, 2, 2, true)
 
         C = [1 2; 3 4]
-        interchange(C, 1, 2)
+        GenLAProblems.interchange(C, 1, 2)
         @test C == [3 4; 1 2]
-        eliminate(C, 1, 2, -2)
+        GenLAProblems.eliminate(C, 1, 2, -2)
         @test C == [3 4; -5 -6]
     end
 end
+
+include("test_python_wrappers.jl")
+include("test_ge_helpers.jl")
+include("test_bg_decorators.jl")
+include("test_nm_proxy_mocked.jl")
+include("test_wrapper_and_ge_more.jl")
+include("test_additional_coverage.jl")
+include("test_more_desirable.jl")
+include("test_runtime_surface.jl")
+include("test_notebook_contracts_and_regressions.jl")
+include("test_cascade_render_contracts.jl")
+include("test_show_system_contracts.jl")
+include("test_sym_ops_and_extractors.jl")

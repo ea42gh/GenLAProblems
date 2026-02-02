@@ -57,6 +57,10 @@ using Reexport
 using LaTeXStrings: LaTeXString
 using PrecompileTools
 include("SymPyHelpers.jl")
+using .SymPyHelpers:
+    sym_mat, sym_vec, sym_zero,
+    sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero,
+    sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
 
 """
     sympy_matrix(x)
@@ -219,54 +223,49 @@ function _bundle_result(dict)
     return spec, svg
 end
 
+function _nm_bundle_wrapper(bundle_sym::Symbol; kwcleaner=_map_tmp_to_output, wrap_svg::Bool=true)
+    return function (args...; kwargs...)
+        clean = kwcleaner(kwargs)
+        la = load_la_figures()
+        bundle_fn = _pygetattr(la, bundle_sym)
+        spec, svg = _bundle_result(_pycall(bundle_fn, args...; clean...))
+        return wrap_svg ? (_show_svg(svg), spec) : (svg, spec)
+    end
+end
+
+function _nm_svg_wrapper(svg_sym::Symbol;
+    kwcleaner=_clean_tmp_kwargs,
+    fallback_mod::Union{Nothing,String}=nothing,
+    wrap_svg::Bool=true,
+    with_first_arg::Bool=false,
+)
+    return function (args...; kwargs...)
+        clean = kwcleaner(kwargs)
+        la = load_la_figures()
+        svg_fn = fallback_mod === nothing ? _pygetattr(la, svg_sym) : _pygetattr_fallback(la, svg_sym, fallback_mod)
+        svg = _pycall(svg_fn, args...; clean...)
+        if wrap_svg
+            return with_first_arg ? (_show_svg(svg), args[1]) : _show_svg(svg)
+        end
+        return with_first_arg ? (svg, args[1]) : svg
+    end
+end
+
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :ge || name === :_to_svg_str
         return matrixlayout_ge
     elseif name === :show_eig_tbl
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            eig_tbl_bundle = _pygetattr(la, :eig_tbl_bundle)
-            spec, svg = _bundle_result(_pycall(eig_tbl_bundle, args...; clean...))
-            return _show_svg(svg), spec
-        end
+        return _nm_bundle_wrapper(:eig_tbl_bundle)
     elseif name === :show_svd_tbl || name === :show_svd_table
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            svd_tbl_bundle = _pygetattr(la, :svd_tbl_bundle)
-            spec, svg = _bundle_result(_pycall(svd_tbl_bundle, args...; clean...))
-            return _show_svg(svg), spec
-        end
+        return _nm_bundle_wrapper(:svd_tbl_bundle)
     elseif name === :show_ge_tbl
-        return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
-            la = load_la_figures()
-            ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
-            return _show_svg(_pycall(ge_tbl_svg, args...; clean...))
-        end
+        return _nm_svg_wrapper(:ge_tbl_svg; kwcleaner=_clean_tmp_kwargs, fallback_mod="la_figures.ge_convenience")
     elseif name === :show_qr_tbl
-        return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
-            la = load_la_figures()
-            qr_tbl_bundle = _pygetattr(la, :qr_tbl_bundle)
-            spec, svg = _bundle_result(_pycall(qr_tbl_bundle, args...; clean...))
-            return _show_svg(svg), spec
-        end
+        return _nm_bundle_wrapper(:qr_tbl_bundle; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_ge
-        return function (args...; kwargs...)
-            clean = _clean_tmp_kwargs(kwargs)
-            la = load_la_figures()
-            svg_fn = _pygetattr(la, :svg)
-            return _show_svg(_pycall(svg_fn, args...; clean...))
-        end
+        return _nm_svg_wrapper(:svg; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_qr
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            qr_svg = _pygetattr(la, :qr_svg)
-            return _show_svg(_pycall(qr_svg, args...; clean...)), args[1]
-        end
+        return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, with_first_arg=true)
     elseif name === :la || name === :la_figures
         return load_la_figures()
     elseif name === :ml || name === :matrixlayout
@@ -296,36 +295,13 @@ function Base.getproperty(p::NMProxy, name::Symbol)
             return _show_svg(svg), matrices
         end
     elseif name === :qr_tbl_svg
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            qr_tbl_bundle = _pygetattr(la, :qr_tbl_bundle)
-            spec, svg = _bundle_result(_pycall(qr_tbl_bundle, args...; clean...))
-            return svg, spec
-        end
+        return _nm_bundle_wrapper(:qr_tbl_bundle; wrap_svg=false)
     elseif name === :qr_svg
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            qr_svg = _pygetattr(la, :qr_svg)
-            return _pycall(qr_svg, args...; clean...), args[1]
-        end
+        return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, wrap_svg=false, with_first_arg=true)
     elseif name === :eig_tbl_svg
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            eig_tbl_bundle = _pygetattr(la, :eig_tbl_bundle)
-            spec, svg = _bundle_result(_pycall(eig_tbl_bundle, args...; clean...))
-            return svg, spec
-        end
+        return _nm_bundle_wrapper(:eig_tbl_bundle; wrap_svg=false)
     elseif name === :svd_tbl_svg
-        return function (args...; kwargs...)
-            clean = _map_tmp_to_output(kwargs)
-            la = load_la_figures()
-            svd_tbl_bundle = _pygetattr(la, :svd_tbl_bundle)
-            spec, svg = _bundle_result(_pycall(svd_tbl_bundle, args...; clean...))
-            return svg, spec
-        end
+        return _nm_bundle_wrapper(:svd_tbl_bundle; wrap_svg=false)
     end
 
     _ensure_pythoncall()
@@ -404,6 +380,9 @@ include("SolveProblems.jl")
 include("ge.jl")
 
 export load_la_figures, load_matrixlayout, nM, sympy, sympy_matrix
+export sym_mat, sym_vec, sym_zero
+export sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
+export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
 export symbol_vector, symbols_matrix, form_linear_combination
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix
