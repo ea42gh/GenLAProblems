@@ -125,7 +125,7 @@ end
 
 Render the GE layout for a `ShowGe` problem as SVG.
 """
-function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1 )   where T <: Number
+function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1, render_opts=nothing )   where T <: Number
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
@@ -135,6 +135,7 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
         variable_summary=show_variables ? pb.basic_var : nothing,
         variable_colors=["red", "black"],
         array_names=array_names,
+        render_opts=render_opts,
     )
     _ensure_pythoncall()
     svg_str = Base.invokelatest(PythonCall.pyconvert, String, pb.h)
@@ -164,7 +165,7 @@ function _system_matrix_rhs(pb::ShowGe{T}; b_col=1) where T <: Number
     return A, b
 end
 
-function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1) where T <: Number
+function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing) where T <: Number
     A, b = _system_matrix_rhs(pb; b_col=b_col)
     la = load_la_figures()
     linear_system_tex = _pygetattr(la, :linear_system_tex)
@@ -175,7 +176,8 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1
     backsubst_svg = _pygetattr(bs, :backsubst_svg)
     svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
                   show_cascade=false, show_solution=false,
-                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir)
+                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir,
+                  render_opts=render_opts)
     return _show_svg(svg)
 end
 """
@@ -341,7 +343,7 @@ function _display_cascade(lines)
     return tex
 end
 
-function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing)
+function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, render_opts=nothing)
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
@@ -359,11 +361,11 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
         # backsubst_svg does not accept keep_file; map to output_dir
         kwargs[:output_dir] = dirname(String(keep_file))
     end
-    svg = _pycall(backsubst_svg; kwargs...)
+    svg = _pycall(backsubst_svg; kwargs..., render_opts=render_opts)
     return _show_svg(svg)
 end
 
-function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing)
+function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, render_opts=nothing)
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
@@ -381,7 +383,7 @@ function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, 
         # backsubst_svg does not accept keep_file; map to output_dir
         kwargs[:output_dir] = dirname(String(keep_file))
     end
-    svg = _pycall(backsubst_svg; kwargs...)
+    svg = _pycall(backsubst_svg; kwargs..., render_opts=render_opts)
     return _show_svg(svg)
 end
 
@@ -398,18 +400,18 @@ end
 
 Render the back-substitution cascade for a `ShowGe` problem.
 """
-function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 ) where T <: Number
+function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
 end
 # --------------------------------------------------------------------------------------------------------------
-function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true ) where T <: Number
+function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true, render_opts=nothing ) where T <: Number
     A, b = _forwardsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
     if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file)
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
     end
     return _display_cascade(lines)
 end
@@ -419,10 +421,10 @@ end
 
 Render the solution vector/form for a `ShowGe` problem.
 """
-function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1 ) where T <: Number
+function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir)
+    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, render_opts=render_opts)
 end
 # ==============================================================================================================
 raw"""
@@ -448,13 +450,13 @@ using the la_figures backsubstitution cascade on a reversed system, then relabel
 Supports Integer/Float as well as exact `Rational` and `Complex{Rational}` inputs
 converted to tuples for exact SymPy reconstruction.
 """
-function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing, render_svg=true)
+function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="tmp", keep_file=nothing, render_svg=true, render_opts=nothing)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
     lines = load_la_figures().backsubstitution_tex(A2[end:-1:1, end:-1:1], b2[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
     if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file)
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file, render_opts=render_opts)
     end
     return _display_cascade(lines)
 end
@@ -508,7 +510,8 @@ raw"""function show_ge_final( matrices, desc, pivot_cols; Nrhs=0, formater=to_la
 function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
-             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing )
+             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing,
+             render_opts=nothing )
     Ab = matrices[end][end]
     nrhs = Nrhs isa AbstractArray ? sum(Nrhs) : Nrhs
     if nrhs > 0
@@ -525,6 +528,7 @@ function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_
         array_names=array_names,
         variable_summary=variable_summary,
         variable_colors=variable_colors,
+        render_opts=render_opts,
     )
     _ensure_pythoncall()
     return Base.invokelatest(PythonCall.pyconvert, String, s)
@@ -761,7 +765,8 @@ end
 function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"], pivot_text_color=nothing,
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
-             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, kwargs... )
+             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing,
+             render_opts=nothing, kwargs... )
     mats = _prepare_ge_mats(matrices, formater)
     # Use 0-based coordinates for pivot/background specs; ge_convenience expects them.
     decorators = get(kwargs, :decorators, nothing)
@@ -797,6 +802,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         fig_scale=fig_scale,
         tmp_dir=tmp_dir,
         keep_file=keep_file,
+        render_opts=render_opts,
     )
     svg_str = Base.invokelatest(PythonCall.pyconvert, String, svg)
     return SVGOut(svg_str)
@@ -808,7 +814,7 @@ end
 
 Render the standard solution form from the final augmented matrix.
 """
-function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true )
+function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true, render_opts=nothing )
     Ab = matrices[end][end]
     A = Ab[:, 1:(size(Ab, 2) - 1)]
     b = Ab[:, end]
@@ -820,7 +826,7 @@ function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=not
     end
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
     if render_svg
-        return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file)
+        return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file, render_opts=render_opts)
     end
     return _display_tex(tex)
 end

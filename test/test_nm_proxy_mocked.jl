@@ -38,6 +38,7 @@ end
         return "<svg>ge_tbl</svg>"
     end
 
+
     function fake_qr_svg(args...; kwargs...)
         seen_qr_show[] = Dict(kwargs)
         return "<svg>qr</svg>"
@@ -75,27 +76,30 @@ end
         GenLAProblems._la_figures[] = la
         GenLAProblems._matrixlayout[] = ml
 
-        h, spec = nM.show_eig_tbl([1 0; 0 1]; tmp_dir="/tmp/la")
+        h, spec = nM.show_eig_tbl([1 0; 0 1]; tmp_dir="/tmp/la", render_opts=Dict("crop" => "tight"))
         @test h isa GenLAProblems.SVGOut
         @test spec !== nothing
         @test haskey(seen_eig[], :output_dir)
         @test seen_eig[][:output_dir] == "/tmp/la"
         @test !haskey(seen_eig[], :tmp_dir)
+        @test haskey(seen_eig[], :render_opts)
 
-        h2 = nM.show_ge_tbl([1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x", output_dir="/tmp/x")
+        h2 = nM.show_ge_tbl([1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x", output_dir="/tmp/x", render_opts=Dict("padding" => (1, 1, 1, 1)))
         @test h2 isa GenLAProblems.SVGOut
         @test !haskey(seen_ge_tbl[], :tmp_dir)
         @test !haskey(seen_ge_tbl[], :keep_file)
         @test !haskey(seen_ge_tbl[], :output_dir)
+        @test haskey(seen_ge_tbl[], :render_opts)
 
-        h3, first = nM.show_qr([1 0; 0 1], :marker; tmp_dir="/tmp/la")
+        h3, first = nM.show_qr([1 0; 0 1], :marker; tmp_dir="/tmp/la", render_opts=Dict("crop" => "tight"))
         @test h3 isa GenLAProblems.SVGOut
         @test first == [1 0; 0 1]
         @test haskey(seen_qr_show[], :output_dir)
         @test seen_qr_show[][:output_dir] == "/tmp/la"
         @test !haskey(seen_qr_show[], :tmp_dir)
+        @test haskey(seen_qr_show[], :render_opts)
 
-        h4, mats = nM.gram_schmidt_qr([1 0; 0 1], [1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x")
+        h4, mats = nM.gram_schmidt_qr([1 0; 0 1], [1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x", render_opts=Dict("frame" => true))
         @test h4 isa GenLAProblems.SVGOut
         @test mats isa PythonCall.Py || mats === gs_obj
         mats_j = mats isa PythonCall.Py ? PythonCall.pyconvert(Any, mats) : mats
@@ -105,6 +109,8 @@ end
         @test !haskey(seen_qr_compute[], :keep_file)
         @test haskey(seen_render_qr[], :output_dir)
         @test seen_render_qr[][:output_dir] == "/tmp/la"
+        @test haskey(seen_render_qr[], :render_opts)
+
     finally
         GenLAProblems._la_figures[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
