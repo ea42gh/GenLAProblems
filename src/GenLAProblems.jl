@@ -116,24 +116,6 @@ function qr_matrices_from_grid(mats)
     return _pycall(qr_from_grid, mats)
 end
 
-"""
-    Base.adjoint(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
-
-Return `p` unchanged to avoid accidental polynomial adjoints.
-"""
-function Base.adjoint(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
-    return p
-end
-
-"""
-    Base.transpose(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
-
-Return `p` unchanged to avoid accidental polynomial transposes.
-"""
-function Base.transpose(p::AbstractAlgebra.Generic.Poly{Rational{BigInt}})
-    return p
-end
-
 const NO_VALUE = (:none, nothing)
 
 """

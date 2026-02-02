@@ -102,11 +102,19 @@ end
     out = GenLAProblems._ge_block_to_list(adj)
     @test out == Any[Any[a, b], Any[b, a]]
 
-    # Ensure range entries are preserved and passed to decorator conversion.
-    bg_specs = [[0, 1, [[(0, 0), (2, 3)], [(1, 1), (2, 2)]], "yellow!20", 1]]
-    mats_raw = [[nothing, [1 2 3 4; 5 6 7 8; 9 10 11 12]]]
-    decs = GenLAProblems._bg_for_entries_to_decorators(bg_specs, mats_raw)
-    @test decs !== nothing
-    @test length(decs) == 1
-    @test decs[1]["grid"] == (0, 1)
+    if try
+        PythonCall.pyimport("matrixlayout")
+        true
+    catch
+        @info "Skipping bg_for_entries regression test: matrixlayout unavailable"
+        false
+    end
+        # Ensure range entries are preserved and passed to decorator conversion.
+        bg_specs = [[0, 1, [[(0, 0), (2, 3)], [(1, 1), (2, 2)]], "yellow!20", 1]]
+        mats_raw = [[nothing, [1 2 3 4; 5 6 7 8; 9 10 11 12]]]
+        decs = GenLAProblems._bg_for_entries_to_decorators(bg_specs, mats_raw)
+        @test decs !== nothing
+        @test length(decs) == 1
+        @test decs[1]["grid"] == (0, 1)
+    end
 end

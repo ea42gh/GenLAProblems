@@ -59,7 +59,15 @@ end
     if !_has_module("sympy")
         @info "Skipping SymPyHelpers tests: sympy unavailable"
     else
-        sym = GenLAProblems.import_sympy()
+        sym = try
+            GenLAProblems.import_sympy()
+        catch err
+            @info "Skipping SymPyHelpers tests: import_sympy unavailable in this runtime" exception=(err, catch_backtrace())
+            nothing
+        end
+        if sym === nothing
+            return
+        end
         e = sym.symbols("e")
         f = sym.symbols("f")
         A = [1 e; 0 2]

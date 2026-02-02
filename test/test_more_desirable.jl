@@ -16,9 +16,13 @@ function _py_setattr_more(obj, name::AbstractString, value)
 end
 
 @testset "Error-path and malformed-input contracts" begin
-    # Malformed/unsupported bg specs should be ignored (current contract), not crash.
-    @test isnothing(GenLAProblems._bg_for_entries_to_decorators("bad", [[nothing, [1 2; 3 4]]]))
-    @test isnothing(GenLAProblems._bg_for_entries_to_decorators([:bad], [[nothing, [1 2; 3 4]]]))
+    if !_has_module_more("matrixlayout")
+        @info "Skipping bg_for_entries error-path tests: matrixlayout unavailable"
+    else
+        # Malformed/unsupported bg specs should be ignored (current contract), not crash.
+        @test isnothing(GenLAProblems._bg_for_entries_to_decorators("bad", [[nothing, [1 2; 3 4]]]))
+        @test isnothing(GenLAProblems._bg_for_entries_to_decorators([:bad], [[nothing, [1 2; 3 4]]]))
+    end
 
     # Non-vector specs are wrapped by normalization helper.
     one = [0, 1, [(0, 0)], "yellow!20", 1]

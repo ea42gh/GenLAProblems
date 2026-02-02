@@ -15,6 +15,9 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Usage" => "usage.md",
+        "Python Dependencies" => "python-deps.md",
+        "Exact Arithmetic" => "exact-arithmetic.md",
     ],
 )
 

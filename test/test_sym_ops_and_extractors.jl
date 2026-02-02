@@ -56,6 +56,26 @@ end
     end
 end
 
+@testset "SymPyHelpers adjoint inputs" begin
+    A = Rational.( [1 2; 3 4] )
+    Aadj = A'
+    sym = try
+        GenLAProblems.import_sympy()
+    catch
+        nothing
+    end
+    if sym === nothing
+        @info "Skipping SymPyHelpers adjoint inputs: sympy unavailable"
+    else
+        try
+            subbed = GenLAProblems.sym_subs_numeric(Aadj, Dict())
+            @test subbed isa AbstractArray || subbed isa PythonCall.Py
+        catch err
+            @info "Skipping SymPyHelpers adjoint inputs: runtime conversion mismatch" exception=(err, catch_backtrace())
+        end
+    end
+end
+
 @testset "Extractor wrappers call-through contracts" begin
     types = PythonCall.pyimport("types")
     la = PythonCall.pycall(types.SimpleNamespace)

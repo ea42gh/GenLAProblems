@@ -227,9 +227,9 @@ function i_with_onecol(m,c; maxint=3, with_zeros=false, lower=true, upper=true)
     E
 end
 # ------------------------------------------------------------------------------
-raw""" P = gen_permutation_matrix(row_order::Vector{Int})
+raw""" P = gen_permutation_matrix(row_order::AbstractVector{<:Integer})
 """
-function gen_permutation_matrix(row_order::Vector{Int})
+function gen_permutation_matrix(row_order::AbstractVector{<:Integer})
     n = length(row_order)
     P = zeros(Int, (n,n))
     for i in 1:n

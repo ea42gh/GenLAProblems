@@ -15,8 +15,38 @@ function _sympy_module()
     return _sympy[]
 end
 
-sym_mat(x) = x isa PythonCall.Py ? x : _sympy_module().Matrix(x)
-sym_vec(x) = x isa PythonCall.Py ? x : _sympy_module().Matrix(x)
+function _to_sympy_entry(sympy, x)
+    if x isa PythonCall.Py
+        return x
+    elseif x isa Rational
+        return sympy.Rational(numerator(x), denominator(x))
+    elseif x isa Complex{<:Rational}
+        r = sympy.Rational(numerator(real(x)), denominator(real(x)))
+        i = sympy.Rational(numerator(imag(x)), denominator(imag(x)))
+        return r + i * sympy.I
+    elseif x isa Complex
+        return real(x) + imag(x) * sympy.I
+    else
+        return x
+    end
+end
+
+function _sympy_matrix_from_array(x::AbstractArray)
+    sympy = _sympy_module()
+    mat = Matrix(x)
+    rows = Vector{Any}(undef, size(mat, 1))
+    for i in 1:size(mat, 1)
+        row = Vector{Any}(undef, size(mat, 2))
+        for j in 1:size(mat, 2)
+            row[j] = _to_sympy_entry(sympy, mat[i, j])
+        end
+        rows[i] = row
+    end
+    return sympy.Matrix(rows)
+end
+
+sym_mat(x) = x isa PythonCall.Py ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))
+sym_vec(x) = x isa PythonCall.Py ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))
 sym_zero() = _sympy_module().Integer(0)
 
 sym_mul(A, v) = sym_mat(A) * sym_vec(v)

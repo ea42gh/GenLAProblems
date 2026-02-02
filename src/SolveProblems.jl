@@ -98,8 +98,8 @@ end
 """
 Compute the particular solution from a system in **Reduced Row Echelon Form**
 """
-function particular_solution( R, RHS::Array, pivot_cols)
-    RHS = Matrix( RHS )  # make sure RHS has two indices
+function particular_solution(R, RHS::AbstractVecOrMat, pivot_cols)
+    RHS = Matrix(RHS)  # make sure RHS has two indices
     M,N = size(R,2), size(RHS,2)
     r   = length(pivot_cols)
     X   = zeros(eltype(R), (M,N))
@@ -143,19 +143,6 @@ function homogeneous_solutions( R, pivot_cols)
     end
     H
 end
-# ------------------------------------------------------------------------------
-"""
-    find_diag_pivot(A, row, col) -> Int
-
-Find a nonzero diagonal pivot at or below `row`; returns `-1` if none found.
-"""
-function find_diag_pivot(A, row, col)
-    for i in row:size(A,1)
-        if A[i,i] != 0  return i end
-    end
-    -1
-end
-# ------------------------------------------------------------------------------
 """
     find_pivot(A, row, col) -> Int
 
@@ -586,32 +573,65 @@ function qr_layout(A)
 end
 # ------------------------------------------------------------------------------
 """
-    gram_schmidt_stable(A::Array{T,2}; reorthogonalize=false) where T<:Number
+    gram_schmidt_stable(A::AbstractMatrix{T}; reorthogonalize=false) where T<:Number
 
 Compute a stable Gram-Schmidt QR factorization, optionally reorthogonalizing.
 """
-function gram_schmidt_stable(A::Array{T,2}; reorthogonalize=false) where T<:Number
-    m, n = size(A)
-    Q = zeros(T, m, n)
-    R = zeros(T, n, n)
-    E = zeros(T, n, n)
+function gram_schmidt_stable(A::AbstractMatrix{T}; reorthogonalize=false) where T<:Number
+    if T <: AbstractFloat || T <: Complex{<:AbstractFloat}
+        Awork = Matrix{T}(A)
+        m, n = size(Awork)
+        Q = zeros(T, m, n)
+        R = zeros(T, n, n)
+        E = zeros(T, n, n)
 
-    for j = 1:n
-        v = A[:, j]
+        for j = 1:n
+            v = Awork[:, j]
 
-        if reorthogonalize              # Reorthogonalization step
-            for i = 1:j-1
-                E[i, j] = dot(Q[:, i], v)
-                v      -= E[i, j] * Q[:, i]
+            if reorthogonalize              # Reorthogonalization step
+                for i = 1:j-1
+                    E[i, j] = dot(Q[:, i], v)
+                    v      -= E[i, j] * Q[:, i]
+                end
+            end
+
+            R[j, j] = norm(v)               # Stable Gram-Schmidt step
+            Q[:, j] = v / R[j, j]
+
+            for i = j+1:n
+                E[j, i] = dot(Q[:, j], Awork[:, i])
+                Awork[:, i] -= E[j, i] * Q[:, j]
             end
         end
 
-        R[j, j] = norm(v)               # Stable Gram-Schmidt step
-        Q[:, j] = v / R[j, j]
+        return Q, R
+    end
+
+    Awork = Matrix{Any}(A)
+    m, n = size(Awork)
+    Q = Matrix{Any}(undef, m, n)
+    R = Matrix{Any}(undef, n, n)
+    E = Matrix{Any}(undef, n, n)
+
+    dot_any(x, y) = sum(conj(x[i]) * y[i] for i in eachindex(x, y))
+
+    for j = 1:n
+        v = Vector{Any}(Awork[:, j])
+
+        if reorthogonalize
+            for i = 1:j-1
+                E[i, j] = dot_any(view(Q, :, i), v)
+                v = v .- E[i, j] .* view(Q, :, i)
+            end
+        end
+
+        norm_sq = dot_any(v, v)
+        R[j, j] = Symbolics.sqrt(norm_sq)
+        Q[:, j] = v ./ R[j, j]
 
         for i = j+1:n
-            E[j, i] = dot(Q[:, j], A[:, i])
-            A[:, i] -= E[j, i] * Q[:, j]
+            E[j, i] = dot_any(view(Q, :, j), Vector{Any}(Awork[:, i]))
+            Awork[:, i] = Awork[:, i] .- E[j, i] .* Q[:, j]
         end
     end
 
@@ -648,22 +668,22 @@ function _get_K_lambda()
     return _Kλ[]::Tuple
 end
 """
-    charpoly(A::Matrix{Rational{Int64}})
+    charpoly(A::AbstractMatrix{Rational{Int64}})
 
 Compute the characteristic polynomial over rationals.
 """
-function charpoly(A::Matrix{Rational{Int64}})
-    M = matrix(Rq, A)
+function charpoly(A::AbstractMatrix{Rational{Int64}})
+    M = matrix(Rq, Matrix(A))
     B = M - λ*one(M)
     det(B)
 end
 """
-    charpoly(A::Matrix{Int64})
+    charpoly(A::AbstractMatrix{Int64})
 
 Compute the characteristic polynomial over rationals for integer matrices.
 """
-function charpoly(A::Matrix{Int64})
-    M = matrix(Rq, A)
+function charpoly(A::AbstractMatrix{Int64})
+    M = matrix(Rq, Matrix(A))
     B = M - λ*one(M)
     det(B)
 end
@@ -674,11 +694,11 @@ _to_complex_rational_field(z::Complex{Rational{Int64}}) = begin
 end
 
 """
-    charpoly(A::Matrix{Complex{Rational{Int64}}})
+    charpoly(A::AbstractMatrix{Complex{Rational{Int64}}})
 
 Compute the characteristic polynomial over the Gaussian rationals.
 """
-function charpoly(A::Matrix{Complex{Rational{Int64}}})
+function charpoly(A::AbstractMatrix{Complex{Rational{Int64}}})
     K, _ = _get_number_field()
     Kλ, λc = _get_K_lambda()
     A2 = map(_to_complex_rational_field, A)
@@ -688,11 +708,11 @@ function charpoly(A::Matrix{Complex{Rational{Int64}}})
 end
 
 """
-    charpoly(A::Matrix{Complex{Int64}})
+    charpoly(A::AbstractMatrix{Complex{Int64}})
 
 Compute the characteristic polynomial for complex integer matrices.
 """
-function charpoly(A::Matrix{Complex{Int64}})
+function charpoly(A::AbstractMatrix{Complex{Int64}})
     charpoly(Complex{Rational{Int64}}.(A))
 end
 # ==============================================================================

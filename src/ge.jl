@@ -21,15 +21,15 @@ end
 
 # ==============================================================================================================
 
-raw"""pb = ShowGe{T}(A::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{T}(A::Matrix{T}, B::Vector{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{T}(A::Matrix{T}, B::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Rational{T}}(A::Matrix{T}, B::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Rational{T}}(A::Matrix{T}, B::Vector{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Complex{Rational{T}}}(A::Matrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Rational{T}}(A::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Complex{Rational{T}}}(A::Matrix{Complex{T}}, B::Vector{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Complex{Rational{T}}}(A::Matrix{Complex{T}}, B::Matrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number"""
+raw"""pb = ShowGe{T}(A::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number
+  <br>pb = ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show\\_layout") where T <: Number"""
 mutable struct ShowGe{T<:Number}
     tmp_dir
     keep_file
@@ -53,39 +53,39 @@ mutable struct ShowGe{T<:Number}
     xh
 
 
-  function ShowGe(A::Matrix; tmp_dir="tmp", keep_file="tmp/show_layout")
+  function ShowGe(A::AbstractMatrix; tmp_dir="tmp", keep_file="tmp/show_layout")
 	  ShowGe{eltype(A)}(A; tmp_dir=tmp_dir, keep_file=keep_file)
   end
-  function ShowGe(A::Matrix, b; tmp_dir="tmp", keep_file="tmp/show_layout")
+  function ShowGe(A::AbstractMatrix, b; tmp_dir="tmp", keep_file="tmp/show_layout")
     ShowGe{eltype(A)}(A, b; tmp_dir=tmp_dir, keep_file=keep_file)
   end
-  function ShowGe{T}(A::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{T}(A::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, A)
   end
-  function ShowGe{T}(A::Matrix{T}, B::Vector{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, A,B,size(B,2))
   end
-  function ShowGe{T}(A::Matrix{T}, B::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, A,B,size(B,2))
   end
 
-  function ShowGe{Rational{T}}(A::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, Rational{T}.(A) )
   end
-  function ShowGe{Rational{T}}(A::Matrix{T}, B::Vector{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2))
   end
-  function ShowGe{Rational{T}}(A::Matrix{T}, B::Matrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2))
   end
 
-  function ShowGe{Complex{Rational{T}}}(A::Matrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
     new(tmp_dir, keep_file, Complex{Rational{T}}.(A) )
   end
-  function ShowGe{Complex{Rational{T}}}(A::Matrix{Complex{T}}, B::Vector{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
     new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2))
   end
-  function ShowGe{Complex{Rational{T}}}(A::Matrix{Complex{T}}, B::Matrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
+  function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
       new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2))
   end
 end

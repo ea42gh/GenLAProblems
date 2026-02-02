@@ -31,11 +31,14 @@ end
     _py_setattr_sys(mod_bs, "backsubst_svg", fake_backsubst_svg)
 
     contains = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "__contains__")
+    had_ml = PythonCall.pyconvert(Bool, PythonCall.pycall(contains, "matrixlayout"))
+    old_ml = had_ml ? modules["matrixlayout"] : nothing
     had_bs = PythonCall.pyconvert(Bool, PythonCall.pycall(contains, "matrixlayout.backsubst"))
     old_bs = had_bs ? modules["matrixlayout.backsubst"] : nothing
     old_la = GenLAProblems._la_figures[]
 
     try
+        modules["matrixlayout"] = PythonCall.pycall(types.ModuleType, "matrixlayout")
         modules["matrixlayout.backsubst"] = mod_bs
         GenLAProblems._la_figures[] = la
 
@@ -79,6 +82,12 @@ end
         else
             popfn = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "pop")
             PythonCall.pycall(popfn, "matrixlayout.backsubst", nothing)
+        end
+        if had_ml
+            modules["matrixlayout"] = old_ml
+        else
+            popfn = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "pop")
+            PythonCall.pycall(popfn, "matrixlayout", nothing)
         end
         GenLAProblems._la_figures[] = old_la
     end

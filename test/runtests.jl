@@ -1,4 +1,5 @@
 using Test
+using PythonCall
 
 # Ensure Python modules in local workspace are importable during tests.
 let
@@ -46,6 +47,53 @@ using GenLAProblems
         @test length(pivots) == 2
     end
 
+    @testset "Adjoint inputs" begin
+        A = Rational.( [1 2; 3 4] )
+        Aadj = A'
+        matrices, _, _ = reduce_to_ref(Aadj; gj=true)
+        @test size(matrices[end][end]) == (2, 2)
+
+        Q, R = gram_schmidt_stable(Aadj)
+        @test size(Q) == (2, 2)
+        @test size(R) == (2, 2)
+
+        @test charpoly(Aadj) == charpoly(Matrix(Aadj))
+
+        matrices2, _, _ = normal_eq_reduce_to_ref(Aadj; gj=false)
+        @test size(matrices2[end][end]) == (2, 2)
+
+        W = gram_schmidt_w(Aadj)
+        @test size(W) == (2, 2)
+        @test eltype(W) <: Rational
+
+        layout = qr_layout(Aadj)
+        @test layout !== nothing
+
+        P = ca_projection_matrix(Aadj)
+        @test size(P) == (2, 2)
+        @test P == P'
+
+        U = [Rational(1) Rational(2); 0 Rational(3)]
+        b = Rational.( [5, 6] )
+        if try
+            GenLAProblems._ensure_pythoncall()
+            PythonCall.pyimport("la_figures")
+            true
+        catch
+            @info "Skipping show_backsubstitution adjoint test: la_figures unavailable"
+            false
+        end
+            @test show_backsubstitution(U', b) !== nothing
+        end
+
+        L = [Rational(1) 0; Rational(2) Rational(3)]
+        if hasmethod(show, Tuple{IO, MIME"text/latex", String})
+            @test show_forwardsubstitution(L', b; render_svg=false) !== nothing
+        else
+            @info "Skipping show_forwardsubstitution render_svg=false adjoint test: no text/latex String display method"
+        end
+    end
+
     @testset "Solve helpers" begin
         R_RHS = [1 0 2 5; 0 1 -1 3]
         R, RHS = split_R_RHS(R_RHS, 1)
@@ -64,10 +112,6 @@ using GenLAProblems
         @test GenLAProblems.find_pivot(A, 2, 2) == 3
         @test GenLAProblems.find_pivot(A, 2, 1) == 3
         @test GenLAProblems.find_pivot(A, 3, 2) == 3
-        @test GenLAProblems.find_diag_pivot(A, 1, 1) == 3
-        @test GenLAProblems.find_diag_pivot(A, 2, 2) == 3
-        @test GenLAProblems.find_diag_pivot(A, 3, 3) == 3
-        @test GenLAProblems.find_diag_pivot(zeros(2, 2), 1, 1) == -1
 
         B = [1 0 0; 0 0 2; 0 3 0]
         @test GenLAProblems.non_zero_entry(B, 1, 2, false)
