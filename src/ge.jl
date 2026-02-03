@@ -680,7 +680,7 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
     end
     _ensure_pythoncall()
     fmt = _pyimport("matrixlayout.formatting")
-    decorator_bg = Base.invokelatest(PythonCall.pygetattr, fmt, "decorator_bg")
+    make_decorator = Base.invokelatest(PythonCall.pygetattr, fmt, "make_decorator")
     sel_entry = Base.invokelatest(PythonCall.pygetattr, fmt, "sel_entry")
     sel_box = Base.invokelatest(PythonCall.pygetattr, fmt, "sel_box")
     specs = _normalize_bg_specs(bg_for_entries)
@@ -698,7 +698,7 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
             entries = [entries]
         end
         entry_selectors = Vector{Any}()
-        decorator = Base.invokelatest(decorator_bg, color)
+        decorator = Base.invokelatest(make_decorator; text_bg=color)
         for entry in entries
             if (entry isa AbstractVector || entry isa Tuple) && length(entry) == 2 &&
                (entry[1] isa AbstractVector || entry[1] isa Tuple) &&

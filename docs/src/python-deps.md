@@ -28,3 +28,23 @@ and can include options such as:
 - `toolchain_name`
 - `frame`
 - `exact_bbox`
+
+## Troubleshooting
+
+**PythonCall can't find required packages**
+- Ensure PythonCall points to the Python where packages are installed:
+  `ENV["JULIA_PYTHONCALL_EXE"] = "/path/to/python"`
+- Install required packages in that Python:
+  `python -m pip install sympy`
+  (and install your local `la_figures`, `matrixlayout`, `jupyter_tikz` packages)
+
+**`ModuleNotFoundError: No module named 'la_figures'`**
+- Verify `PYTHONPATH` includes the local repos or install the packages into the Python env.
+- In tests, `PYTHONPATH` is set to include `0_ITIKZ/la_figures` and `0_ITIKZ/matrixlayout`.
+
+**`ModuleNotFoundError: No module named 'matrixlayout'`**
+- Same fix as above; ensure the module is on `PYTHONPATH` or installed.
+
+**`Could not import Python module sympy`**
+- Install sympy into the PythonCall interpreter or set `JULIA_PYTHONCALL_EXE` to a Python
+  environment that already has sympy installed.

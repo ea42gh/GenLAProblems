@@ -17,6 +17,28 @@ matrices, pivots, desc = reduce_to_ref(A; gj=true)
 svg = show_ge_final(matrices, desc, pivots; Nrhs=0)
 ```
 
+## Rendering examples
+
+```julia
+using GenLAProblems
+
+# Example system
+A = [1 2; 3 4]
+b = [5, 6]
+
+# Render system as SVG
+pb = ShowGe(A, b; tmp_dir="/tmp/la")
+show_system(pb; var_name="x", fig_scale=1.2)
+
+# Render backsubstitution cascade
+U = [1 2; 0 3]
+show_backsubstitution(U, b)
+
+# Render final GE table directly
+matrices, pivots, desc = reduce_to_ref(A; gj=true)
+show_ge_final(matrices, desc, pivots)
+```
+
 ## Pure Julia vs Python-backed APIs
 
 Pure Julia (no Python needed):

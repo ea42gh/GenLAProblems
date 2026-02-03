@@ -250,6 +250,54 @@ function _split_qr_kw(kwargs)
     return compute_kw, render_kw
 end
 
+function _split_qr_tbl_kw(kwargs)
+    compute_keys = Set([
+        :array_names,
+        :fig_scale,
+        :preamble,
+        :extension,
+        :nice_options,
+        :label_color,
+        :label_text_color,
+        :known_zero_color,
+        :decorators,
+        :strict,
+    ])
+    render_keys = Set([
+        :formatter,
+        :toolchain_name,
+        :crop,
+        :padding,
+        :frame,
+        :exact_bbox,
+        :output_dir,
+        :output_stem,
+        :tmp_dir,
+        :render_opts,
+        :strict,
+    ])
+    compute_kw = Dict()
+    render_kw = Dict()
+    for (k, v) in kwargs
+        if k === :strict
+            compute_kw[k] = v
+            render_kw[k] = v
+        elseif k in render_keys
+            render_kw[k] = v
+        elseif k in compute_keys
+            compute_kw[k] = v
+        else
+            compute_kw[k] = v
+        end
+    end
+    if haskey(render_kw, :tmp_dir) && !haskey(render_kw, :output_dir)
+        render_kw[:output_dir] = render_kw[:tmp_dir]
+    end
+    pop!(render_kw, :tmp_dir, nothing)
+    pop!(render_kw, :keep_file, nothing)
+    return compute_kw, render_kw
+end
+
 function _qr_spec_from_args(args...; compute_kw...)
     la = load_la_figures()
     gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
@@ -257,6 +305,12 @@ function _qr_spec_from_args(args...; compute_kw...)
     matrices = _pycall(gram_schmidt_qr_matrices, args...; compute_kw...)
     spec = _pycall(qr_tbl_spec_from_matrices, matrices; compute_kw...)
     return spec, matrices
+end
+
+function _qr_tbl_spec_from_args(args...; compute_kw...)
+    la = load_la_figures()
+    qr_tbl_spec = _pygetattr(la, :qr_tbl_spec)
+    return _pycall(qr_tbl_spec, args...; compute_kw...)
 end
 
 function _render_qr_from_spec(spec; render_kw...)
@@ -269,6 +323,13 @@ function _nm_gram_schmidt_qr(args...; kwargs...)
     spec, matrices = _qr_spec_from_args(args...; compute_kw...)
     svg = _render_qr_from_spec(spec; render_kw...)
     return _show_svg(svg), matrices
+end
+
+function _nm_qr_tbl_svg(args...; kwargs...)
+    compute_kw, render_kw = _split_qr_tbl_kw(kwargs)
+    spec = _qr_tbl_spec_from_args(args...; compute_kw...)
+    svg = _render_qr_from_spec(spec; render_kw...)
+    return svg, spec
 end
 
 function Base.getproperty(p::NMProxy, name::Symbol)
@@ -293,7 +354,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :gram_schmidt_qr
         return _nm_gram_schmidt_qr
     elseif name === :qr_tbl_svg
-        return _nm_bundle_wrapper(:qr_tbl_bundle; wrap_svg=false)
+        return _nm_qr_tbl_svg
     elseif name === :qr_svg
         return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, wrap_svg=false, with_first_arg=true)
     elseif name === :eig_tbl_svg
