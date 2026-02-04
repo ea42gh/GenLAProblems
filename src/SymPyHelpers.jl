@@ -33,7 +33,8 @@ end
 
 function _sympy_matrix_from_array(x::AbstractArray)
     sympy = _sympy_module()
-    mat = Matrix(x)
+    # Normalize vectors to a column matrix to avoid Matrix(::Vector{Py}) errors.
+    mat = x isa AbstractVector ? reshape(x, :, 1) : Matrix(x)
     rows = Vector{Any}(undef, size(mat, 1))
     for i in 1:size(mat, 1)
         row = Vector{Any}(undef, size(mat, 2))
@@ -42,7 +43,11 @@ function _sympy_matrix_from_array(x::AbstractArray)
         end
         rows[i] = row
     end
-    return sympy.Matrix(rows)
+    # Build explicit Python lists to avoid NULL conversions in nested Julia arrays.
+    pyrows = Base.invokelatest(PythonCall.pylist, [
+        Base.invokelatest(PythonCall.pylist, r) for r in rows
+    ])
+    return sympy.Matrix(pyrows)
 end
 
 sym_mat(x) = x isa PythonCall.Py ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))

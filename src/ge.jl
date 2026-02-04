@@ -698,7 +698,7 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
             entries = [entries]
         end
         entry_selectors = Vector{Any}()
-        decorator = Base.invokelatest(make_decorator; text_bg=color)
+        decorator = Base.invokelatest(make_decorator; bg_color=color)
         for entry in entries
             if (entry isa AbstractVector || entry isa Tuple) && length(entry) == 2 &&
                (entry[1] isa AbstractVector || entry[1] isa Tuple) &&
