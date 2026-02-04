@@ -1,6 +1,7 @@
 module GenLAProblems
 
 const _pythoncall_loaded = Ref(false)
+const _pythoncall_mod = Ref{Any}(nothing)
 
 _in_precompile() = ccall(:jl_generating_output, Cint, ()) == 1
 _pythoncall_disabled() = get(ENV, "GENLAPROBLEMS_DISABLE_PYTHONCALL", "") != ""
@@ -16,22 +17,25 @@ function _ensure_pythoncall()
         @eval using PythonCall
         _pythoncall_loaded[] = true
     end
-    return PythonCall
+    if _pythoncall_mod[] === nothing
+        _pythoncall_mod[] = Base.invokelatest(() -> PythonCall)
+    end
+    return _pythoncall_mod[]
 end
 
 function _pyimport(name::String)
-    _ensure_pythoncall()
-    return Base.invokelatest(PythonCall.pyimport, name)
+    py = _ensure_pythoncall()
+    return Base.invokelatest(py.pyimport, name)
 end
 
 function _pycall(f, args...; kwargs...)
-    _ensure_pythoncall()
-    return Base.invokelatest(PythonCall.pycall, f, args...; kwargs...)
+    py = _ensure_pythoncall()
+    return Base.invokelatest(py.pycall, f, args...; kwargs...)
 end
 
 function _pygetattr(obj, name::Symbol)
-    _ensure_pythoncall()
-    return Base.invokelatest(PythonCall.pygetattr, obj, String(name))
+    py = _ensure_pythoncall()
+    return Base.invokelatest(py.pygetattr, obj, String(name))
 end
 
 function _pygetattr_fallback(obj, name::Symbol, mod::String)
@@ -189,7 +193,7 @@ function l_show_svd(A, U, Σ, Vt, rankA)
     Ub = BlockArray(U, [size(U, 1)], [rankA, size(U, 2) - rankA])
     Σb = BlockArray(Σ, [rankA, size(Σ, 1) - rankA], [rankA, size(Σ, 2) - rankA])
     Vtb = BlockArray(Vt, [rankA, size(Vt, 1) - rankA], [size(Vt, 2)])
-    display(l_show(L"A = U \Sigma V^T : ", A, " = ", Ub, Σb, Vtb))
+    display(l_show(LaTeXString("A = U \\Sigma V^T : "), A, " = ", Ub, Σb, Vtb))
     return nothing
 end
 
