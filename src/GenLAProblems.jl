@@ -66,16 +66,6 @@ using .SymPyHelpers:
     sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero,
     sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
 
-"""
-    sympy_matrix(x)
-
-Return a SymPy Matrix from a Julia array or PythonCall matrix-like object.
-"""
-function sympy_matrix(x)
-    sym = _pyimport("sympy")
-    mat = _pygetattr(sym, :Matrix)
-    return _pycall(mat, x)
-end
 
 """
     svd_matrices_from_spec(spec; reduced=true)
@@ -498,7 +488,7 @@ include("MatrixGeneration.jl")
 include("SolveProblems.jl")
 include("ge.jl")
 
-export load_la_figures, load_matrixlayout, nM, sympy, sympy_matrix
+export load_la_figures, load_matrixlayout, nM, sympy
 export sym_mat, sym_vec, sym_zero
 export sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
 export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
