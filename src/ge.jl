@@ -98,11 +98,11 @@ Compute REF/RREF data for a `ShowGe` problem and attach pivot metadata.
 """
 function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false )  where T <: Number
     M,N = size(pb.A)
-    if isdefined( pb, :B)
-       A = [pb.A pb.B]
-       if N_rhs != :None
-         pb.num_rhs = N_rhs
-       end
+    if pb.B !== nothing
+        A = [pb.A pb.B]
+        if N_rhs != :None
+            pb.num_rhs = N_rhs
+        end
     else
        A = pb.A
        pb.num_rhs = 0

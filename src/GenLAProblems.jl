@@ -48,7 +48,7 @@ function _pygetattr_fallback(obj, name::Symbol, mod::String)
     sub = _pyimport(mod)
     return _pygetattr(sub, name)
 end
-using Symbolics
+import Symbolics
 using AbstractAlgebra
 import AbstractAlgebra: charpoly
 using BlockArrays
