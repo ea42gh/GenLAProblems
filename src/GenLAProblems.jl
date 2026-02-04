@@ -337,19 +337,22 @@ function _split_qr_tbl_kw(kwargs)
     return compute_kw, render_kw
 end
 
-function _qr_spec_from_args(args...; matrices_kw..., spec_kw...)
+function _qr_spec_from_args(args...; matrices_kw=Dict(), spec_kw=Dict())
     la = load_la_figures()
     gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
     qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
-    matrices = _pycall(gram_schmidt_qr_matrices, args...; matrices_kw...)
-    spec = _pycall(qr_tbl_spec_from_matrices, matrices; spec_kw...)
+    matrices_nt = (; matrices_kw...)
+    spec_nt = (; spec_kw...)
+    matrices = _pycall(gram_schmidt_qr_matrices, args...; matrices_nt...)
+    spec = _pycall(qr_tbl_spec_from_matrices, matrices; spec_nt...)
     return spec, matrices
 end
 
-function _qr_tbl_spec_from_args(args...; compute_kw...)
+function _qr_tbl_spec_from_args(args...; compute_kw=Dict())
     la = load_la_figures()
     qr_tbl_spec = _pygetattr(la, :qr_tbl_spec)
-    return _pycall(qr_tbl_spec, args...; compute_kw...)
+    compute_nt = (; compute_kw...)
+    return _pycall(qr_tbl_spec, args...; compute_nt...)
 end
 
 function _render_qr_from_spec(spec; render_kw...)
@@ -359,14 +362,14 @@ end
 
 function _nm_gram_schmidt_qr(args...; kwargs...)
     matrices_kw, spec_kw, render_kw = _split_qr_kw(kwargs)
-    spec, matrices = _qr_spec_from_args(args...; matrices_kw..., spec_kw...)
+    spec, matrices = _qr_spec_from_args(args...; matrices_kw=matrices_kw, spec_kw=spec_kw)
     svg = _render_qr_from_spec(spec; render_kw...)
     return _show_svg(svg), matrices
 end
 
 function _nm_qr_tbl_svg(args...; kwargs...)
     compute_kw, render_kw = _split_qr_tbl_kw(kwargs)
-    spec = _qr_tbl_spec_from_args(args...; compute_kw...)
+    spec = _qr_tbl_spec_from_args(args...; compute_kw=compute_kw)
     svg = _render_qr_from_spec(spec; render_kw...)
     return svg, spec
 end
