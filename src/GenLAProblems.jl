@@ -179,6 +179,20 @@ Alias for `py_show_svg`, for notebook-friendly SVG display.
 """
 show_svg(svg) = py_show_svg(svg)
 
+"""
+    l_show_svd(A, U, Σ, Vt, rankA)
+
+Display an SVD factorization with block structure separating the rank and null
+space components.
+"""
+function l_show_svd(A, U, Σ, Vt, rankA)
+    Ub = BlockArray(U, [size(U, 1)], [rankA, size(U, 2) - rankA])
+    Σb = BlockArray(Σ, [rankA, size(Σ, 1) - rankA], [rankA, size(Σ, 2) - rankA])
+    Vtb = BlockArray(Vt, [rankA, size(Vt, 1) - rankA], [size(Vt, 2)])
+    display(l_show(L"A = U \Sigma V^T : ", A, " = ", Ub, Σb, Vtb))
+    return nothing
+end
+
 function _clean_tmp_kwargs(kwargs)
     clean = Dict(kwargs)
     pop!(clean, :tmp_dir, nothing)
@@ -505,7 +519,7 @@ export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eige
 export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 export charpoly
-export show_ge_final, show_solution, py_show_svg, show_svg
+export show_ge_final, show_solution, py_show_svg, show_svg, l_show_svd
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions
 export round_value, round_matrices
