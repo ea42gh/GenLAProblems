@@ -36,6 +36,7 @@ mutable struct ShowGe{T<:Number}
     A
     B
     num_rhs
+    normal_eq::Bool
 
     matrices
     cascade
@@ -60,33 +61,33 @@ mutable struct ShowGe{T<:Number}
     ShowGe{eltype(A)}(A, b; tmp_dir=tmp_dir, keep_file=keep_file)
   end
   function ShowGe{T}(A::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, A)
+      new(tmp_dir, keep_file, A, nothing, 0, false)
   end
   function ShowGe{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, A,B,size(B,2))
+      new(tmp_dir, keep_file, A, B, size(B,2), false)
   end
   function ShowGe{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, A,B,size(B,2))
+      new(tmp_dir, keep_file, A, B, size(B,2), false)
   end
 
   function ShowGe{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Rational{T}.(A) )
+      new(tmp_dir, keep_file, Rational{T}.(A), nothing, 0, false)
   end
   function ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2))
+      new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
   end
   function ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2))
+      new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
   end
 
   function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-    new(tmp_dir, keep_file, Complex{Rational{T}}.(A) )
+    new(tmp_dir, keep_file, Complex{Rational{T}}.(A), nothing, 0, false)
   end
   function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-    new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2))
+    new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
   end
   function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="tmp", keep_file="tmp/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2))
+      new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
   end
 end
 # --------------------------------------------------------------------------------------------------------------
@@ -113,6 +114,7 @@ function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false
       pb.matrices, pb.pivot_cols, pb.desc = reduce_to_ref( A, n=N, gj=gj );
       sz = (M,N)
     end
+    pb.normal_eq = normal_eq
     pb.free_cols = filter(x -> !(x in pb.pivot_cols), 1:N)
 
     pb.pivot_list, pb.bg_for_entries, pb.ref_path_list, pb.basic_var = decorate_ge(pb.desc,pb.pivot_cols,sz; pivot_color="yellow!40");
@@ -126,6 +128,24 @@ end
 Render the GE layout for a `ShowGe` problem as SVG.
 """
 function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1, render_opts=nothing )   where T <: Number
+    if pb.normal_eq
+        svg = matrixlayout_ge(
+            pb.matrices;
+            Nrhs=pb.num_rhs,
+            pivot_list=pb.pivot_list,
+            bg_for_entries=pb.bg_for_entries,
+            ref_path_list=pb.ref_path_list,
+            variable_summary=show_variables ? pb.basic_var : nothing,
+            variable_colors=["red", "black"],
+            array_names=array_names,
+            fig_scale=fig_scale,
+            tmp_dir=pb.tmp_dir,
+            keep_file=pb.keep_file,
+            render_opts=render_opts,
+        )
+        pb.h = svg
+        return svg
+    end
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
@@ -143,6 +163,7 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
     pb.h = svg
     return svg
 end
+
 # --------------------------------------------------------------------------------------------------------------
 """
     show_system(pb; b_col=1, var_name="x", fig_scale=1)

@@ -124,6 +124,26 @@ using GenLAProblems
         GenLAProblems.eliminate(C, 1, 2, -2)
         @test C == [3 4; -5 -6]
     end
+
+    @testset "Normal equation layout uses computed matrices" begin
+        if try
+            GenLAProblems._ensure_pythoncall()
+            PythonCall.pyimport("la_figures")
+            PythonCall.pyimport("matrixlayout")
+            true
+        catch
+            @info "Skipping normal_eq layout test: Python deps unavailable"
+            false
+        end
+            A = [1 2 3; 4 5 6]
+            b = [1, 1]
+            pb = ShowGe{Rational{Int}}(A, b)
+            ref!(pb; normal_eq=true)
+            # Rendering should use the normal-equation matrix stack.
+            h = show_layout!(pb; array_names=["A", ["Aᵀ", "AᵀA"]], fig_scale=1, render_opts=Dict("crop"=>"tight"))
+            @test h !== nothing
+        end
+    end
 end
 
 include("test_python_wrappers.jl")
