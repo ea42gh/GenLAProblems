@@ -103,8 +103,7 @@ end
             @test spec_svd !== nothing
 
             A_qr = [1 0; 0 1; 1 1]
-            W = gram_schmidt_w(A_qr)
-            h_qr, mats_qr = nM.gram_schmidt_qr(A_qr, W; tmp_dir="/tmp/la")
+            h_qr, mats_qr = nM.gram_schmidt_qr(A_qr; tmp_dir="/tmp/la")
             @test h_qr isa GenLAProblems.SVGOut
             @test mats_qr !== nothing
         catch err

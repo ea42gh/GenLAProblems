@@ -99,7 +99,7 @@ end
         @test !haskey(seen_qr_show[], :tmp_dir)
         @test haskey(seen_qr_show[], :render_opts)
 
-        h4, mats = nM.gram_schmidt_qr([1 0; 0 1], [1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x", render_opts=Dict("frame" => true))
+        h4, mats = nM.gram_schmidt_qr([1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x", render_opts=Dict("frame" => true))
         @test h4 isa GenLAProblems.SVGOut
         @test mats isa PythonCall.Py || mats === gs_obj
         mats_j = mats isa PythonCall.Py ? PythonCall.pyconvert(Any, mats) : mats

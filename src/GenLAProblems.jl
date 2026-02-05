@@ -346,6 +346,9 @@ function _split_qr_tbl_kw(kwargs)
 end
 
 function _qr_spec_from_args(args...; matrices_kw=Dict(), spec_kw=Dict())
+    if length(args) != 1
+        throw(ArgumentError("qr routines expect a single matrix A; W is computed internally"))
+    end
     la = load_la_figures()
     gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
     qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
@@ -357,6 +360,9 @@ function _qr_spec_from_args(args...; matrices_kw=Dict(), spec_kw=Dict())
 end
 
 function _qr_tbl_spec_from_args(args...; compute_kw=Dict())
+    if length(args) != 1
+        throw(ArgumentError("qr routines expect a single matrix A; W is computed internally"))
+    end
     la = load_la_figures()
     qr_tbl_spec = _pygetattr(la, :qr_tbl_spec)
     compute_nt = (; compute_kw...)
