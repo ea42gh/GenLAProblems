@@ -52,6 +52,9 @@ mutable struct ShowGe{T<:Number}
     m
     xp
     xh
+    status
+    rhs_status
+    rhs_inconsistent_vals
 
 
   function ShowGe(A::AbstractMatrix; tmp_dir="tmp", keep_file="tmp/show_layout")
@@ -119,7 +122,61 @@ function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false
 
     pb.pivot_list, pb.bg_for_entries, pb.ref_path_list, pb.basic_var = decorate_ge(pb.desc,pb.pivot_cols,sz; pivot_color="yellow!40");
     pb.rank = length( pb.pivot_cols )
+    _compute_rhs_status!(pb)
     nothing
+end
+# --------------------------------------------------------------------------------------------------------------
+function _rhs_val_to_tex(val)
+    if val isa Rational
+        return _rational_str(val)
+    elseif val isa Complex{<:Rational}
+        return _complex_rational_str(val)
+    end
+    return string(val)
+end
+
+function _compute_rhs_status!(pb::ShowGe{T}) where T <: Number
+    if pb.B === nothing || pb.num_rhs == 0
+        pb.status = :none
+        pb.rhs_status = Symbol[]
+        pb.rhs_inconsistent_vals = Any[]
+        return pb
+    end
+    Ab = pb.matrices[end][end]
+    n = size(pb.A, 2)
+    m = size(Ab, 1)
+    rhs_status = Vector{Symbol}(undef, pb.num_rhs)
+    rhs_vals = Vector{Any}(undef, pb.num_rhs)
+    for k in 1:pb.num_rhs
+        status = :consistent
+        val = nothing
+        for i in 1:m
+            row_zero = true
+            for j in 1:n
+                if Ab[i, j] != 0
+                    row_zero = false
+                    break
+                end
+            end
+            if row_zero && Ab[i, n + k] != 0
+                status = :inconsistent
+                val = Ab[i, n + k]
+                break
+            end
+        end
+        rhs_status[k] = status
+        rhs_vals[k] = val
+    end
+    pb.rhs_status = rhs_status
+    pb.rhs_inconsistent_vals = rhs_vals
+    if all(s -> s == :consistent, rhs_status)
+        pb.status = :consistent
+    elseif all(s -> s == :inconsistent, rhs_status)
+        pb.status = :inconsistent
+    else
+        pb.status = :mixed
+    end
+    return pb
 end
 # --------------------------------------------------------------------------------------------------------------
 """
@@ -149,11 +206,14 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
+    rhs_status = isdefined(pb, :rhs_status) ? pb.rhs_status : Symbol[]
+    rhs_status_str = [string(s) for s in rhs_status]
     pb.h = _pycall(ge_tbl_svg, pb.A, rhs;
         show_pivots=true,
         fig_scale=fig_scale,
         variable_summary=show_variables ? pb.basic_var : nothing,
         variable_colors=["red", "black"],
+        rhs_status=rhs_status_str,
         array_names=array_names,
         render_opts=render_opts,
     )
@@ -422,6 +482,12 @@ end
 Render the back-substitution cascade for a `ShowGe` problem.
 """
 function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
+    if isdefined(pb, :rhs_status) && b_col isa Integer && b_col <= length(pb.rhs_status) && pb.rhs_status[b_col] == :inconsistent
+        val = b_col <= length(pb.rhs_inconsistent_vals) ? pb.rhs_inconsistent_vals[b_col] : nothing
+        rhs_txt = val === nothing ? "?" : _rhs_val_to_tex(val)
+        lines = [string("0 = ", rhs_txt), "\\text{No Solution}"]
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
+    end
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
     return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
@@ -443,6 +509,9 @@ end
 Render the solution vector/form for a `ShowGe` problem.
 """
 function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
+    if isdefined(pb, :rhs_status) && b_col isa Integer && b_col <= length(pb.rhs_status) && pb.rhs_status[b_col] == :inconsistent
+        return Vector{T}()
+    end
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
     return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, render_opts=render_opts)
@@ -490,9 +559,15 @@ function solutions(pb::ShowGe{T} )   where T <: Number
     matrices, pivot_cols, _ = reduce_to_ref(pb.matrices[end][end][1:pb.rank, 1:end], n=N, gj=true)
 
     if sum(pb.num_rhs) > 0
-        Xp = zeros(T, N, sum(pb.num_rhs))
-        F = matrices[end][end][1:pb.rank, N+1:end]
-        Xp[pivot_cols, :] = F
+        rhs_status = isdefined(pb, :rhs_status) ? pb.rhs_status : Symbol[]
+        keep = [i for (i, s) in enumerate(rhs_status) if s == :consistent]
+        if isempty(keep)
+            Xp = zeros(T, N, 0)
+        else
+            Xp = zeros(T, N, length(keep))
+            F = matrices[end][end][1:pb.rank, N+1:end]
+            Xp[pivot_cols, :] = F[:, keep]
+        end
     else
         Xp = zeros(T, N, 1)
     end

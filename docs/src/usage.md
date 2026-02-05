@@ -39,6 +39,16 @@ matrices, pivots, desc = reduce_to_ref(A; gj=true)
 show_ge_final(matrices, desc, pivots)
 ```
 
+### Inconsistent systems
+
+When a system is inconsistent, `ShowGe` records per-RHS status in
+`pb.rhs_status` (e.g., `[:inconsistent, :consistent, ...]`) and sets
+`pb.status` to `:inconsistent` or `:mixed`. In the rendered layout, inconsistent
+RHS columns are marked with a red **x** in the variable-summary row. The
+backsubstitution view is reduced to `0 = rhs` with **No Solution**, and
+`show_solution!` returns an empty vector for those RHS columns. The
+`solutions(pb)` helper returns only consistent particular solutions.
+
 ## Pure Julia vs Python-backed APIs
 
 Pure Julia (no Python needed):
