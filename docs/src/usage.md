@@ -30,6 +30,10 @@ b = [5, 6]
 pb = ShowGe(A, b; tmp_dir="/tmp/la")
 show_system(pb; var_name="x", fig_scale=1.2)
 
+# Access RHS block (or a single RHS column) from the final GE stack:
+rhs = rhs_block(pb)
+rhs1 = rhs_block(pb; b_col=1)
+
 # Render backsubstitution cascade
 U = [1 2; 0 3]
 show_backsubstitution(U, b)
@@ -39,12 +43,15 @@ matrices, pivots, desc = reduce_to_ref(A; gj=true)
 show_ge_final(matrices, desc, pivots)
 ```
 
+Rendering defaults to subdirectories under `/tmp/la` unless you pass
+`tmp_dir` or `output_dir`.
+
 ### Inconsistent systems
 
 When a system is inconsistent, `ShowGe` records per-RHS status in
 `pb.rhs_status` (e.g., `[:inconsistent, :consistent, ...]`) and sets
 `pb.status` to `:inconsistent` or `:mixed`. In the rendered layout, inconsistent
-RHS columns are marked with a red **x** in the variable-summary row. The
+RHS columns are marked with a red **×** in the variable-summary row. The
 backsubstitution view is reduced to `0 = rhs` with **No Solution**, and
 `show_solution!` returns an empty vector for those RHS columns. The
 `solutions(pb)` helper returns only consistent particular solutions.

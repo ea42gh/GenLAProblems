@@ -18,6 +18,7 @@ end
     ref!(pb; gj=true)
 
     @test pb.rhs_status == [:inconsistent, :consistent]
+    @test pb.rhs_consistent == [false, true]
     @test pb.status == :mixed
 
     Xp, Xh = solutions(pb)

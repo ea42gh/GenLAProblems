@@ -108,6 +108,22 @@ end
     end
 end
 
+@testset "rhs_block helper" begin
+    A = [1 2; 3 4]
+    b = [5, 6]
+    pb = ShowGe(A, b)
+    ref!(pb; gj=true)
+    rhs = rhs_block(pb)
+    @test rhs == pb.matrices[end][end][:, size(A, 2)+1:end]
+    col1 = rhs_block(pb; b_col=1)
+    @test col1 == rhs[:, 1]
+end
+
+@testset "normal_eq label specs" begin
+    specs = GenLAProblems._normal_eq_name_specs(3, ["A", "b"])
+    @test any(t -> occursin("A^T", t[3]), specs)
+end
+
 @testset "nM.show_ge_tbl fallback routing" begin
     types = PythonCall.pyimport("types")
     sys = PythonCall.pyimport("sys")

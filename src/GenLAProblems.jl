@@ -523,7 +523,7 @@ export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 export charpoly
 export show_ge_final, show_solution, py_show_svg, show_svg, l_show_svd
 export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
-export show_backsubstitution, show_forwardsubstitution, solutions
+export show_backsubstitution, show_forwardsubstitution, solutions, rhs_block
 export round_value, round_matrices
 export svd_matrices_from_spec, eig_matrices_from_spec, qr_matrices_from_grid
 
