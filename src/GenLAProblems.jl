@@ -413,6 +413,8 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return _nm_qr_tbl_svg
     elseif name === :qr_svg
         return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, wrap_svg=false, with_first_arg=true)
+    elseif name === :qr_matrices_from_grid
+        return qr_matrices_from_grid
     elseif name === :eig_tbl_svg
         return _nm_bundle_wrapper(:eig_tbl_bundle; wrap_svg=false)
     elseif name === :svd_tbl_svg
