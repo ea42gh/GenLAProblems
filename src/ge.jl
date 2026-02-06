@@ -986,18 +986,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     decorators = get(kwargs, :decorators, nothing)
     had_bg = bg_for_entries !== nothing
     bg_for_entries, decorators = _merge_bg_decorators(bg_for_entries, decorators, mats)
-    needs_medium_nodes = (had_bg && decorators !== nothing) || ref_path_list !== nothing
-    if needs_medium_nodes
-        if render_opts === nothing
-            render_opts = Dict{String,Any}()
-        elseif !(render_opts isa AbstractDict)
-            render_opts = Dict{String,Any}(render_opts)
-        else
-            render_opts = Dict{String,Any}(render_opts)
-        end
-        render_opts["create_medium_nodes"] = get(render_opts, "create_medium_nodes", true)
-        render_opts["create_extra_nodes"] = get(render_opts, "create_extra_nodes", true)
-    end
+    # create_medium_nodes/create_extra_nodes are handled by la_figures.ge_convenience
     specs = get(kwargs, :specs, nothing)
     payload = _ge_pyify_payload(
         mats, pivot_list, bg_for_entries, ref_path_list,
