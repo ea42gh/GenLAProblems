@@ -273,6 +273,24 @@ function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true,
         pb.h = svg
         return svg
     end
+    if isdefined(pb, :matrices) && pb.matrices !== nothing && length(pb.matrices) > 1
+        svg = matrixlayout_ge(
+            pb.matrices;
+            Nrhs=pb.num_rhs,
+            pivot_list=pb.pivot_list,
+            bg_for_entries=pb.bg_for_entries,
+            ref_path_list=pb.ref_path_list,
+            variable_summary=show_variables ? pb.basic_var : nothing,
+            variable_colors=["red", "black"],
+            array_names=array_names,
+            fig_scale=fig_scale,
+            tmp_dir=pb.tmp_dir,
+            keep_file=pb.keep_file,
+            render_opts=render_opts,
+        )
+        pb.h = svg
+        return svg
+    end
     la = load_la_figures()
     rhs = isdefined(pb, :B) ? pb.B : nothing
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
@@ -652,6 +670,9 @@ function solutions(pb::ShowGe{T} )   where T <: Number
     else
         Xh = zeros(T, N, 1)
     end
+    if size(Xh, 2) == 0 || all(x -> x == 0, Xh)
+        Xh = zeros(T, N, 1)
+    end
     pb.xp = Xp
     pb.xh = Xh
     return Xp, Xh
@@ -960,7 +981,20 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     mats = _prepare_ge_mats(matrices, formater)
     # Use 0-based coordinates for pivot/background specs; ge_convenience expects them.
     decorators = get(kwargs, :decorators, nothing)
+    had_bg = bg_for_entries !== nothing
     bg_for_entries, decorators = _merge_bg_decorators(bg_for_entries, decorators, mats)
+    needs_medium_nodes = (had_bg && decorators !== nothing) || ref_path_list !== nothing
+    if needs_medium_nodes
+        if render_opts === nothing
+            render_opts = Dict{String,Any}()
+        elseif !(render_opts isa AbstractDict)
+            render_opts = Dict{String,Any}(render_opts)
+        else
+            render_opts = Dict{String,Any}(render_opts)
+        end
+        render_opts["create_medium_nodes"] = get(render_opts, "create_medium_nodes", true)
+        render_opts["create_extra_nodes"] = get(render_opts, "create_extra_nodes", true)
+    end
     specs = get(kwargs, :specs, nothing)
     payload = _ge_pyify_payload(
         mats, pivot_list, bg_for_entries, ref_path_list,

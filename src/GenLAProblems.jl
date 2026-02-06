@@ -119,6 +119,20 @@ Return `true` when `x` is `:none` or `nothing`.
 """
 is_none_val(x) = x === :none || x === nothing
 
+"""
+    mm_to_px(mm) -> Float64
+
+Convert millimeters to px-equivalent SVG units (96 px per inch).
+"""
+mm_to_px(mm::Real) = float(mm) * 96.0 / 25.4
+
+"""
+    px_to_mm(px) -> Float64
+
+Convert px-equivalent SVG units to millimeters (96 px per inch).
+"""
+px_to_mm(px::Real) = float(px) * 25.4 / 96.0
+
 const _la_figures = Ref{Any}(nothing)
 const _matrixlayout = Ref{Any}(nothing)
 const _sympy = Ref{Any}(nothing)
@@ -526,6 +540,7 @@ export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubsti
 export show_backsubstitution, show_forwardsubstitution, solutions, rhs_block
 export round_value, round_matrices
 export svd_matrices_from_spec, eig_matrices_from_spec, qr_matrices_from_grid
+export mm_to_px, px_to_mm
 
 # Precompile pure-Julia workloads to reduce latency without PythonCall.
 @compile_workload begin

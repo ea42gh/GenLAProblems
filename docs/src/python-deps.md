@@ -24,7 +24,7 @@ through to the underlying renderers (`la_figures` → `matrixlayout` → `jupyte
 and can include options such as:
 
 - `crop`
-- `padding`
+- `padding` (tuple order is `(left, right, top, bottom)` in SVG units; use `mm_to_px` to convert mm)
 - `toolchain_name`
 - `frame`
 - `exact_bbox`

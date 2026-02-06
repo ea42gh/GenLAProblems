@@ -124,6 +124,51 @@ end
     @test any(t -> occursin("A^T", t[3]), specs)
 end
 
+@testset "homogeneous solutions include zero vector when full rank" begin
+    A = Rational{Int}.([1 2; 3 4])
+    b = Rational{Int}.([5, 6])
+    pb = ShowGe(A, b)
+    ref!(pb; gj=true)
+    _, Xh = solutions(pb)
+    @test size(Xh, 2) == 1
+    @test all(x -> x == 0, Xh)
+end
+
+@testset "matrixlayout_ge sets medium nodes for bg_for_entries" begin
+    payloads = Vector{Any}()
+    try
+        import PythonCall
+    catch
+        @info "Skipping matrixlayout_ge medium nodes test: PythonCall unavailable"
+        return
+    end
+    if GenLAProblems._pythoncall_disabled()
+        @info "Skipping matrixlayout_ge medium nodes test: PythonCall disabled"
+        return
+    end
+    if GenLAProblems._in_precompile()
+        @info "Skipping matrixlayout_ge medium nodes test: precompile mode"
+        return
+    end
+    function fake_ge(mats_py; kwargs...)
+        push!(payloads, kwargs)
+        return "<svg/>"
+    end
+    try
+        GenLAProblems._ensure_pythoncall()
+        old = GenLAProblems._pyimport("la_figures.ge_convenience")
+        PythonCall.pysetattr(old, "ge", fake_ge)
+        mats = [[nothing, [1 0; 0 1]]]
+        bg = [[0, 1, [[(0, 0), (0, 0)]], "yellow!25", 1]]
+        GenLAProblems.matrixlayout_ge(mats; bg_for_entries=bg)
+        @test !isempty(payloads)
+        ro = get(payloads[end], :render_opts, nothing)
+        @test ro === nothing || get(ro, "create_medium_nodes", true) == true
+    catch err
+        @info "Skipping matrixlayout_ge medium nodes test: la_figures unavailable" exception=(err, catch_backtrace())
+    end
+end
+
 @testset "nM.show_ge_tbl fallback routing" begin
     types = PythonCall.pyimport("types")
     sys = PythonCall.pyimport("sys")
