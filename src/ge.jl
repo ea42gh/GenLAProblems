@@ -257,6 +257,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
             name_specs = _normal_eq_name_specs(length(pb.matrices), rhs_labels)
             array_names = Dict("name_specs" => name_specs)
         end
+        rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
         svg = matrixlayout_ge(
             pb.matrices;
             Nrhs=pb.num_rhs,
@@ -265,6 +266,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
             ref_path_list=pb.ref_path_list,
             variable_summary=show_variables ? pb.basic_var : nothing,
             variable_colors=["red", "black"],
+            rhs_status=rhs_status,
             array_names=array_names,
             fig_scale=fig_scale,
             tmp_dir=pb.tmp_dir,
@@ -275,6 +277,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
         return svg
     end
     if isdefined(pb, :matrices) && pb.matrices !== nothing && length(pb.matrices) > 1
+        rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
         svg = matrixlayout_ge(
             pb.matrices;
             Nrhs=pb.num_rhs,
@@ -283,6 +286,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
             ref_path_list=pb.ref_path_list,
             variable_summary=show_variables ? pb.basic_var : nothing,
             variable_colors=["red", "black"],
+            rhs_status=rhs_status,
             array_names=array_names,
             fig_scale=fig_scale,
             tmp_dir=pb.tmp_dir,
@@ -962,7 +966,7 @@ function _call_ge_convenience(mats_py; kwargs...)
     return _pycall(ge_fn, mats_py; kwargs...)
 end
 
-function _ge_pyify_payload(mats, pivot_list, bg_for_entries, ref_path_list, comment_list, variable_summary, array_names, specs, decorators)
+function _ge_pyify_payload(mats, pivot_list, bg_for_entries, ref_path_list, comment_list, variable_summary, rhs_status, array_names, specs, decorators)
     return (
         mats=_ge_to_pylist(mats),
         pivot_list=_ge_to_pylist(pivot_list),
@@ -970,6 +974,7 @@ function _ge_pyify_payload(mats, pivot_list, bg_for_entries, ref_path_list, comm
         ref_path_list=_ge_to_pylist(ref_path_list),
         comment_list=_ge_to_pylist(comment_list),
         variable_summary=_ge_to_pylist(variable_summary),
+        rhs_status=_ge_to_pylist(rhs_status),
         array_names=_ge_to_pylist(array_names),
         specs=_ge_to_pylist(specs),
         decorators=_ge_to_pylist(decorators),
@@ -980,7 +985,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"], pivot_text_color=nothing,
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
              start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing,
-             render_opts=nothing, kwargs... )
+             render_opts=nothing, rhs_status=nothing, kwargs... )
     mats = _prepare_ge_mats(matrices, formater)
     # Use 0-based coordinates for pivot/background specs; ge_convenience expects them.
     decorators = get(kwargs, :decorators, nothing)
@@ -990,7 +995,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     specs = get(kwargs, :specs, nothing)
     payload = _ge_pyify_payload(
         mats, pivot_list, bg_for_entries, ref_path_list,
-        comment_list, variable_summary, array_names, specs, decorators
+        comment_list, variable_summary, rhs_status, array_names, specs, decorators
     )
 
     _ensure_pythoncall()
@@ -1010,6 +1015,7 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         ref_path_list=payload.ref_path_list,
         comment_list=payload.comment_list,
         variable_summary=payload.variable_summary,
+        rhs_status=payload.rhs_status,
         array_names=payload.array_names,
         specs=payload.specs,
         decorators=payload.decorators,
