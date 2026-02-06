@@ -168,11 +168,39 @@ function (::NMProxy)()
     return nM
 end
 
+function _py_is_none(svg)
+    if !isdefined(@__MODULE__, :PythonCall)
+        return false
+    end
+    try
+        py = getfield(@__MODULE__, :PythonCall)
+        return Base.invokelatest(py.pyconvert, Any, svg) === nothing
+    catch
+        return false
+    end
+end
+
+function _py_is_py(svg)
+    if !isdefined(@__MODULE__, :PythonCall)
+        return false
+    end
+    py = getfield(@__MODULE__, :PythonCall)
+    return svg isa py.Py
+end
+
 function _show_svg(svg)
-    if _ensure_pythoncall() !== nothing && svg isa PythonCall.Py
-        svg = SVGOut(Base.invokelatest(PythonCall.pyconvert, String, svg))
+    if svg === nothing
+        return SVGOut("")
+    end
+    if _py_is_py(svg)
+        _ensure_pythoncall()
+        py = getfield(@__MODULE__, :PythonCall)
+        if _py_is_none(svg)
+            return SVGOut("")
+        end
+        return SVGOut(Base.invokelatest(py.pyconvert, String, svg))
     elseif svg isa AbstractString
-        svg = SVGOut(svg)
+        return SVGOut(svg)
     end
     return svg
 end
@@ -184,18 +212,28 @@ Display an SVG in a Python notebook (e.g., %%julia cell) via IPython.display.SVG
 Accepts `SVGOut`, raw SVG strings, or PythonCall.Py SVG objects.
 """
 function py_show_svg(svg)
-    _ensure_pythoncall()
-    ip = _pyimport("IPython.display")
-    py_display = _pygetattr(ip, :display)
-    py_svg = _pygetattr(ip, :SVG)
-    if svg isa SVGOut
-        return _pycall(py_display, _pycall(py_svg, svg.svg))
-    elseif svg isa AbstractString
-        return _pycall(py_display, _pycall(py_svg, svg))
-    elseif svg isa PythonCall.Py
-        s = Base.invokelatest(PythonCall.pyconvert, String, svg)
-        return _pycall(py_display, _pycall(py_svg, s))
-    else
+    try
+        _ensure_pythoncall()
+        ip = _pyimport("IPython.display")
+        py_display = _pygetattr(ip, :display)
+        py_svg = _pygetattr(ip, :SVG)
+        if svg isa SVGOut
+            return _pycall(py_display, _pycall(py_svg, svg.svg))
+        elseif svg isa AbstractString
+            return _pycall(py_display, _pycall(py_svg, svg))
+        elseif _py_is_py(svg)
+            s = Base.invokelatest(getfield(@__MODULE__, :PythonCall).pyconvert, String, svg)
+            return _pycall(py_display, _pycall(py_svg, s))
+        else
+            error("py_show_svg expects SVGOut, SVG string, or PythonCall.Py")
+        end
+    catch
+        # Fallback for Julia kernels without IPython: use Julia's display.
+        if svg isa SVGOut
+            return Base.display(svg)
+        elseif svg isa AbstractString
+            return Base.display(SVGOut(svg))
+        end
         error("py_show_svg expects SVGOut, SVG string, or PythonCall.Py")
     end
 end
@@ -258,6 +296,9 @@ function _bundle_result(dict)
     py_get = Base.invokelatest(PythonCall.pygetattr, dict, "get")
     spec = _pycall(py_get, "spec")
     svg = _pycall(py_get, "svg")
+    if _py_is_py(svg) && _py_is_none(svg)
+        svg = nothing
+    end
     return spec, svg
 end
 
