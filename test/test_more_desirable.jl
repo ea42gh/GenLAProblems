@@ -56,7 +56,7 @@ end
         @test occursin("bundle", raw1s)
         @test PythonCall.pyconvert(Dict, spec1) == PythonCall.pyconvert(Dict, spec1b)
 
-        h2, spec2 = nM.show_svd_table([2 0; 0 1]; tmp_dir="/tmp/la")
+        h2, spec2 = nM.show_svd_tbl([2 0; 0 1]; tmp_dir="/tmp/la")
         raw2, spec2b = nM.svd_tbl_svg([2 0; 0 1]; tmp_dir="/tmp/la")
         raw2s = raw2 isa PythonCall.Py ? PythonCall.pyconvert(String, raw2) : String(raw2)
         @test h2 isa GenLAProblems.SVGOut

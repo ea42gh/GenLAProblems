@@ -76,7 +76,7 @@ end
         GenLAProblems._la_figures[] = la
 
         # Contract: show_* returns (SVGOut, spec) and tmp_dir maps to output_dir.
-        h, spec = nM.show_svd_table([2 0; 0 1]; tmp_dir="/tmp/la", output_dir="/tmp/explicit")
+        h, spec = nM.show_svd_tbl([2 0; 0 1]; tmp_dir="/tmp/la", output_dir="/tmp/explicit")
         @test h isa GenLAProblems.SVGOut
         @test spec isa PythonCall.Py
         @test haskey(seen[], :output_dir)

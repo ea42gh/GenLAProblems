@@ -98,7 +98,7 @@ end
             @test h_eig isa GenLAProblems.SVGOut
             @test spec_eig !== nothing
 
-            h_svd, spec_svd = nM.show_svd_table(A; tmp_dir="/tmp/la")
+            h_svd, spec_svd = nM.show_svd_tbl(A; tmp_dir="/tmp/la")
             @test h_svd isa GenLAProblems.SVGOut
             @test spec_svd !== nothing
 

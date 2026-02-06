@@ -71,7 +71,7 @@ using .SymPyHelpers:
     svd_matrices_from_spec(spec; reduced=true)
 
 Build `(U, Σ, V, rank)` from an SVD spec dictionary (as returned by
-`nM.show_svd_table` / `la_figures.svd_tbl_spec`). The matrix type is preserved:
+`nM.show_svd_tbl` / `la_figures.svd_tbl_spec`). The matrix type is preserved:
 if the spec contains SymPy objects, returns SymPy matrices; otherwise returns
 Julia matrices. When `reduced=true`, only nonzero singular value groups are included.
 """
@@ -407,7 +407,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return matrixlayout_ge
     elseif name === :show_eig_tbl
         return _nm_bundle_wrapper(:eig_tbl_bundle)
-    elseif name === :show_svd_tbl || name === :show_svd_table
+    elseif name === :show_svd_tbl
         return _nm_bundle_wrapper(:svd_tbl_bundle)
     elseif name === :show_ge_tbl
         return _nm_svg_wrapper(:ge_tbl_svg; kwcleaner=_clean_tmp_kwargs, fallback_mod="la_figures.ge_convenience")
