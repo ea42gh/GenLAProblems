@@ -1,5 +1,8 @@
 module GenLAProblems
 
+const __version__ = "1.0.0-DEV"
+const __build__ = "908575d 2026-02-06T15:37:28-05:00"
+
 const _pythoncall_loaded = Ref(false)
 const _pythoncall_mod = Ref{Any}(nothing)
 
@@ -585,6 +588,7 @@ include("MatrixGeneration.jl")
 include("SolveProblems.jl")
 include("ge.jl")
 
+export __version__, __build__
 export load_la_figures, load_matrixlayout, nM, sympy
 export ensure_pythoncall!
 export sym_mat, sym_vec, sym_zero
