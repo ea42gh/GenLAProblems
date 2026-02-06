@@ -8,10 +8,10 @@ _pythoncall_disabled() = get(ENV, "GENLAPROBLEMS_DISABLE_PYTHONCALL", "") != ""
 
 function _ensure_pythoncall()
     if _pythoncall_disabled()
-        return nothing
+        throw(ArgumentError("PythonCall disabled. Unset GENLAPROBLEMS_DISABLE_PYTHONCALL or set JULIA_PYTHONCALL_EXE."))
     end
     if _in_precompile()
-        return nothing
+        throw(ArgumentError("PythonCall unavailable during precompile. Call from runtime context."))
     end
     if !_pythoncall_loaded[]
         @eval using PythonCall
@@ -22,6 +22,14 @@ function _ensure_pythoncall()
     end
     return _pythoncall_mod[]
 end
+
+"""
+    ensure_pythoncall!()
+
+Explicitly initialize PythonCall and return the module handle. Raises a
+clear error when PythonCall is disabled or unavailable.
+"""
+ensure_pythoncall!() = _ensure_pythoncall()
 
 function _pyimport(name::String)
     py = _ensure_pythoncall()
@@ -217,6 +225,20 @@ function _map_tmp_to_output(kwargs)
     pop!(clean, :tmp_dir, nothing)
     pop!(clean, :keep_file, nothing)
     return clean
+end
+
+function _normalize_render_opts(render_opts; tmp_dir=nothing)
+    opts = if render_opts === nothing
+        Dict{String,Any}()
+    elseif !(render_opts isa AbstractDict)
+        Dict{String,Any}(render_opts)
+    else
+        Dict{String,Any}(render_opts)
+    end
+    if tmp_dir !== nothing && !haskey(opts, "output_dir")
+        opts["output_dir"] = tmp_dir
+    end
+    return opts
 end
 
 function _bundle_result(dict)
@@ -511,6 +533,7 @@ include("SolveProblems.jl")
 include("ge.jl")
 
 export load_la_figures, load_matrixlayout, nM, sympy
+export ensure_pythoncall!
 export sym_mat, sym_vec, sym_zero
 export sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
 export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric

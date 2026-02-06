@@ -17,6 +17,12 @@ If these are missing, rendering helpers like `show_system`, `show_layout!`,
 Make sure PythonCall points to a Python with the required packages (for example,
 set `JULIA_PYTHONCALL_EXE`).
 
+You can explicitly initialize the Python stack with:
+
+```julia
+GenLAProblems.ensure_pythoncall!()
+```
+
 ## Rendering options (`render_opts`)
 
 High-level rendering helpers accept a `render_opts` keyword. This dictionary is passed
@@ -48,3 +54,7 @@ and can include options such as:
 **`Could not import Python module sympy`**
 - Install sympy into the PythonCall interpreter or set `JULIA_PYTHONCALL_EXE` to a Python
   environment that already has sympy installed.
+
+**`PythonCall disabled` or `unavailable during precompile`**
+- Unset `GENLAPROBLEMS_DISABLE_PYTHONCALL` or set `JULIA_PYTHONCALL_EXE` to a working Python.
+- Call `GenLAProblems.ensure_pythoncall!()` from a runtime context (not precompile).

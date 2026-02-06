@@ -34,6 +34,11 @@ end
     end
 end
 
+@testset "ensure_pythoncall!" begin
+    mod = GenLAProblems.ensure_pythoncall!()
+    @test mod !== nothing
+end
+
 @testset "SVG helper negative contract" begin
     if !_has_module_rt("IPython.display")
         @info "Skipping SVG helper negative tests: IPython.display unavailable"

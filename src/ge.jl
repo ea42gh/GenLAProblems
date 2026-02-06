@@ -516,6 +516,7 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
+    render_opts = _normalize_render_opts(render_opts; tmp_dir=tmp_dir)
     kwargs[:cascade_txt] = _ge_to_pylist(lines)
     kwargs[:show_system] = false
     kwargs[:show_cascade] = true
@@ -538,6 +539,7 @@ function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, 
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
+    render_opts = _normalize_render_opts(render_opts; tmp_dir=tmp_dir)
     kwargs[:solution_txt] = solution_tex
     kwargs[:show_system] = false
     kwargs[:show_cascade] = false
