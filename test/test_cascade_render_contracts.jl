@@ -47,7 +47,7 @@ end
 
         A = [1 2; 0 3]
         b = [4, 5]
-        pb = ShowGe(A, b; tmp_dir="/tmp/la", keep_file="/tmp/la/keep/out.svg")
+        pb = ShowGE(A, b; tmp_dir="/tmp/la", keep_file="/tmp/la/keep/out.svg")
         ref!(pb; gj=true)
 
         # show_backsubstitution!: should render cascade svg with expected flags.

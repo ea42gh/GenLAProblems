@@ -118,6 +118,18 @@ function qr_matrices_from_grid(mats)
     return _pycall(qr_from_grid, mats)
 end
 
+"""
+    qr_matrices_dict_from_grid(mats)
+
+Return QR matrices as a plain dict for JSON-friendly usage.
+"""
+function qr_matrices_dict_from_grid(mats)
+    _ensure_pythoncall()
+    la = load_la_figures()
+    qr_from_grid = _pygetattr(la, :qr_matrices_dict_from_grid)
+    return _pycall(qr_from_grid, mats)
+end
+
 const NO_VALUE = (:none, nothing)
 
 """
@@ -559,10 +571,11 @@ export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 export charpoly
 export show_ge_final, show_solution, py_show_svg, show_svg, l_show_svd
-export ShowGe, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
+export ShowGE, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
 export show_backsubstitution, show_forwardsubstitution, solutions, rhs_block
 export round_value, round_matrices
 export svd_matrices_from_spec, eig_matrices_from_spec, qr_matrices_from_grid
+export qr_matrices_dict_from_grid
 export mm_to_px, px_to_mm
 
 # Precompile pure-Julia workloads to reduce latency without PythonCall.

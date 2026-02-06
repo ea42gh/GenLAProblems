@@ -39,6 +39,10 @@ end
     @test mod !== nothing
 end
 
+@testset "qr_matrices_dict_from_grid presence" begin
+    @test hasmethod(GenLAProblems.qr_matrices_dict_from_grid, Tuple{Any})
+end
+
 @testset "SVG helper negative contract" begin
     if !_has_module_rt("IPython.display")
         @info "Skipping SVG helper negative tests: IPython.display unavailable"

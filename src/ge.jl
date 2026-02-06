@@ -21,16 +21,16 @@ end
 
 # ==============================================================================================================
 
-raw"""pb = ShowGe{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number"""
-mutable struct ShowGe{T<:Number}
+raw"""pb = ShowGE{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number"""
+mutable struct ShowGE{T<:Number}
     tmp_dir
     keep_file
     A
@@ -56,49 +56,50 @@ mutable struct ShowGe{T<:Number}
     rhs_consistent
 
 
-  function ShowGe(A::AbstractMatrix; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout")
-	  ShowGe{eltype(A)}(A; tmp_dir=tmp_dir, keep_file=keep_file)
+  function ShowGE(A::AbstractMatrix; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout")
+	  ShowGE{eltype(A)}(A; tmp_dir=tmp_dir, keep_file=keep_file)
   end
-  function ShowGe(A::AbstractMatrix, b; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout")
-    ShowGe{eltype(A)}(A, b; tmp_dir=tmp_dir, keep_file=keep_file)
+  function ShowGE(A::AbstractMatrix, b; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout")
+    ShowGE{eltype(A)}(A, b; tmp_dir=tmp_dir, keep_file=keep_file)
   end
-  function ShowGe{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, A, nothing, 0, false)
   end
-  function ShowGe{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, A, B, size(B,2), false)
   end
-  function ShowGe{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, A, B, size(B,2), false)
   end
 
-  function ShowGe{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, Rational{T}.(A), nothing, 0, false)
   end
-  function ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
   end
-  function ShowGe{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
   end
 
-  function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
     new(tmp_dir, keep_file, Complex{Rational{T}}.(A), nothing, 0, false)
   end
-  function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
     new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
   end
-  function ShowGe{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
+  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
       new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
   end
 end
+
 # --------------------------------------------------------------------------------------------------------------
 """
     ref!(pb; N_rhs=:None, gj=false, normal_eq=false)
 
-Compute REF/RREF data for a `ShowGe` problem and attach pivot metadata.
+Compute REF/RREF data for a `ShowGE` problem and attach pivot metadata.
 """
-function ref!( pb::ShowGe{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false )  where T <: Number
+function ref!( pb::ShowGE{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false )  where T <: Number
     M,N = size(pb.A)
     if pb.B !== nothing
         A = [pb.A pb.B]
@@ -168,7 +169,7 @@ function _normal_eq_name_specs(n_rows::Int, rhs_labels::Vector{String})
     return specs
 end
 
-function _inconsistent_rhs_value(pb::ShowGe{T}, b_col::Int) where T <: Number
+function _inconsistent_rhs_value(pb::ShowGE{T}, b_col::Int) where T <: Number
     Ab = pb.matrices[end][end]
     n = size(pb.A, 2)
     m = size(Ab, 1)
@@ -187,7 +188,7 @@ function _inconsistent_rhs_value(pb::ShowGe{T}, b_col::Int) where T <: Number
     return nothing
 end
 
-function _compute_rhs_status!(pb::ShowGe{T}) where T <: Number
+function _compute_rhs_status!(pb::ShowGE{T}) where T <: Number
     if pb.B === nothing || pb.num_rhs == 0
         pb.status = :none
         pb.rhs_status = Symbol[]
@@ -232,9 +233,9 @@ end
 """
     show_layout!(pb; array_names=nothing, show_variables=true, fig_scale=1)
 
-Render the GE layout for a `ShowGe` problem as SVG.
+Render the GE layout for a `ShowGE` problem as SVG.
 """
-function show_layout!(  pb::ShowGe{T}; array_names=nothing, show_variables=true, fig_scale=1, render_opts=nothing )   where T <: Number
+function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true, fig_scale=1, render_opts=nothing )   where T <: Number
     if array_names === nothing
         if pb.B === nothing || pb.num_rhs == 0
             array_names = ["E", "A"]
@@ -316,9 +317,9 @@ end
 """
     show_system(pb; b_col=1, var_name="x", fig_scale=1)
 
-Render the linear system associated with a `ShowGe` problem.
+Render the linear system associated with a `ShowGE` problem.
 """
-function _system_matrix_rhs(pb::ShowGe{T}; b_col=1) where T <: Number
+function _system_matrix_rhs(pb::ShowGE{T}; b_col=1) where T <: Number
     A = pb.A
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
        b = pb.B[:,b_col]
@@ -334,7 +335,7 @@ function _system_matrix_rhs(pb::ShowGe{T}; b_col=1) where T <: Number
     return A, b
 end
 
-function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing) where T <: Number
+function show_system(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing) where T <: Number
     A, b = _system_matrix_rhs(pb; b_col=b_col)
     la = load_la_figures()
     linear_system_tex = _pygetattr(la, :linear_system_tex)
@@ -350,11 +351,11 @@ function show_system(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1
     return _show_svg(svg)
 end
 """
-    create_cascade!(pb::ShowGe; b_col=1, var_name="x")
+    create_cascade!(pb::ShowGE; b_col=1, var_name="x")
 
 Initialize cascade state for substitution displays.
 """
-function create_cascade!(  pb::ShowGe{T}; b_col=1, var_name::String="x" ) where T <: Number
+function create_cascade!(  pb::ShowGE{T}; b_col=1, var_name::String="x" ) where T <: Number
     pb.cascade = nothing
 end
 # --------------------------------------------------------------------------------------------------------------
@@ -414,7 +415,7 @@ function _rhs_vector(b, b_col)
     return b
 end
 
-function _backsub_ref(pb::ShowGe; b_col=1)
+function _backsub_ref(pb::ShowGE; b_col=1)
     Ab = pb.matrices[end][end]
     if Ab isa AbstractArray{<:AbstractString} || any(x -> x isa AbstractString, Ab)
         gj = false
@@ -454,7 +455,7 @@ function _backsub_ref(pb::ShowGe; b_col=1)
     return A, b
 end
 
-function _forwardsub_ref(pb::ShowGe; b_col=1)
+function _forwardsub_ref(pb::ShowGE; b_col=1)
     A = pb.A
     if isdefined(pb, :B) && b_col isa Integer && 1 <= b_col <= size(pb.B, 2)
         b = pb.B[:, b_col]
@@ -569,9 +570,9 @@ end
 """
     show_backsubstitution!(pb; b_col=1, var_name="x", fig_scale=1)
 
-Render the back-substitution cascade for a `ShowGe` problem.
+Render the back-substitution cascade for a `ShowGE` problem.
 """
-function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
+function show_backsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
     if isdefined(pb, :rhs_status) && b_col isa Integer && b_col <= length(pb.rhs_status) && pb.rhs_status[b_col] == :inconsistent
         val = _inconsistent_rhs_value(pb, b_col)
         rhs_txt = val === nothing ? "?" : _rhs_val_to_tex(val)
@@ -583,7 +584,7 @@ function show_backsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", 
     return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
 end
 # --------------------------------------------------------------------------------------------------------------
-function show_forwardsubstitution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true, render_opts=nothing ) where T <: Number
+function show_forwardsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true, render_opts=nothing ) where T <: Number
     A, b = _forwardsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
@@ -596,9 +597,9 @@ end
 """
     show_solution!(pb; b_col=1, var_name="x", fig_scale=1)
 
-Render the solution vector/form for a `ShowGe` problem.
+Render the solution vector/form for a `ShowGE` problem.
 """
-function show_solution!(  pb::ShowGe{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
+function show_solution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing ) where T <: Number
     if isdefined(pb, :rhs_status) && b_col isa Integer && b_col <= length(pb.rhs_status) && pb.rhs_status[b_col] == :inconsistent
         return Vector{T}()
     end
@@ -642,9 +643,9 @@ function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_d
 end
 # ==============================================================================================================
 """
-    solutions(pb::ShowGe) -> xp, xh
+    solutions(pb::ShowGE) -> xp, xh
 """
-function solutions(pb::ShowGe{T} )   where T <: Number
+function solutions(pb::ShowGE{T} )   where T <: Number
     _, N = size(pb.A)
     matrices, pivot_cols, _ = reduce_to_ref(pb.matrices[end][end][1:pb.rank, 1:end], n=N, gj=true)
 
@@ -680,18 +681,18 @@ function solutions(pb::ShowGe{T} )   where T <: Number
     return Xp, Xh
 end
 # ------------------------------------------------------------------------------------------
-function solve!(pb::ShowGe{T} )   where T <: Number
+function solve!(pb::ShowGE{T} )   where T <: Number
     pb.xp, pb.xh = solutions(pb)
 end
 # ==============================================================================================================
 """
-    rhs_block(pb::ShowGe; step=:final, b_col=nothing)
+    rhs_block(pb::ShowGE; step=:final, b_col=nothing)
 
 Return the RHS block from a GE stack. Use `step` to select a specific matrix
 stack index (1-based) or `:final` for the last step. If `b_col` is provided,
 returns a single RHS column vector; otherwise returns the full RHS block.
 """
-function rhs_block(pb::ShowGe{T}; step=:final, b_col=nothing) where T <: Number
+function rhs_block(pb::ShowGE{T}; step=:final, b_col=nothing) where T <: Number
     if pb.B === nothing || pb.num_rhs == 0
         return nothing
     end
@@ -709,7 +710,7 @@ end
 # function column_view( Xp, Xh, pivot_cols, rhs )
 # end
 # ==============================================================================================================
-#function homogeneous_solution(pb::ShowGe{Complex{Rational{T}}}; b_col=1 )   where T <: Number)
+#function homogeneous_solution(pb::ShowGE{Complex{Rational{T}}}; b_col=1 )   where T <: Number)
 #  N = size(pb.A,2)
 #  matrices, pivot_cols, desc = reduce_to_ref( pb.matrices[end][end][:,1:N], n=N, gj=true );
 #  Xh = similar(pb.A, size(pb.A,1), A - pb.rank)

@@ -111,7 +111,7 @@ end
 @testset "rhs_block helper" begin
     A = [1 2; 3 4]
     b = [5, 6]
-    pb = ShowGe(A, b)
+    pb = ShowGE(A, b)
     ref!(pb; gj=true)
     rhs = rhs_block(pb)
     @test rhs == pb.matrices[end][end][:, size(A, 2)+1:end]
@@ -127,7 +127,7 @@ end
 @testset "homogeneous solutions include zero vector when full rank" begin
     A = Rational{Int}.([1 2; 3 4])
     b = Rational{Int}.([5, 6])
-    pb = ShowGe(A, b)
+    pb = ShowGE(A, b)
     ref!(pb; gj=true)
     _, Xh = solutions(pb)
     @test size(Xh, 2) == 1

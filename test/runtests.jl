@@ -137,7 +137,7 @@ using GenLAProblems
         end
             A = [1 2 3; 4 5 6]
             b = [1, 1]
-            pb = ShowGe{Rational{Int}}(A, b)
+            pb = ShowGE{Rational{Int}}(A, b)
             ref!(pb; normal_eq=true)
             # Rendering should use the normal-equation matrix stack.
             h = show_layout!(pb; array_names=["A", ["Aᵀ", "AᵀA"]], fig_scale=1, render_opts=Dict("crop"=>"tight"))

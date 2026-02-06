@@ -45,7 +45,7 @@ end
         # Integer path: use selected RHS column.
         A = [1 2; 3 4]
         B = [10 11; 20 21]
-        pb = ShowGe(A, B; tmp_dir="/tmp/la")
+        pb = ShowGE(A, B; tmp_dir="/tmp/la")
         h = show_system(pb; b_col=2, var_name="z", fig_scale=1.7)
         @test h isa GenLAProblems.SVGOut
         @test occursin("system", h.svg)
@@ -62,7 +62,7 @@ end
         # Rational path: A and b are encoded as tuple entries.
         Ar = Rational{Int}.(A)
         Br = Rational{Int}.(B)
-        pbr = ShowGe{Rational{Int}}(A, B; tmp_dir="/tmp/la")
+        pbr = ShowGE{Rational{Int}}(A, B; tmp_dir="/tmp/la")
         _ = show_system(pbr; b_col=1, var_name="x")
         A_r = PythonCall.pyconvert(Matrix{Any}, seen_tex[].A)
         b_r = PythonCall.pyconvert(Vector{Any}, seen_tex[].b)
@@ -72,7 +72,7 @@ end
         # Complex{Rational} path: should still pass tuple-like encoded entries and render.
         Ac = Complex{Int}.(A)
         Bc = Complex{Int}.(B)
-        pbc = ShowGe{Complex{Rational{Int}}}(Ac, Bc; tmp_dir="/tmp/la")
+        pbc = ShowGE{Complex{Rational{Int}}}(Ac, Bc; tmp_dir="/tmp/la")
         h3 = show_system(pbc; b_col=1, var_name="w")
         @test h3 isa GenLAProblems.SVGOut
         @test seen_tex[].var_name == "w"

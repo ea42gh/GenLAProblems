@@ -27,7 +27,7 @@ A = [1 2; 3 4]
 b = [5, 6]
 
 # Render system as SVG
-pb = ShowGe(A, b; tmp_dir="/tmp/la")
+pb = ShowGE(A, b; tmp_dir="/tmp/la")
 show_system(pb; var_name="x", fig_scale=1.2)
 
 # Access RHS block (or a single RHS column) from the final GE stack:
@@ -48,7 +48,7 @@ Rendering defaults to subdirectories under `/tmp/la` unless you pass
 
 ### Inconsistent systems
 
-When a system is inconsistent, `ShowGe` records per-RHS status in
+When a system is inconsistent, `ShowGE` records per-RHS status in
 `pb.rhs_status` (e.g., `[:inconsistent, :consistent, ...]`) and sets
 `pb.status` to `:inconsistent` or `:mixed`. In the rendered layout, inconsistent
 RHS columns are marked with a red **×** in the variable-summary row. The

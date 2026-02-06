@@ -23,6 +23,16 @@ You can explicitly initialize the Python stack with:
 GenLAProblems.ensure_pythoncall!()
 ```
 
+### Smoke render helper
+
+For a quick toolchain sanity check from Python:
+
+```
+python render_smoke.py
+```
+
+Set `GENLAPROBLEMS_SMOKE_OUT` to control the output directory.
+
 ## Rendering options (`render_opts`)
 
 High-level rendering helpers accept a `render_opts` keyword. This dictionary is passed
@@ -34,6 +44,8 @@ and can include options such as:
 - `toolchain_name`
 - `frame`
 - `exact_bbox`
+
+`output_dir` is the canonical artifact directory (for TeX/PDF/SVG); `tmp_dir` is a legacy alias.
 
 ## Troubleshooting
 
