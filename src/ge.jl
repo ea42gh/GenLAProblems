@@ -741,12 +741,16 @@ function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_
     end
     la = load_la_figures()
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
+    local_render_opts = render_opts === nothing ? Dict{String, Any}() : Dict{String, Any}(render_opts)
+    if tmp_dir !== nothing && !haskey(local_render_opts, "output_dir") && !haskey(local_render_opts, :output_dir)
+        local_render_opts["output_dir"] = mktempdir(tmp_dir)
+    end
     s = _pycall(ge_tbl_svg, A, rhs;
         fig_scale=fig_scale,
         array_names=array_names,
         variable_summary=variable_summary,
         variable_colors=variable_colors,
-        render_opts=render_opts,
+        render_opts=local_render_opts,
     )
     _ensure_pythoncall()
     return Base.invokelatest(PythonCall.pyconvert, String, s)
