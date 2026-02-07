@@ -59,6 +59,36 @@ function _pygetattr_fallback(obj, name::Symbol, mod::String)
     sub = _pyimport(mod)
     return _pygetattr(sub, name)
 end
+
+"""
+    la_version(), la_build(), ml_version(), ml_build()
+
+Return version/build strings exposed by the Python packages `la_figures` and
+`matrixlayout`. These require PythonCall at runtime.
+"""
+function la_version()
+    la = load_la_figures()
+    v = _pygetattr(la, :__version__)
+    return Base.invokelatest(PythonCall.pyconvert, String, v)
+end
+
+function la_build()
+    la = load_la_figures()
+    v = _pygetattr(la, :__build__)
+    return Base.invokelatest(PythonCall.pyconvert, String, v)
+end
+
+function ml_version()
+    ml = load_matrixlayout()
+    v = _pygetattr(ml, :__version__)
+    return Base.invokelatest(PythonCall.pyconvert, String, v)
+end
+
+function ml_build()
+    ml = load_matrixlayout()
+    v = _pygetattr(ml, :__build__)
+    return Base.invokelatest(PythonCall.pyconvert, String, v)
+end
 import Symbolics
 using AbstractAlgebra
 import AbstractAlgebra: charpoly
@@ -589,6 +619,7 @@ include("SolveProblems.jl")
 include("ge.jl")
 
 export __version__, __build__
+export la_version, la_build, ml_version, ml_build
 export load_la_figures, load_matrixlayout, nM, sympy
 export ensure_pythoncall!
 export sym_mat, sym_vec, sym_zero
