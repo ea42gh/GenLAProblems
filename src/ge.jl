@@ -613,17 +613,20 @@ function show_solution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scal
 end
 # ==============================================================================================================
 raw"""
-    show_backsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing)
+    show_backsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing, render_svg=true)
 
-Render the back-substitution cascade for the upper-triangular system `A * x = b`
-using `la_figures.backsubstitution_tex`. Works with Integer/Float as well as
-exact `Rational` and `Complex{Rational}` inputs (those are converted to tuples so
-SymPy reconstructs exact rationals on the Python side).
+    Render the back-substitution cascade for the upper-triangular system `A * x = b`
+    using `la_figures.backsubstitution_tex`. Works with Integer/Float as well as
+    exact `Rational` and `Complex{Rational}` inputs (those are converted to tuples so
+    SymPy reconstructs exact rationals on the Python side).
 """
-function show_backsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing)
+function show_backsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing, render_svg=true, render_opts=nothing)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
     lines = load_la_figures().backsubstitution_tex(A2, b2, var_name=var_name)
+    if render_svg
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file, render_opts=render_opts)
+    end
     return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------

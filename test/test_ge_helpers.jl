@@ -16,6 +16,8 @@ using GenLAProblems
 end
 
 @testset "GE helper spec normalization and payload conversion" begin
+    GenLAProblems.ensure_pythoncall!()
+
     one_spec = [0, 1, [[(0, 0), (1, 1)]], "yellow!20", 1]
     @test GenLAProblems._normalize_bg_specs(one_spec) == [one_spec]
     @test GenLAProblems._normalize_bg_specs([one_spec]) == [one_spec]
@@ -26,7 +28,7 @@ end
 
     payload = GenLAProblems._ge_pyify_payload(
         [[nothing, Any[Any[1, 2], Any[3, 4]]]],
-        nothing, nothing, nothing, [], nothing, nothing, nothing, nothing
+        nothing, nothing, nothing, [], nothing, nothing, nothing, nothing, nothing
     )
     @test payload.mats isa PythonCall.Py
     @test payload.comment_list isa PythonCall.Py

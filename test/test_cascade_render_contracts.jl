@@ -123,3 +123,43 @@ end
         GenLAProblems._matrixlayout[] = old_ml
     end
 end
+
+@testset "Non-bang show_backsubstitution render contract" begin
+    la = _py_ns_cascade()
+    ml = _py_ns_cascade()
+    seen = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
+
+    _py_setattr_cascade(la, "backsubstitution_tex", (A, b; kwargs...) -> ["x_2 = 1", "x_1 = 2"])
+    _py_setattr_cascade(ml, "backsubst_svg", (; kwargs...) -> (seen[] = Dict(kwargs); "<svg>back</svg>"))
+
+    old_la = GenLAProblems._la_figures[]
+    old_ml = GenLAProblems._matrixlayout[]
+    try
+        GenLAProblems._la_figures[] = la
+        GenLAProblems._matrixlayout[] = ml
+
+        U = [1 2; 0 3]
+        b = [4, 5]
+
+        svg = GenLAProblems.show_backsubstitution(U, b; fig_scale=1.3, tmp_dir="/tmp/la", keep_file="/tmp/la/out.svg")
+        @test svg isa GenLAProblems.SVGOut
+        @test seen[][:show_system] == false
+        @test seen[][:show_cascade] == true
+        @test seen[][:show_solution] == false
+        @test seen[][:fig_scale] == 1.3
+        @test seen[][:tmp_dir] == "/tmp/la"
+        @test seen[][:output_dir] == "/tmp/la"
+        @test haskey(seen[], :cascade_txt)
+
+        if hasmethod(show, Tuple{IO, MIME"text/latex", String})
+            txt = GenLAProblems.show_backsubstitution(U, b; render_svg=false)
+            @test txt isa AbstractString
+            @test occursin("x_", txt)
+        else
+            @info "Skipping render_svg=false back-substitution path: no text/latex String display method"
+        end
+    finally
+        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._matrixlayout[] = old_ml
+    end
+end
