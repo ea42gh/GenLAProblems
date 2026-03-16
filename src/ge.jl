@@ -188,8 +188,16 @@ function _inconsistent_rhs_value(pb::ShowGE{T}, b_col::Int) where T <: Number
     return nothing
 end
 
+function _rhs_col_count(pb::ShowGE)
+    if pb.B === nothing
+        return 0
+    end
+    return size(pb.B, 2)
+end
+
 function _compute_rhs_status!(pb::ShowGE{T}) where T <: Number
-    if pb.B === nothing || pb.num_rhs == 0
+    n_rhs = _rhs_col_count(pb)
+    if n_rhs == 0
         pb.status = :none
         pb.rhs_status = Symbol[]
         pb.rhs_consistent = Bool[]
@@ -198,9 +206,9 @@ function _compute_rhs_status!(pb::ShowGE{T}) where T <: Number
     Ab = pb.matrices[end][end]
     n = size(pb.A, 2)
     m = size(Ab, 1)
-    rhs_status = Vector{Symbol}(undef, pb.num_rhs)
-    rhs_consistent = Vector{Bool}(undef, pb.num_rhs)
-    for k in 1:pb.num_rhs
+    rhs_status = Vector{Symbol}(undef, n_rhs)
+    rhs_consistent = Vector{Bool}(undef, n_rhs)
+    for k in 1:n_rhs
         status = :consistent
         for i in 1:m
             row_zero = true
@@ -236,10 +244,11 @@ end
 Render the GE layout for a `ShowGE` problem as SVG.
 """
 function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true, fig_scale=1, render_opts=nothing )   where T <: Number
+    n_rhs = _rhs_col_count(pb)
     if array_names === nothing
-        if pb.B === nothing || pb.num_rhs == 0
+        if n_rhs == 0
             array_names = ["E", "A"]
-        elseif pb.num_rhs == 1
+        elseif n_rhs == 1
             array_names = ["E", ["A", "b"]]
         else
             array_names = ["E", ["A", "B"]]
@@ -656,7 +665,7 @@ function solutions(pb::ShowGE{T} )   where T <: Number
     _, N = size(pb.A)
     matrices, pivot_cols, _ = reduce_to_ref(pb.matrices[end][end][1:pb.rank, 1:end], n=N, gj=true)
 
-    if sum(pb.num_rhs) > 0
+    if _rhs_col_count(pb) > 0
         rhs_consistent = isdefined(pb, :rhs_consistent) ? pb.rhs_consistent : Bool[]
         keep = [i for (i, ok) in enumerate(rhs_consistent) if ok]
         if isempty(keep)
@@ -700,7 +709,7 @@ stack index (1-based) or `:final` for the last step. If `b_col` is provided,
 returns a single RHS column vector; otherwise returns the full RHS block.
 """
 function rhs_block(pb::ShowGE{T}; step=:final, b_col=nothing) where T <: Number
-    if pb.B === nothing || pb.num_rhs == 0
+    if _rhs_col_count(pb) == 0
         return nothing
     end
     mats = pb.matrices

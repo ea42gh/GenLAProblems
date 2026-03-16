@@ -40,3 +40,15 @@ end
     @test GenLAProblems._ge_block_to_list("x") == "x"
     @test GenLAProblems._ge_block_to_list([1 2; 3 4]) == Any[Any[1, 2], Any[3, 4]]
 end
+
+@testset "N_rhs divider vector compatibility" begin
+    A = Rational.( [1 0; 0 1] )
+    B = Rational.( [2 3; 4 5] )
+    pb = ShowGE(A, B)
+    ref!(pb; gj=false, N_rhs=[1, 1])
+
+    @test pb.num_rhs == [1, 1]
+    @test length(pb.rhs_status) == size(B, 2)
+    @test length(pb.rhs_consistent) == size(B, 2)
+    @test all(s -> s == :consistent, pb.rhs_status)
+end
