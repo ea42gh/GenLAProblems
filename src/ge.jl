@@ -1017,12 +1017,13 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
+    nrhs_arg = Nrhs isa AbstractVector ? _ge_to_pylist(Nrhs) : Nrhs
     if pivot_text_color === nothing
         pivot_text_color = pivot_colors[1]
     end
     svg = _call_ge_convenience(
         payload.mats;
-        Nrhs=Nrhs,
+        Nrhs=nrhs_arg,
         formatter=py_str,
         pivot_list=payload.pivot_list,
         bg_for_entries=payload.bg_for_entries,

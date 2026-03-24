@@ -111,10 +111,40 @@ end
     split_R_RHS(R_RHS, num_rhs) -> (R, RHS)
 
 Split an augmented matrix into the coefficient block and RHS block.
+
+If `num_rhs` is a vector of group sizes, returns `(R, rhs_groups)` where
+`rhs_groups` is a vector of RHS block matrices in order.
 """
-function split_R_RHS( R_RHS, num_rhs )
+function split_R_RHS( R_RHS, num_rhs::Integer )
+    if num_rhs < 0
+        throw(ArgumentError("num_rhs must be nonnegative"))
+    end
+    if num_rhs > size(R_RHS, 2)
+        throw(ArgumentError("num_rhs exceeds number of columns in R_RHS"))
+    end
     N = size(R_RHS,2) - num_rhs
     R_RHS[:,1:N], R_RHS[:, N+1:end]
+end
+
+function split_R_RHS(R_RHS, rhs_groups::AbstractVector{<:Integer})
+    if any(g -> g < 0, rhs_groups)
+        throw(ArgumentError("rhs group sizes must be nonnegative"))
+    end
+    num_rhs = sum(rhs_groups)
+    if num_rhs > size(R_RHS, 2)
+        throw(ArgumentError("sum(rhs_groups) exceeds number of columns in R_RHS"))
+    end
+
+    N = size(R_RHS, 2) - num_rhs
+    R = R_RHS[:, 1:N]
+    groups = Vector{Any}()
+    start_col = N + 1
+    for g in rhs_groups
+        stop_col = start_col + g - 1
+        push!(groups, R_RHS[:, start_col:stop_col])
+        start_col = stop_col + 1
+    end
+    return R, groups
 end
 # ------------------------------------------------------------------------------
 """

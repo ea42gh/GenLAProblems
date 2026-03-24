@@ -51,6 +51,14 @@ end
             @test haskey(seen[], :comment_list)
             @test haskey(seen[], :specs)
 
+            out_vec = GenLAProblems.matrixlayout_ge(
+                mats;
+                Nrhs=[1, 1],
+                array_names=["A", ["b₁", "b₂"]],
+            )
+            @test out_vec isa GenLAProblems.SVGOut
+            @test PythonCall.pyconvert(Vector{Int}, seen[][:Nrhs]) == [1, 1]
+
             # bg_for_entries should be converted into decorators and bg_for_entries cleared.
             out2 = GenLAProblems.matrixlayout_ge(
                 mats;

@@ -100,6 +100,15 @@ using GenLAProblems
         @test R == [1 0 2; 0 1 -1]
         @test RHS == [5; 3;;]
 
+        R2, groups = split_R_RHS([1 2 10 11 20; 3 4 12 13 21], [2, 1])
+        @test R2 == [1 2; 3 4]
+        @test length(groups) == 2
+        @test groups[1] == [10 11; 12 13]
+        @test groups[2] == [20; 21;;]
+        @test_throws ArgumentError split_R_RHS(R_RHS, -1)
+        @test_throws ArgumentError split_R_RHS(R_RHS, [1, -1])
+        @test_throws ArgumentError split_R_RHS(R_RHS, [10, 10])
+
         pivots = [1, 2]
         Xp = particular_solution(R, RHS, pivots)
         @test Xp == [5; 3; 0;;]
