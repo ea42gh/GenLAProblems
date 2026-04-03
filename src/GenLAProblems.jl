@@ -120,7 +120,7 @@ function svd_matrices_from_spec(spec; reduced::Bool=true)
     _ensure_pythoncall()
     la = load_la_figures()
     svd_from_spec = _pygetattr(la, :svd_matrices_from_spec)
-    return _pycall(svd_from_spec, spec; reduced=reduced)
+    return materialize_python_value(_pycall(svd_from_spec, spec; reduced=reduced))
 end
 
 """
@@ -134,7 +134,7 @@ function eig_matrices_from_spec(spec; orthonormal::Bool=true)
     _ensure_pythoncall()
     la = load_la_figures()
     eig_from_spec = _pygetattr(la, :eig_matrices_from_spec)
-    return _pycall(eig_from_spec, spec; orthonormal=orthonormal)
+    return materialize_python_value(_pycall(eig_from_spec, spec; orthonormal=orthonormal))
 end
 
 """
@@ -148,7 +148,7 @@ function qr_matrices_from_grid(mats)
     _ensure_pythoncall()
     la = load_la_figures()
     qr_from_grid = _pygetattr(la, :qr_matrices_from_grid)
-    return _pycall(qr_from_grid, mats)
+    return _named_qr_matrices(materialize_python_value(_pycall(qr_from_grid, mats)))
 end
 
 """
@@ -219,6 +219,88 @@ function _py_is_py(svg)
     end
     py = getfield(@__MODULE__, :PythonCall)
     return svg isa py.Py
+end
+
+function materialize_python_value(x)
+    if x isa NamedTuple
+        return (; (name => materialize_python_value(value) for (name, value) in pairs(x))...)
+    elseif x isa AbstractDict
+        return Dict(materialize_python_value(k) => materialize_python_value(v) for (k, v) in pairs(x))
+    elseif x isa Tuple
+        return tuple((materialize_python_value(v) for v in x)...)
+    elseif x isa AbstractArray
+        return map(materialize_python_value, x)
+    elseif !_py_is_py(x)
+        return x
+    end
+
+    if _py_is_none(x)
+        return nothing
+    end
+
+    converted = try
+        Base.invokelatest(PythonCall.pyconvert, Any, x)
+    catch
+        x
+    end
+
+    if converted !== x
+        return materialize_python_value(converted)
+    end
+
+    try
+        shape = Base.invokelatest(PythonCall.pygetattr, x, "shape")
+        shp = Base.invokelatest(PythonCall.pyconvert, Tuple, shape)
+        if length(shp) == 2
+            return map(materialize_python_value, sym_to_julia_mat(x))
+        elseif length(shp) == 1
+            return map(materialize_python_value, sym_to_julia_vec(x))
+        end
+    catch
+    end
+
+    try
+        items_fn = Base.invokelatest(PythonCall.pygetattr, x, "items")
+        items = _pycall(items_fn)
+        pairs_vec = Base.invokelatest(PythonCall.pyconvert, Vector{Any}, items)
+        return Dict(
+            begin
+                pair_t = Base.invokelatest(PythonCall.pyconvert, Tuple, pair)
+                materialize_python_value(pair_t[1]) => materialize_python_value(pair_t[2])
+            end for pair in pairs_vec
+        )
+    catch
+    end
+
+    try
+        vec = Base.invokelatest(PythonCall.pyconvert, Vector{Any}, x)
+        return map(materialize_python_value, vec)
+    catch
+    end
+
+    return x
+end
+
+function _named_qr_matrices(qr)
+    getmat(name::String) = begin
+        if qr isa NamedTuple
+            return getproperty(qr, Symbol(name))
+        elseif qr isa AbstractDict
+            return get(qr, name, get(qr, Symbol(name), nothing))
+        end
+        return nothing
+    end
+
+    return (
+        A = getmat("A"),
+        W = getmat("W"),
+        WtA = getmat("WtA"),
+        WtW = getmat("WtW"),
+        S = getmat("S"),
+        Qt = getmat("Qt"),
+        Q = getmat("Q"),
+        R = getmat("R"),
+    )
 end
 
 function _show_svg(svg)
@@ -622,6 +704,7 @@ export __version__, __build__
 export la_version, la_build, ml_version, ml_build
 export load_la_figures, load_matrixlayout, nM, sympy
 export ensure_pythoncall!
+export materialize_python_value
 export sym_mat, sym_vec, sym_zero
 export sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
 export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric

@@ -1,6 +1,7 @@
 using Test
 using PythonCall
 using GenLAProblems
+using LaTeXStrings
 
 function _has_module_notebook(name::String)
     try
@@ -117,4 +118,20 @@ end
         @test length(decs) == 1
         @test decs[1]["grid"] == (0, 1)
     end
+
+@testset "QR matrices from grid are Julia matrices for l_show" begin
+    GenLAProblems.ensure_pythoncall!()
+    A = [1 -2 -1 1; -1 2 3 -1; 1 0 1 -3; -1 0 1 -1]
+    h, mats = nM.gram_schmidt_qr(A; fig_scale=1.2)
+    qr = qr_matrices_from_grid(mats)
+
+    @test qr.Q isa AbstractMatrix
+    @test qr.R isa AbstractMatrix
+    @test !(qr.Q isa PythonCall.Py)
+    @test !(qr.R isa PythonCall.Py)
+
+    latex = l_show(L"A = Q R = ", qr.Q, qr.R)
+    @test occursin("Q", String(latex))
+    @test occursin("R", String(latex))
+end
 end

@@ -57,7 +57,7 @@ end
 end
 
 @testset "SymPyHelpers adjoint inputs" begin
-    A = Rational.( [1 2; 3 4] )
+    A = Rational.([1 2; 3 4])
     Aadj = A'
     sym = try
         GenLAProblems.import_sympy()
@@ -106,19 +106,67 @@ end
         GenLAProblems._la_figures[] = la
 
         out_svd = GenLAProblems.svd_matrices_from_spec("spec"; reduced=false)
-        @test PythonCall.pyconvert(Vector{Any}, out_svd) == Any["U", "S", "V", 2]
+        @test out_svd == ("U", "S", "V", 2)
         @test seen[][:which] == :svd
         @test seen[][:kwargs][:reduced] == false
 
         out_eig = GenLAProblems.eig_matrices_from_spec("espec"; orthonormal=false)
-        @test PythonCall.pyconvert(Vector{Any}, out_eig) == Any["L", "Q"]
+        @test out_eig == ("L", "Q")
         @test seen[][:which] == :eig
         @test seen[][:kwargs][:orthonormal] == false
 
         out_qr = GenLAProblems.qr_matrices_from_grid("grid")
-        @test out_qr isa PythonCall.Py
+        @test out_qr == (A=nothing, W=nothing, WtA=nothing, WtW=nothing, S=nothing, Qt=nothing, Q="q", R="r")
         @test seen[][:which] == :qr
         @test seen[][:mats] == "grid"
+    finally
+        GenLAProblems._la_figures[] = old_la
+    end
+end
+
+@testset "materialize_python_value converts nested Python containers" begin
+    sym = PythonCall.pyimport("sympy")
+    py = PythonCall.pydict(Dict(
+        "tuple_like" => (sym.Matrix([[1, 2], [3, 4]]), PythonCall.pylist([sym.Integer(5), sym.Integer(6)])),
+        "scalar" => sym.Integer(7),
+    ))
+    out = GenLAProblems.materialize_python_value(py)
+    @test out isa Dict
+    @test out["tuple_like"] isa Tuple
+    @test out["tuple_like"][1] isa AbstractMatrix
+    @test out["tuple_like"][1] == [1 2; 3 4]
+    @test out["tuple_like"][2] == [5, 6]
+    @test out["scalar"] == 7
+end
+
+@testset "eig and svd matrix extractors return Julia values" begin
+    sym = PythonCall.pyimport("sympy")
+    types = PythonCall.pyimport("types")
+    la = PythonCall.pycall(types.SimpleNamespace)
+
+    function fake_svd_py(spec; kwargs...)
+        return (sym.Matrix([[1, 0], [0, 1]]), sym.Matrix([[2, 0], [0, 1]]), sym.Matrix([[1, 0], [0, 1]]), 2)
+    end
+
+    function fake_eig_py(spec; kwargs...)
+        return (sym.Matrix([[3, 0], [0, 4]]), sym.Matrix([[1, 0], [0, 1]]))
+    end
+
+    _py_setattr_symops(la, "svd_matrices_from_spec", fake_svd_py)
+    _py_setattr_symops(la, "eig_matrices_from_spec", fake_eig_py)
+
+    old_la = GenLAProblems._la_figures[]
+    try
+        GenLAProblems._la_figures[] = la
+        U, S, V, rank = GenLAProblems.svd_matrices_from_spec("spec")
+        @test U isa AbstractMatrix
+        @test S isa AbstractMatrix
+        @test V isa AbstractMatrix
+        @test rank == 2
+
+        Lambda, V2 = GenLAProblems.eig_matrices_from_spec("spec")
+        @test Lambda isa AbstractMatrix
+        @test V2 isa AbstractMatrix
     finally
         GenLAProblems._la_figures[] = old_la
     end
@@ -143,11 +191,9 @@ end
     try
         modules[mod_name] = mod
 
-        # Attribute present on object => object attribute wins.
         v1 = GenLAProblems._pygetattr_fallback(obj_with, :foo, mod_name)
         @test PythonCall.pyconvert(Int, v1) == 123
 
-        # Attribute missing on object => fallback module attribute used.
         obj_without = PythonCall.pycall(types.SimpleNamespace)
         v2 = GenLAProblems._pygetattr_fallback(obj_without, :foo, mod_name)
         @test PythonCall.pyconvert(Int, v2) == 999
