@@ -126,8 +126,12 @@ end
 
 @testset "materialize_python_value converts nested Python containers" begin
     sym = PythonCall.pyimport("sympy")
+    pymat = sym.Matrix(PythonCall.pylist([
+        PythonCall.pylist([sym.Integer(1), sym.Integer(2)]),
+        PythonCall.pylist([sym.Integer(3), sym.Integer(4)]),
+    ]))
     py = PythonCall.pydict(Dict(
-        "tuple_like" => (sym.Matrix([[1, 2], [3, 4]]), PythonCall.pylist([sym.Integer(5), sym.Integer(6)])),
+        "tuple_like" => (pymat, PythonCall.pylist([sym.Integer(5), sym.Integer(6)])),
         "scalar" => sym.Integer(7),
     ))
     out = GenLAProblems.materialize_python_value(py)
@@ -139,17 +143,94 @@ end
     @test out["scalar"] == 7
 end
 
+@testset "materialize_python_value handles none and Julia passthrough" begin
+    pybuiltins = PythonCall.pyimport("builtins")
+    @test GenLAProblems.materialize_python_value(PythonCall.pygetattr(pybuiltins, "None")) === nothing
+
+    julia_dict = Dict("a" => [1, 2], "b" => (3, 4))
+    out = GenLAProblems.materialize_python_value(julia_dict)
+    @test out == julia_dict
+    @test out["a"] isa Vector{Int}
+    @test out["b"] == (3, 4)
+end
+
+@testset "materialize_python_value converts nested dict/list mixtures" begin
+    sym = PythonCall.pyimport("sympy")
+    inner = PythonCall.pydict(Dict(
+        "vec" => PythonCall.pylist([sym.Integer(1), sym.Integer(2)]),
+        "none" => PythonCall.pygetattr(PythonCall.pyimport("builtins"), "None"),
+    ))
+    outer = PythonCall.pydict(Dict(
+        "items" => PythonCall.pylist([inner, PythonCall.pydict(Dict("x" => sym.Integer(9)))]),
+        "name" => "qr",
+    ))
+
+    out = GenLAProblems.materialize_python_value(outer)
+    @test out isa Dict
+    @test out["name"] == "qr"
+    @test out["items"] isa Vector
+    @test out["items"][1]["vec"] == [1, 2]
+    @test out["items"][1]["none"] === nothing
+    @test out["items"][2]["x"] == 9
+end
+
+@testset "qr_matrices_from_grid preserves missing entries and converts values" begin
+    sym = PythonCall.pyimport("sympy")
+    types = PythonCall.pyimport("types")
+    pybuiltins = PythonCall.pyimport("builtins")
+    la = PythonCall.pycall(types.SimpleNamespace)
+
+    pymat(rows) = sym.Matrix(PythonCall.pylist([
+        PythonCall.pylist([sym.Integer(v) for v in row]) for row in rows
+    ]))
+
+    function fake_qr_py(mats)
+        return PythonCall.pydict(Dict(
+            "A" => pybuiltins.None,
+            "W" => pybuiltins.None,
+            "WtA" => pymat([[1, 2]]),
+            "WtW" => pymat([[3]]),
+            "S" => pybuiltins.None,
+            "Qt" => pybuiltins.None,
+            "Q" => pymat([[1, 0], [0, 1]]),
+            "R" => pymat([[4, 5], [0, 6]]),
+        ))
+    end
+
+    _py_setattr_symops(la, "qr_matrices_from_grid", fake_qr_py)
+
+    old_la = GenLAProblems._la_figures[]
+    try
+        GenLAProblems._la_figures[] = la
+        qr = GenLAProblems.qr_matrices_from_grid("grid")
+        @test qr.A === nothing
+        @test qr.W === nothing
+        @test qr.S === nothing
+        @test qr.Qt === nothing
+        @test qr.WtA == [1 2]
+        @test qr.WtW == [3;;]
+        @test qr.Q == [1 0; 0 1]
+        @test qr.R == [4 5; 0 6]
+    finally
+        GenLAProblems._la_figures[] = old_la
+    end
+end
+
 @testset "eig and svd matrix extractors return Julia values" begin
     sym = PythonCall.pyimport("sympy")
     types = PythonCall.pyimport("types")
     la = PythonCall.pycall(types.SimpleNamespace)
 
+    pymat(rows) = sym.Matrix(PythonCall.pylist([
+        PythonCall.pylist([sym.Integer(v) for v in row]) for row in rows
+    ]))
+
     function fake_svd_py(spec; kwargs...)
-        return (sym.Matrix([[1, 0], [0, 1]]), sym.Matrix([[2, 0], [0, 1]]), sym.Matrix([[1, 0], [0, 1]]), 2)
+        return (pymat([[1, 0], [0, 1]]), pymat([[2, 0], [0, 1]]), pymat([[1, 0], [0, 1]]), 2)
     end
 
     function fake_eig_py(spec; kwargs...)
-        return (sym.Matrix([[3, 0], [0, 4]]), sym.Matrix([[1, 0], [0, 1]]))
+        return (pymat([[3, 0], [0, 4]]), pymat([[1, 0], [0, 1]]))
     end
 
     _py_setattr_symops(la, "svd_matrices_from_spec", fake_svd_py)

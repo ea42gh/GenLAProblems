@@ -3,10 +3,12 @@ module SymPyHelpers
 export sym_mat, sym_vec, sym_zero, sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
 export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
 
-using PythonCall
-using ..GenLAProblems: import_sympy
+using ..GenLAProblems: import_sympy, ensure_pythoncall!
 
 const _sympy = Ref{Any}(nothing)
+
+_py() = ensure_pythoncall!()
+_is_py(x) = x isa getfield(_py(), :Py)
 
 function _sympy_module()
     if _sympy[] === nothing
@@ -16,7 +18,7 @@ function _sympy_module()
 end
 
 function _to_sympy_entry(sympy, x)
-    if x isa PythonCall.Py
+    if _is_py(x)
         return x
     elseif x isa Rational
         return sympy.Rational(numerator(x), denominator(x))
@@ -32,6 +34,7 @@ function _to_sympy_entry(sympy, x)
 end
 
 function _sympy_matrix_from_array(x::AbstractArray)
+    py = _py()
     sympy = _sympy_module()
     # Normalize vectors to a column matrix to avoid Matrix(::Vector{Py}) errors.
     mat = x isa AbstractVector ? reshape(x, :, 1) : Matrix(x)
@@ -44,44 +47,58 @@ function _sympy_matrix_from_array(x::AbstractArray)
         rows[i] = row
     end
     # Build explicit Python lists to avoid NULL conversions in nested Julia arrays.
-    pyrows = Base.invokelatest(PythonCall.pylist, [
-        Base.invokelatest(PythonCall.pylist, r) for r in rows
+    pyrows = Base.invokelatest(py.pylist, [
+        Base.invokelatest(py.pylist, r) for r in rows
     ])
     return sympy.Matrix(pyrows)
 end
 
-sym_mat(x) = x isa PythonCall.Py ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))
-sym_vec(x) = x isa PythonCall.Py ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))
+sym_mat(x) = _is_py(x) ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))
+sym_vec(x) = _is_py(x) ? x : (x isa AbstractArray ? _sympy_matrix_from_array(x) : _sympy_module().Matrix(x))
 sym_zero() = _sympy_module().Integer(0)
 
 sym_mul(A, v) = sym_mat(A) * sym_vec(v)
 sym_add(A, B) = sym_mat(A) + sym_mat(B)
 sym_pow(A, k) = sym_mat(A) ^ k
 
-sym_is_zero(x) = PythonCall.pyconvert(Bool, _sympy_module().simplify(x).is_zero_matrix)
+function sym_is_zero(x)
+    py = _py()
+    return Base.invokelatest(py.pyconvert, Bool, _sympy_module().simplify(x).is_zero_matrix)
+end
 sym_eq(A, B) = sym_is_zero(sym_mat(A) - sym_mat(B))
 
-sym_vec_zero(v) = all(PythonCall.pyconvert(Bool, _sympy_module().simplify(e) == 0) for e in v)
+function sym_vec_zero(v)
+    py = _py()
+    return all(Base.invokelatest(py.pyconvert, Bool, _sympy_module().simplify(e) == 0) for e in v)
+end
 
-sym_to_julia_vec(x) = x isa PythonCall.Py ? Base.invokelatest(PythonCall.pyconvert, Vector{Any}, x) : x
-sym_to_julia_mat(x) = x isa PythonCall.Py ? Base.invokelatest(PythonCall.pyconvert, Matrix{Any}, x) : x
+function sym_to_julia_vec(x)
+    py = _py()
+    return _is_py(x) ? Base.invokelatest(py.pyconvert, Vector{Any}, x) : x
+end
+
+function sym_to_julia_mat(x)
+    py = _py()
+    return _is_py(x) ? Base.invokelatest(py.pyconvert, Matrix{Any}, x) : x
+end
 
 function _sympy_scalar_to_julia(x)
-    if !(x isa PythonCall.Py)
+    if !_is_py(x)
         return x
     end
+    py = _py()
     sympy = _sympy_module()
-    is_int = Base.invokelatest(PythonCall.pyconvert, Bool, Base.invokelatest(PythonCall.pygetattr, x, "is_Integer"))
+    is_int = Base.invokelatest(py.pyconvert, Bool, Base.invokelatest(py.pygetattr, x, "is_Integer"))
     if is_int
-        return Base.invokelatest(PythonCall.pyconvert, Int, x)
+        return Base.invokelatest(py.pyconvert, Int, x)
     end
-    is_rat = Base.invokelatest(PythonCall.pyconvert, Bool, Base.invokelatest(PythonCall.pygetattr, x, "is_Rational"))
+    is_rat = Base.invokelatest(py.pyconvert, Bool, Base.invokelatest(py.pygetattr, x, "is_Rational"))
     if is_rat
-        p = Base.invokelatest(PythonCall.pyconvert, Int, Base.invokelatest(PythonCall.pygetattr, x, "p"))
-        q = Base.invokelatest(PythonCall.pyconvert, Int, Base.invokelatest(PythonCall.pygetattr, x, "q"))
+        p = Base.invokelatest(py.pyconvert, Int, Base.invokelatest(py.pygetattr, x, "p"))
+        q = Base.invokelatest(py.pyconvert, Int, Base.invokelatest(py.pygetattr, x, "q"))
         return p//q
     end
-    return Base.invokelatest(PythonCall.pyconvert, Float64, sympy.N(x))
+    return Base.invokelatest(py.pyconvert, Float64, sympy.N(x))
 end
 
 function _promote_matrix(M::AbstractArray)
@@ -101,7 +118,7 @@ Substitute `subs` into a SymPy matrix or Julia matrix convertible to SymPy.
 otherwise returns a Julia numeric array.
 """
 function sym_subs_numeric(A, subs)
-    sympy = _sympy_module()
+    py = _py()
     symA = sym_mat(A)
     sub_list = subs isa AbstractDict ? collect(pairs(subs)) : subs
     if sub_list isa Pair
@@ -111,9 +128,9 @@ function sym_subs_numeric(A, subs)
         sub_list = [(p.first, p.second) for p in sub_list]
     end
     subbed = symA.subs(sub_list)
-    free = Base.invokelatest(PythonCall.pygetattr, subbed, "free_symbols")
-    blen = Base.invokelatest(PythonCall.pybuiltins.len, free)
-    nfree = Base.invokelatest(PythonCall.pyconvert, Int, blen)
+    free = Base.invokelatest(py.pygetattr, subbed, "free_symbols")
+    blen = Base.invokelatest(py.pybuiltins.len, free)
+    nfree = Base.invokelatest(py.pyconvert, Int, blen)
     if nfree != 0
         return subbed
     end

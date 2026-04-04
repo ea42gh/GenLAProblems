@@ -50,10 +50,10 @@ function _pygetattr(obj, name::Symbol)
 end
 
 function _pygetattr_fallback(obj, name::Symbol, mod::String)
-    _ensure_pythoncall()
+    py = _ensure_pythoncall()
     builtins = _pyimport("builtins")
-    has = Base.invokelatest(PythonCall.pycall, _pygetattr(builtins, :hasattr), obj, String(name))
-    if Base.invokelatest(PythonCall.pyconvert, Bool, has)
+    has = Base.invokelatest(py.pycall, _pygetattr(builtins, :hasattr), obj, String(name))
+    if Base.invokelatest(py.pyconvert, Bool, has)
         return _pygetattr(obj, name)
     end
     sub = _pyimport(mod)
@@ -67,27 +67,31 @@ Return version/build strings exposed by the Python packages `la_figures` and
 `matrixlayout`. These require PythonCall at runtime.
 """
 function la_version()
+    py = _ensure_pythoncall()
     la = load_la_figures()
     v = _pygetattr(la, :__version__)
-    return Base.invokelatest(PythonCall.pyconvert, String, v)
+    return Base.invokelatest(py.pyconvert, String, v)
 end
 
 function la_build()
+    py = _ensure_pythoncall()
     la = load_la_figures()
     v = _pygetattr(la, :__build__)
-    return Base.invokelatest(PythonCall.pyconvert, String, v)
+    return Base.invokelatest(py.pyconvert, String, v)
 end
 
 function ml_version()
+    py = _ensure_pythoncall()
     ml = load_matrixlayout()
     v = _pygetattr(ml, :__version__)
-    return Base.invokelatest(PythonCall.pyconvert, String, v)
+    return Base.invokelatest(py.pyconvert, String, v)
 end
 
 function ml_build()
+    py = _ensure_pythoncall()
     ml = load_matrixlayout()
     v = _pygetattr(ml, :__build__)
-    return Base.invokelatest(PythonCall.pyconvert, String, v)
+    return Base.invokelatest(py.pyconvert, String, v)
 end
 import Symbolics
 using AbstractAlgebra
@@ -148,7 +152,24 @@ function qr_matrices_from_grid(mats)
     _ensure_pythoncall()
     la = load_la_figures()
     qr_from_grid = _pygetattr(la, :qr_matrices_from_grid)
-    return _named_qr_matrices(materialize_python_value(_pycall(qr_from_grid, mats)))
+    qr = _pycall(qr_from_grid, mats)
+    getmat(name::String) = begin
+        try
+            materialize_python_value(qr[name])
+        catch
+            nothing
+        end
+    end
+    return (
+        A = getmat("A"),
+        W = getmat("W"),
+        WtA = getmat("WtA"),
+        WtW = getmat("WtW"),
+        S = getmat("S"),
+        Qt = getmat("Qt"),
+        Q = getmat("Q"),
+        R = getmat("R"),
+    )
 end
 
 """
@@ -224,13 +245,14 @@ end
 function materialize_python_value(x)
     if x isa NamedTuple
         return (; (name => materialize_python_value(value) for (name, value) in pairs(x))...)
-    elseif x isa AbstractDict
-        return Dict(materialize_python_value(k) => materialize_python_value(v) for (k, v) in pairs(x))
-    elseif x isa Tuple
-        return tuple((materialize_python_value(v) for v in x)...)
-    elseif x isa AbstractArray
-        return map(materialize_python_value, x)
     elseif !_py_is_py(x)
+        if x isa AbstractDict
+            return Dict(materialize_python_value(k) => materialize_python_value(v) for (k, v) in pairs(x))
+        elseif x isa Tuple
+            return tuple((materialize_python_value(v) for v in x)...)
+        elseif x isa AbstractArray
+            return map(materialize_python_value, x)
+        end
         return x
     end
 
@@ -238,8 +260,9 @@ function materialize_python_value(x)
         return nothing
     end
 
+    py = _ensure_pythoncall()
     converted = try
-        Base.invokelatest(PythonCall.pyconvert, Any, x)
+        Base.invokelatest(py.pyconvert, Any, x)
     catch
         x
     end
@@ -249,8 +272,8 @@ function materialize_python_value(x)
     end
 
     try
-        shape = Base.invokelatest(PythonCall.pygetattr, x, "shape")
-        shp = Base.invokelatest(PythonCall.pyconvert, Tuple, shape)
+        shape = Base.invokelatest(py.pygetattr, x, "shape")
+        shp = Base.invokelatest(py.pyconvert, Tuple, shape)
         if length(shp) == 2
             return map(materialize_python_value, sym_to_julia_mat(x))
         elseif length(shp) == 1
@@ -260,12 +283,12 @@ function materialize_python_value(x)
     end
 
     try
-        items_fn = Base.invokelatest(PythonCall.pygetattr, x, "items")
+        items_fn = Base.invokelatest(py.pygetattr, x, "items")
         items = _pycall(items_fn)
-        pairs_vec = Base.invokelatest(PythonCall.pyconvert, Vector{Any}, items)
+        pairs_vec = Base.invokelatest(py.pyconvert, Vector{Any}, items)
         return Dict(
             begin
-                pair_t = Base.invokelatest(PythonCall.pyconvert, Tuple, pair)
+                pair_t = Base.invokelatest(py.pyconvert, Tuple, pair)
                 materialize_python_value(pair_t[1]) => materialize_python_value(pair_t[2])
             end for pair in pairs_vec
         )
@@ -273,7 +296,7 @@ function materialize_python_value(x)
     end
 
     try
-        vec = Base.invokelatest(PythonCall.pyconvert, Vector{Any}, x)
+        vec = Base.invokelatest(py.pyconvert, Vector{Any}, x)
         return map(materialize_python_value, vec)
     catch
     end
@@ -407,8 +430,8 @@ function _normalize_render_opts(render_opts; tmp_dir=nothing)
 end
 
 function _bundle_result(dict)
-    _ensure_pythoncall()
-    py_get = Base.invokelatest(PythonCall.pygetattr, dict, "get")
+    py = _ensure_pythoncall()
+    py_get = Base.invokelatest(py.pygetattr, dict, "get")
     spec = _pycall(py_get, "spec")
     svg = _pycall(py_get, "svg")
     if _py_is_py(svg) && _py_is_none(svg)
@@ -635,7 +658,8 @@ function Base.getproperty(::SympyProxy, name::Symbol)
     end
     attr = _pygetattr(_sympy[], name)
     builtins = _pyimport("builtins")
-    if PythonCall.pyconvert(Bool, _pycall(builtins.callable, attr))
+    py = _ensure_pythoncall()
+    if Base.invokelatest(py.pyconvert, Bool, _pycall(builtins.callable, attr))
         return (args...; kwargs...) -> _pycall(attr, args...; kwargs...)
     end
     return attr
@@ -653,7 +677,7 @@ function load_la_figures()
             if pc === nothing
                 return nothing
             end
-            _la_figures[] = Base.invokelatest(PythonCall.pyimport, "la_figures")
+            _la_figures[] = Base.invokelatest(pc.pyimport, "la_figures")
         catch err
             error(
                 "Python module `la_figures` is required by GenLAProblems.\n" *
@@ -677,7 +701,7 @@ function load_matrixlayout()
             if pc === nothing
                 return nothing
             end
-            _matrixlayout[] = Base.invokelatest(PythonCall.pyimport, "matrixlayout")
+            _matrixlayout[] = Base.invokelatest(pc.pyimport, "matrixlayout")
         catch err
             error(
                 "Python module `matrixlayout` is required by GenLAProblems.\n" *
