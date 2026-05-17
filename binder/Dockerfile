@@ -33,7 +33,7 @@ RUN chown -R jovyan:jovyan /home/jovyan/GenLAProblems
 RUN mkdir -p /home/jovyan/work \
  && chown -R jovyan:jovyan /home/jovyan/work
 
-COPY GenProblems.ipynb /home/jovyan/work/GenProblems.ipynb
+COPY --chown=jovyan:jovyan GenProblems.ipynb /home/jovyan/work/GenProblems.ipynb
 
 USER jovyan
 
