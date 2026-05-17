@@ -3,4 +3,5 @@ set -euo pipefail
 
 cd /home/jovyan/GenLAProblems
 
+julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 julia --project=. binder/warmup.jl
