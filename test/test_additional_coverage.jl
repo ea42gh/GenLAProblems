@@ -92,6 +92,16 @@ end
     @test GenLAProblems._keep_file_output_parts(nothing) == (nothing, nothing)
 end
 
+@testset "GE output target resolution" begin
+    pb = ShowGE([1 2; 3 4]; tmp_dir="/tmp/fallback", keep_file="/tmp/kept/show_layout.tex")
+    out_dir, out_stem = GenLAProblems._resolve_ge_output_targets(pb, nothing, nothing)
+    @test out_dir == "/tmp/kept"
+    @test out_stem == "show_layout"
+    out_dir2, out_stem2 = GenLAProblems._resolve_ge_output_targets(pb, "/tmp/explicit", "demo")
+    @test out_dir2 == "/tmp/explicit"
+    @test out_stem2 == "demo"
+end
+
 @testset "SymPyHelpers additional substitution edges" begin
     if !_has_module_cov("sympy")
         @info "Skipping SymPyHelpers edge tests: sympy unavailable"

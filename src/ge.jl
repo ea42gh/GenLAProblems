@@ -255,6 +255,13 @@ function _keep_file_output_parts(keep_file)
     return dir, stem
 end
 
+function _resolve_ge_output_targets(pb::ShowGE, output_dir, output_stem)
+    keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
+    resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
+    resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
+    return resolved_output_dir, resolved_output_stem
+end
+
 function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true, fig_scale=1, output_dir=nothing, output_stem=nothing, render_opts=nothing )   where T <: Number
     n_rhs = _rhs_col_count(pb)
     if array_names === nothing
@@ -279,9 +286,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
             array_names = Dict("name_specs" => name_specs)
         end
             rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
-            keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
-            resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
-            resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
+            resolved_output_dir, resolved_output_stem = _resolve_ge_output_targets(pb, output_dir, output_stem)
             svg = matrixlayout_ge(
                 pb.matrices;
                 n_rhs=pb.n_rhs,
@@ -302,9 +307,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
     end
     if isdefined(pb, :matrices) && pb.matrices !== nothing && length(pb.matrices) > 1
             rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
-            keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
-            resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
-            resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
+            resolved_output_dir, resolved_output_stem = _resolve_ge_output_targets(pb, output_dir, output_stem)
             svg = matrixlayout_ge(
                 pb.matrices;
                 n_rhs=pb.n_rhs,
@@ -328,8 +331,7 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
     rhs_status = isdefined(pb, :rhs_status) ? pb.rhs_status : Symbol[]
     rhs_status_str = [string(s) for s in rhs_status]
-    keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
-    resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
+    resolved_output_dir, resolved_output_stem = _resolve_ge_output_targets(pb, output_dir, output_stem)
     pb.h = _pycall(ge_tbl_svg, pb.A, rhs;
         show_pivots=true,
         fig_scale=fig_scale,
@@ -788,8 +790,8 @@ function julia_ge( matrices, desc, pivot_cols; n_rhs=0, formatter=to_latex, pivo
     if output_dir !== nothing
         call_kwargs[:output_dir] = resolved_output_dir
     end
-    if output_stem !== nothing
-        call_kwargs[:output_stem] = output_stem
+    if resolved_output_stem !== nothing
+        call_kwargs[:output_stem] = resolved_output_stem
     end
     s = _pycall(ge_tbl_svg, A, rhs; call_kwargs...)
     _ensure_pythoncall()
