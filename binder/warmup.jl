@@ -1,8 +1,3 @@
-using Pkg
-
-Pkg.instantiate()
-Pkg.precompile()
-
 using GenLAProblems
 
 warmup_dir = "/tmp/genla_warmup"
