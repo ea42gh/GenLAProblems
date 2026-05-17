@@ -30,10 +30,15 @@ COPY . /home/jovyan/GenLAProblems
 USER root
 RUN chown -R jovyan:jovyan /home/jovyan/GenLAProblems
 
+RUN mkdir -p /home/jovyan/work \
+ && chown -R jovyan:jovyan /home/jovyan/work
+
+COPY GenProblems.ipynb /home/jovyan/work/GenProblems.ipynb
+
 USER jovyan
 
 RUN julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile(); using GenLAProblems, PythonCall; GenLAProblems.import_sympy()'
 RUN bash binder/postBuild
 
 EXPOSE 8888
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--no-browser", "--ServerApp.token=", "--ServerApp.password=", "--notebook-dir=/home/jovyan/GenLAProblems"]
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--no-browser", "--ServerApp.token=", "--ServerApp.password=", "--ServerApp.root_dir=/home/jovyan/work", "--notebook-dir=/home/jovyan/work"]
