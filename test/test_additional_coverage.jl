@@ -229,6 +229,7 @@ end
         @test !haskey(seen[], :tmp_dir)
         @test !haskey(seen[], :keep_file)
         @test !haskey(seen[], :output_dir)
+        @test !haskey(seen[], :output_stem)
     finally
         if had_la
             modules["la_figures"] = old_mod_la

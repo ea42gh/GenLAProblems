@@ -330,7 +330,6 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
     rhs_status_str = [string(s) for s in rhs_status]
     keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
     resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
-    resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
     pb.h = _pycall(ge_tbl_svg, pb.A, rhs;
         show_pivots=true,
         fig_scale=fig_scale,
@@ -339,7 +338,6 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
         rhs_status=rhs_status_str,
         array_names=array_names,
         output_dir=resolved_output_dir,
-        output_stem=resolved_output_stem,
         render_opts=render_opts,
     )
     _ensure_pythoncall()
