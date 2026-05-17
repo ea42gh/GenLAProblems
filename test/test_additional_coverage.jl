@@ -16,10 +16,10 @@ function _py_setattr_cov(obj, name::AbstractString, value)
 end
 
 @testset "matrixlayout_ge forwarding and merge behavior" begin
-    if !_has_module_cov("la_figures.ge_convenience")
-        @info "Skipping matrixlayout_ge forwarding tests: la_figures.ge_convenience unavailable"
+    if !_has_module_cov("LAFigureSpecs.ge_convenience")
+        @info "Skipping matrixlayout_ge forwarding tests: LAFigureSpecs.ge_convenience unavailable"
     else
-        ge_conv = PythonCall.pyimport("la_figures.ge_convenience")
+        ge_conv = PythonCall.pyimport("LAFigureSpecs.ge_convenience")
         old_ge = PythonCall.pygetattr(ge_conv, "ge")
         seen = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
 
@@ -190,7 +190,7 @@ end
     end
     try
         GenLAProblems._ensure_pythoncall()
-        old = GenLAProblems._pyimport("la_figures.ge_convenience")
+        old = GenLAProblems._pyimport("LAFigureSpecs.ge_convenience")
         PythonCall.pysetattr(old, "ge", fake_ge)
         mats = [[nothing, [1 0; 0 1]]]
         bg = [[0, 1, [[(0, 0), (0, 0)]], "yellow!25", 1]]
@@ -199,7 +199,7 @@ end
         ro = get(payloads[end], :render_opts, nothing)
         @test ro === nothing || get(ro, "create_medium_nodes", true) == true
     catch err
-        @info "Skipping matrixlayout_ge medium nodes test: la_figures unavailable" exception=(err, catch_backtrace())
+        @info "Skipping matrixlayout_ge medium nodes test: LAFigureSpecs unavailable" exception=(err, catch_backtrace())
     end
 end
 
@@ -208,11 +208,11 @@ end
     sys = PythonCall.pyimport("sys")
 
     fake_root = PythonCall.pycall(types.SimpleNamespace)
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
 
-    # Build fake la_figures.ge_convenience module in sys.modules.
-    mod_la = PythonCall.pycall(types.ModuleType, "la_figures")
-    mod_conv = PythonCall.pycall(types.ModuleType, "la_figures.ge_convenience")
+    # Build fake LAFigureSpecs.ge_convenience module in sys.modules.
+    mod_la = PythonCall.pycall(types.ModuleType, "LAFigureSpecs")
+    mod_conv = PythonCall.pycall(types.ModuleType, "LAFigureSpecs.ge_convenience")
     seen = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
 
     function fake_ge_tbl_svg(args...; kwargs...)
@@ -223,15 +223,15 @@ end
 
     modules = PythonCall.pygetattr(sys, "modules")
     contains = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "__contains__")
-    had_la = PythonCall.pyconvert(Bool, PythonCall.pycall(contains, "la_figures"))
-    had_conv = PythonCall.pyconvert(Bool, PythonCall.pycall(PythonCall.pybuiltins.getattr(modules, "__contains__"), "la_figures.ge_convenience"))
-    old_mod_la = had_la ? modules["la_figures"] : nothing
-    old_mod_conv = had_conv ? modules["la_figures.ge_convenience"] : nothing
+    had_la = PythonCall.pyconvert(Bool, PythonCall.pycall(contains, "LAFigureSpecs"))
+    had_conv = PythonCall.pyconvert(Bool, PythonCall.pycall(PythonCall.pybuiltins.getattr(modules, "__contains__"), "LAFigureSpecs.ge_convenience"))
+    old_mod_la = had_la ? modules["LAFigureSpecs"] : nothing
+    old_mod_conv = had_conv ? modules["LAFigureSpecs.ge_convenience"] : nothing
 
     try
-        modules["la_figures"] = mod_la
-        modules["la_figures.ge_convenience"] = mod_conv
-        GenLAProblems._la_figures[] = fake_root
+        modules["LAFigureSpecs"] = mod_la
+        modules["LAFigureSpecs.ge_convenience"] = mod_conv
+        GenLAProblems._LAFigureSpecs[] = fake_root
 
         h = nM.show_ge_tbl([1 0; 0 1]; tmp_dir="/tmp/la", keep_file="x", output_dir="/tmp/y")
         @test h isa GenLAProblems.SVGOut
@@ -242,26 +242,26 @@ end
         @test !haskey(seen[], :output_stem)
     finally
         if had_la
-            modules["la_figures"] = old_mod_la
+            modules["LAFigureSpecs"] = old_mod_la
         else
             popfn = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "pop")
-            PythonCall.pycall(popfn, "la_figures", nothing)
+            PythonCall.pycall(popfn, "LAFigureSpecs", nothing)
         end
         if had_conv
-            modules["la_figures.ge_convenience"] = old_mod_conv
+            modules["LAFigureSpecs.ge_convenience"] = old_mod_conv
         else
             popfn = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "pop")
-            PythonCall.pycall(popfn, "la_figures.ge_convenience", nothing)
+            PythonCall.pycall(popfn, "LAFigureSpecs.ge_convenience", nothing)
         end
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 
 @testset "show_ge_final contract" begin
-    if !_has_module_cov("la_figures")
-        @info "Skipping show_ge_final contract test: la_figures unavailable"
+    if !_has_module_cov("LAFigureSpecs")
+        @info "Skipping show_ge_final contract test: LAFigureSpecs unavailable"
     else
-        old_la = GenLAProblems._la_figures[]
+        old_la = GenLAProblems._LAFigureSpecs[]
         types = PythonCall.pyimport("types")
         la = PythonCall.pycall(types.SimpleNamespace)
         seen = Ref{Tuple{Any,Any}}((nothing, nothing))
@@ -275,7 +275,7 @@ end
         _py_setattr_cov(la, "ge_tbl_svg", fake_ge_tbl_svg)
 
         try
-            GenLAProblems._la_figures[] = la
+            GenLAProblems._LAFigureSpecs[] = la
             mats = [[nothing, [1 2; 3 4]], [nothing, [9 8; 7 6]]]
             h = GenLAProblems.show_ge_final(mats, Any[], Int[]; n_rhs=0, output_dir="/tmp/final")
             @test h isa GenLAProblems.SVGOut
@@ -286,7 +286,7 @@ end
             @test haskey(seen_kwargs[], :output_dir)
             @test seen_kwargs[][:output_dir] == "/tmp/final"
         finally
-            GenLAProblems._la_figures[] = old_la
+            GenLAProblems._LAFigureSpecs[] = old_la
         end
     end
 end

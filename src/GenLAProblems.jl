@@ -63,19 +63,19 @@ end
 """
     la_version(), la_build(), ml_version(), ml_build()
 
-Return version/build strings exposed by the Python packages `la_figures` and
+Return version/build strings exposed by the Python packages `LAFigureSpecs` and
 `matrixlayout`. These require PythonCall at runtime.
 """
 function la_version()
     py = _ensure_pythoncall()
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     v = _pygetattr(la, :__version__)
     return Base.invokelatest(py.pyconvert, String, v)
 end
 
 function la_build()
     py = _ensure_pythoncall()
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     v = _pygetattr(la, :__build__)
     return Base.invokelatest(py.pyconvert, String, v)
 end
@@ -116,13 +116,13 @@ using .SymPyHelpers:
     svd_matrices_from_spec(spec; reduced=true)
 
 Build `(U, Σ, V, rank)` from an SVD spec dictionary (as returned by
-`nM.show_svd_tbl` / `la_figures.svd_tbl_spec`). The matrix type is preserved:
+`nM.show_svd_tbl` / `LAFigureSpecs.svd_tbl_spec`). The matrix type is preserved:
 if the spec contains SymPy objects, returns SymPy matrices; otherwise returns
 Julia matrices. When `reduced=true`, only nonzero singular value groups are included.
 """
 function svd_matrices_from_spec(spec; reduced::Bool=true)
     _ensure_pythoncall()
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     svd_from_spec = _pygetattr(la, :svd_matrices_from_spec)
     return materialize_python_value(_pycall(svd_from_spec, spec; reduced=reduced))
 end
@@ -131,12 +131,12 @@ end
     eig_matrices_from_spec(spec; orthonormal=true)
 
 Build `(Λ, V)` from an eigen-table spec dictionary (as returned by
-`nM.show_eig_tbl` / `la_figures.eig_tbl_spec`). Uses `qvecs` when available
+`nM.show_eig_tbl` / `LAFigureSpecs.eig_tbl_spec`). Uses `qvecs` when available
 and `orthonormal=true`, otherwise uses `evecs`. The matrix type is preserved.
 """
 function eig_matrices_from_spec(spec; orthonormal::Bool=true)
     _ensure_pythoncall()
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     eig_from_spec = _pygetattr(la, :eig_matrices_from_spec)
     return materialize_python_value(_pycall(eig_from_spec, spec; orthonormal=orthonormal))
 end
@@ -150,7 +150,7 @@ The matrix type is preserved (Julia or SymPy).
 """
 function qr_matrices_from_grid(mats)
     _ensure_pythoncall()
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     qr_from_grid = _pygetattr(la, :qr_matrices_from_grid)
     qr = _pycall(qr_from_grid, mats)
     getmat(name::String) = begin
@@ -179,7 +179,7 @@ Return QR matrices as a plain dict for JSON-friendly usage.
 """
 function qr_matrices_dict_from_grid(mats)
     _ensure_pythoncall()
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     qr_from_grid = _pygetattr(la, :qr_matrices_dict_from_grid)
     return _pycall(qr_from_grid, mats)
 end
@@ -207,7 +207,7 @@ Convert px-equivalent SVG units to millimeters (96 px per inch).
 """
 px_to_mm(px::Real) = float(px) * 25.4 / 96.0
 
-const _la_figures = Ref{Any}(nothing)
+const _LAFigureSpecs = Ref{Any}(nothing)
 const _matrixlayout = Ref{Any}(nothing)
 const _sympy = Ref{Any}(nothing)
 
@@ -443,7 +443,7 @@ end
 function _nm_bundle_wrapper(bundle_sym::Symbol; kwcleaner=_map_tmp_to_output, wrap_svg::Bool=true)
     return function (args...; kwargs...)
         clean = kwcleaner(kwargs)
-        la = load_la_figures()
+        la = load_LAFigureSpecs()
         bundle_fn = _pygetattr(la, bundle_sym)
         spec, svg = _bundle_result(_pycall(bundle_fn, args...; clean...))
         return wrap_svg ? (_show_svg(svg), spec) : (svg, spec)
@@ -458,7 +458,7 @@ function _nm_svg_wrapper(svg_sym::Symbol;
 )
     return function (args...; kwargs...)
         clean = kwcleaner(kwargs)
-        la = load_la_figures()
+        la = load_LAFigureSpecs()
         svg_fn = fallback_mod === nothing ? _pygetattr(la, svg_sym) : _pygetattr_fallback(la, svg_sym, fallback_mod)
         svg = _pycall(svg_fn, args...; clean...)
         if wrap_svg
@@ -576,7 +576,7 @@ function _qr_spec_from_args(args...; matrices_kw=Dict(), spec_kw=Dict())
     if length(args) != 1
         throw(ArgumentError("qr routines expect a single matrix A; W is computed internally"))
     end
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     gram_schmidt_qr_matrices = _pygetattr(la, :gram_schmidt_qr_matrices)
     qr_tbl_spec_from_matrices = _pygetattr(la, :qr_tbl_spec_from_matrices)
     matrices_nt = (; matrices_kw...)
@@ -590,7 +590,7 @@ function _qr_tbl_spec_from_args(args...; compute_kw=Dict())
     if length(args) != 1
         throw(ArgumentError("qr routines expect a single matrix A; W is computed internally"))
     end
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     qr_tbl_spec = _pygetattr(la, :qr_tbl_spec)
     compute_nt = (; compute_kw...)
     return _pycall(qr_tbl_spec, args...; compute_nt...)
@@ -623,15 +623,15 @@ function Base.getproperty(p::NMProxy, name::Symbol)
     elseif name === :show_svd_tbl
         return _nm_bundle_wrapper(:svd_tbl_bundle)
     elseif name === :show_ge_tbl
-        return _nm_svg_wrapper(:ge_tbl_svg; kwcleaner=_clean_tmp_kwargs, fallback_mod="la_figures.ge_convenience")
+        return _nm_svg_wrapper(:ge_tbl_svg; kwcleaner=_clean_tmp_kwargs, fallback_mod="LAFigureSpecs.ge_convenience")
     elseif name === :show_qr_tbl
         return _nm_bundle_wrapper(:qr_tbl_bundle; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_ge
         return _nm_svg_wrapper(:svg; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_qr
         return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, with_first_arg=true)
-    elseif name === :la || name === :la_figures
-        return load_la_figures()
+    elseif name === :la || name === :LAFigureSpecs
+        return load_LAFigureSpecs()
     elseif name === :ml || name === :matrixlayout
         return load_matrixlayout()
     elseif name === :gram_schmidt_qr
@@ -666,27 +666,27 @@ function Base.getproperty(::SympyProxy, name::Symbol)
 end
 
 """
-    load_la_figures() -> la_figures
+    load_LAFigureSpecs() -> LAFigureSpecs
 
-Load the Python `la_figures` module via PythonCall.
+Load the Python `LAFigureSpecs` module via PythonCall.
 """
-function load_la_figures()
-    if _la_figures[] === nothing
+function load_LAFigureSpecs()
+    if _LAFigureSpecs[] === nothing
         try
             pc = _ensure_pythoncall()
             if pc === nothing
                 return nothing
             end
-            _la_figures[] = Base.invokelatest(pc.pyimport, "la_figures")
+            _LAFigureSpecs[] = Base.invokelatest(pc.pyimport, "LAFigureSpecs")
         catch err
             error(
-                "Python module `la_figures` is required by GenLAProblems.\n" *
+                "Python module `LAFigureSpecs` is required by GenLAProblems.\n" *
                 "Install it in the active Python environment.\n\n" *
                 "Original error:\n$err"
             )
         end
     end
-    return _la_figures[]
+    return _LAFigureSpecs[]
 end
 
 """
@@ -717,7 +717,7 @@ end
 """
     nM -> NMProxy
 
-Proxy that exposes matrixlayout helpers by default and la_figures display helpers.
+Proxy that exposes matrixlayout helpers by default and LAFigureSpecs display helpers.
 """
 
 include("MatrixGeneration.jl")
@@ -726,7 +726,7 @@ include("ge.jl")
 
 export __version__, __build__
 export la_version, la_build, ml_version, ml_build
-export load_la_figures, load_matrixlayout, nM, sympy
+export load_LAFigureSpecs, load_matrixlayout, nM, sympy
 export ensure_pythoncall!
 export materialize_python_value
 export sym_mat, sym_vec, sym_zero

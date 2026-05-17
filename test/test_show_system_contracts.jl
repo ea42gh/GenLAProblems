@@ -6,12 +6,12 @@ function _py_setattr_sys(obj, name::AbstractString, value)
     PythonCall.pycall(PythonCall.pybuiltins.setattr, obj, name, value)
 end
 
-@testset "show_system contracts (mocked la_figures + matrixlayout.backsubst)" begin
+@testset "show_system contracts (mocked LAFigureSpecs + matrixlayout.backsubst)" begin
     types = PythonCall.pyimport("types")
     sys = PythonCall.pyimport("sys")
     modules = PythonCall.pygetattr(sys, "modules")
 
-    # Fake la_figures root (only linear_system_tex needed).
+    # Fake LAFigureSpecs root (only linear_system_tex needed).
     la = PythonCall.pycall(types.SimpleNamespace)
     seen_tex = Ref{NamedTuple{(:A,:b,:var_name),Tuple{Any,Any,Any}}}((A=nothing, b=nothing, var_name=nothing))
     seen_svg = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
@@ -35,12 +35,12 @@ end
     old_ml = had_ml ? modules["matrixlayout"] : nothing
     had_bs = PythonCall.pyconvert(Bool, PythonCall.pycall(contains, "matrixlayout.backsubst"))
     old_bs = had_bs ? modules["matrixlayout.backsubst"] : nothing
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
 
     try
         modules["matrixlayout"] = PythonCall.pycall(types.ModuleType, "matrixlayout")
         modules["matrixlayout.backsubst"] = mod_bs
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
 
         # Integer path: use selected RHS column.
         A = [1 2; 3 4]
@@ -88,6 +88,6 @@ end
             popfn = PythonCall.pycall(PythonCall.pybuiltins.getattr, modules, "pop")
             PythonCall.pycall(popfn, "matrixlayout", nothing)
         end
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end

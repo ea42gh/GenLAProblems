@@ -64,7 +64,7 @@ Pure Julia (no Python needed):
 - QR helpers (`gram_schmidt_w`, `normalize_columns`, `gram_schmidt_stable`, `qr_layout`)
 - Polynomial helpers (`charpoly`)
 
-Python-backed (requires `la_figures`, `matrixlayout`, `jupyter_tikz`, `sympy` via PythonCall):
+Python-backed (requires `LAFigureSpecs`, `matrixlayout`, `jupyter_tikz`, `sympy` via PythonCall):
 - Rendering helpers (`show_layout!`, `show_system`, `show_backsubstitution`, `show_solution`, `show_ge_final`)
 - SymPy helpers (`sym_*`, `sym_subs_numeric`, `sym_to_julia_*`)
 

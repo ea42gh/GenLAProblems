@@ -21,7 +21,7 @@ end
 
 function _has_python_stack()
     try
-        return _has_module("la_figures") && _has_module("matrixlayout")
+        return _has_module("LAFigureSpecs") && _has_module("matrixlayout")
     catch
         return false
     end
@@ -90,7 +90,7 @@ end
 
 @testset "nM wrapper return contracts" begin
     if !_has_python_stack() || !_has_render_stack()
-        @info "Skipping nM wrapper tests: la_figures/matrixlayout/jupyter_tikz not available"
+        @info "Skipping nM wrapper tests: LAFigureSpecs/matrixlayout/jupyter_tikz not available"
     else
         try
             A = [2 0; 0 1]
@@ -114,7 +114,7 @@ end
 
 @testset "show_system smoke" begin
     if !_has_python_stack() || !_has_render_stack()
-        @info "Skipping show_system smoke: la_figures/matrixlayout/jupyter_tikz not available"
+        @info "Skipping show_system smoke: LAFigureSpecs/matrixlayout/jupyter_tikz not available"
     else
         try
             A = Rational{Int}.([1 0; 0 1])

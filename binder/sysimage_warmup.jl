@@ -4,7 +4,7 @@ warmup_dir = "/tmp/genla_sysimage"
 mkpath(warmup_dir)
 
 GenLAProblems.import_sympy()
-GenLAProblems.load_la_figures()
+GenLAProblems.load_LAFigureSpecs()
 GenLAProblems.load_matrixlayout()
 
 A = Rational{Int}[1 2 0; 0 1 3; 0 0 2]

@@ -38,11 +38,11 @@ end
     _py_setattr_cascade(la, "standard_solution_tex", fake_standard_solution_tex)
     _py_setattr_cascade(ml, "backsubst_svg", fake_backsubst_svg)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     old_ml = GenLAProblems._matrixlayout[]
 
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         GenLAProblems._matrixlayout[] = ml
 
         A = [1 2; 0 3]
@@ -99,7 +99,7 @@ end
         @test seen_svg[][:fig_scale] == 0.7
         @test seen_svg[][:output_dir] == "/tmp/fwd"
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
     end
 end
@@ -112,10 +112,10 @@ end
     _py_setattr_cascade(la, "standard_solution_tex", (A, b; kwargs...) -> "x = x_p + x_h")
     _py_setattr_cascade(ml, "backsubst_svg", (; kwargs...) -> (seen[] = Dict(kwargs); "<svg>sol</svg>"))
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     old_ml = GenLAProblems._matrixlayout[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         GenLAProblems._matrixlayout[] = ml
 
         mats = [[nothing, [1 0 1; 0 1 2]]]
@@ -125,7 +125,7 @@ end
         @test seen[][:fig_scale] == 1.2
         @test seen[][:output_dir] == "/tmp/sol"
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
     end
 end
@@ -138,10 +138,10 @@ end
     _py_setattr_cascade(la, "backsubstitution_tex", (A, b; kwargs...) -> ["x_2 = 1", "x_1 = 2"])
     _py_setattr_cascade(ml, "backsubst_svg", (; kwargs...) -> (seen[] = Dict(kwargs); "<svg>back</svg>"))
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     old_ml = GenLAProblems._matrixlayout[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         GenLAProblems._matrixlayout[] = ml
 
         U = [1 2; 0 3]
@@ -164,7 +164,7 @@ end
             @info "Skipping render_svg=false back-substitution path: no text/latex String display method"
         end
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
     end
 end

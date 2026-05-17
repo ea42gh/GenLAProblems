@@ -13,7 +13,7 @@ let
 
     repo = normpath(joinpath(@__DIR__, "..", "..", ".."))
     py_paths = [
-        joinpath(repo, "0_ITIKZ", "la_figures"),
+        joinpath(repo, "0_ITIKZ", "LAFigureSpecs"),
         joinpath(repo, "0_ITIKZ", "matrixlayout"),
     ]
     existing = get(ENV, "PYTHONPATH", "")
@@ -77,10 +77,10 @@ using GenLAProblems
         b = Rational.( [5, 6] )
         if try
             GenLAProblems._ensure_pythoncall()
-            PythonCall.pyimport("la_figures")
+            PythonCall.pyimport("LAFigureSpecs")
             true
         catch
-            @info "Skipping show_backsubstitution adjoint test: la_figures unavailable"
+            @info "Skipping show_backsubstitution adjoint test: LAFigureSpecs unavailable"
             false
         end
             @test show_backsubstitution(U', b) !== nothing
@@ -137,7 +137,7 @@ using GenLAProblems
     @testset "Normal equation layout uses computed matrices" begin
         if try
             GenLAProblems._ensure_pythoncall()
-            PythonCall.pyimport("la_figures")
+            PythonCall.pyimport("LAFigureSpecs")
             PythonCall.pyimport("matrixlayout")
             true
         catch

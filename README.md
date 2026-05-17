@@ -15,7 +15,7 @@ The Binder notebook opens `GenProblems.ipynb` and shows the current
 
 ## Display backend
 
-GE/GJ visualizations are rendered via the Python `la_figures` + `matrixlayout` stack
+GE/GJ visualizations are rendered via the Python `LAFigureSpecs` + `matrixlayout` stack
 through `PythonCall`. Ensure those Python packages are available in the active
 Python environment.
 

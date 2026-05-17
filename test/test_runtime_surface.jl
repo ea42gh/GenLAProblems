@@ -19,17 +19,17 @@ end
     types = PythonCall.pyimport("types")
     la = PythonCall.pycall(types.SimpleNamespace)
     ml = PythonCall.pycall(types.SimpleNamespace)
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     old_ml = GenLAProblems._matrixlayout[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         GenLAProblems._matrixlayout[] = ml
-        @test GenLAProblems.load_la_figures() === la
+        @test GenLAProblems.load_LAFigureSpecs() === la
         @test GenLAProblems.load_matrixlayout() === ml
-        @test GenLAProblems.load_la_figures() === la
+        @test GenLAProblems.load_LAFigureSpecs() === la
         @test GenLAProblems.load_matrixlayout() === ml
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
     end
 end
@@ -64,16 +64,16 @@ end
     else
     types = PythonCall.pyimport("types")
     la = PythonCall.pycall(types.SimpleNamespace)
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
         _py_setattr_rt(la, "standard_solution_tex", (A, b; kwargs...) -> "x_1 = 1")
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         mats = [[nothing, [1 0 1; 0 1 2]]]
         tex = GenLAProblems.show_solution(mats; render_svg=false)
         @test tex isa AbstractString
         @test occursin("x_1 = 1", tex)
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
     end
 end

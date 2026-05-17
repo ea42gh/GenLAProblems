@@ -8,9 +8,9 @@ function _py_keys_set(d)
     return Set(String.(collect(PythonCall.pylist(keys_list))))
 end
 
-@testset "bundle spec parity with la_figures" begin
+@testset "bundle spec parity with LAFigureSpecs" begin
     GenLAProblems._ensure_pythoncall()
-    la = GenLAProblems.load_la_figures()
+    la = GenLAProblems.load_LAFigureSpecs()
     A = [1 0; 0 1]
 
     for (bundle_sym, jl_fn) in [

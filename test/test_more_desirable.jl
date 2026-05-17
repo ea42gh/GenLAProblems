@@ -43,9 +43,9 @@ end
     _py_setattr_more(la, "svd_tbl_bundle", fake_bundle)
     _py_setattr_more(la, "qr_tbl_bundle", fake_bundle)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
 
         h1, spec1 = nM.show_eig_tbl([1 0; 0 1]; tmp_dir="/tmp/la")
         raw1, spec1b = nM.eig_tbl_svg([1 0; 0 1]; tmp_dir="/tmp/la")
@@ -64,7 +64,7 @@ end
         @test occursin("bundle", raw2s)
         @test PythonCall.pyconvert(Dict, spec2) == PythonCall.pyconvert(Dict, spec2b)
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 

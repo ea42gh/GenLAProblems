@@ -7,7 +7,7 @@ CurrentModule = GenLAProblems
 GenLAProblems uses PythonCall to access the rendering stack and SymPy.
 The following packages are expected in the active Python environment:
 
-- `la_figures`
+- `LAFigureSpecs`
 - `matrixlayout`
 - `jupyter_tikz`
 - `sympy`
@@ -36,7 +36,7 @@ Set `GENLAPROBLEMS_SMOKE_OUT` to control the output directory.
 ## Rendering options (`render_opts`)
 
 High-level rendering helpers accept a `render_opts` keyword. This dictionary is passed
-through to the underlying renderers (`la_figures` → `matrixlayout` → `jupyter_tikz`)
+through to the underlying renderers (`LAFigureSpecs` → `matrixlayout` → `jupyter_tikz`)
 and can include options such as:
 
 - `crop`
@@ -54,11 +54,11 @@ and can include options such as:
   `ENV["JULIA_PYTHONCALL_EXE"] = "/path/to/python"`
 - Install required packages in that Python:
   `python -m pip install sympy`
-  (and install your local `la_figures`, `matrixlayout`, `jupyter_tikz` packages)
+  (and install your local `LAFigureSpecs`, `matrixlayout`, `jupyter_tikz` packages)
 
-**`ModuleNotFoundError: No module named 'la_figures'`**
+**`ModuleNotFoundError: No module named 'LAFigureSpecs'`**
 - Verify `PYTHONPATH` includes the local repos or install the packages into the Python env.
-- In tests, `PYTHONPATH` is set to include `0_ITIKZ/la_figures` and `0_ITIKZ/matrixlayout`.
+- In tests, `PYTHONPATH` is set to include `0_ITIKZ/LAFigureSpecs` and `0_ITIKZ/matrixlayout`.
 
 **`ModuleNotFoundError: No module named 'matrixlayout'`**
 - Same fix as above; ensure the module is on `PYTHONPATH` or installed.

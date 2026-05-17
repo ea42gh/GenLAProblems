@@ -70,10 +70,10 @@ end
 
     _py_setattr(ml, "render_qr_svg", fake_render_qr_svg)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     old_ml = GenLAProblems._matrixlayout[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         GenLAProblems._matrixlayout[] = ml
 
         h, spec = nM.show_eig_tbl([1 0; 0 1]; tmp_dir="/tmp/la", render_opts=Dict("crop" => "tight"))
@@ -112,7 +112,7 @@ end
         @test haskey(seen_render_qr[], :render_opts)
 
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
     end
 end

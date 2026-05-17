@@ -33,10 +33,10 @@ end
     _py_setattr_inconsistent(la, "backsubstitution_tex", (A, b; kwargs...) -> ["0 = 1", "\\text{No Solution}"])
     _py_setattr_inconsistent(ml, "backsubst_svg", (; kwargs...) -> (seen[] = Dict(kwargs); "<svg>cascade</svg>"))
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     old_ml = GenLAProblems._matrixlayout[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         GenLAProblems._matrixlayout[] = ml
 
         h = GenLAProblems.show_backsubstitution!(pb; b_col=1)
@@ -48,7 +48,7 @@ end
         sol = GenLAProblems.show_solution!(pb; b_col=1)
         @test sol == Any[]
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
     end
 end

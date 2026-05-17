@@ -72,9 +72,9 @@ end
 
     _py_setattr_notebook(la, "svd_tbl_bundle", fake_bundle)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
 
         # Contract: show_* returns (SVGOut, spec) and tmp_dir maps to output_dir.
         h, spec = nM.show_svd_tbl([2 0; 0 1]; tmp_dir="/tmp/la", output_dir="/tmp/explicit")
@@ -89,7 +89,7 @@ end
         @test raw_svg isa PythonCall.Py || raw_svg isa AbstractString
         @test spec2 isa PythonCall.Py
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 

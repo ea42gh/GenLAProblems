@@ -101,9 +101,9 @@ end
     _py_setattr_symops(la, "eig_matrices_from_spec", fake_eig)
     _py_setattr_symops(la, "qr_matrices_from_grid", fake_qr)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
 
         out_svd = GenLAProblems.svd_matrices_from_spec("spec"; reduced=false)
         @test out_svd == ("U", "S", "V", 2)
@@ -120,7 +120,7 @@ end
         @test seen[][:which] == :qr
         @test seen[][:mats] == "grid"
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 
@@ -199,9 +199,9 @@ end
 
     _py_setattr_symops(la, "qr_matrices_from_grid", fake_qr_py)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         qr = GenLAProblems.qr_matrices_from_grid("grid")
         @test qr.A === nothing
         @test qr.W === nothing
@@ -212,7 +212,7 @@ end
         @test qr.Q == [1 0; 0 1]
         @test qr.R == [4 5; 0 6]
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 
@@ -236,9 +236,9 @@ end
     _py_setattr_symops(la, "svd_matrices_from_spec", fake_svd_py)
     _py_setattr_symops(la, "eig_matrices_from_spec", fake_eig_py)
 
-    old_la = GenLAProblems._la_figures[]
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
-        GenLAProblems._la_figures[] = la
+        GenLAProblems._LAFigureSpecs[] = la
         U, S, V, rank = GenLAProblems.svd_matrices_from_spec("spec")
         @test U isa AbstractMatrix
         @test S isa AbstractMatrix
@@ -249,7 +249,7 @@ end
         @test Lambda isa AbstractMatrix
         @test V2 isa AbstractMatrix
     finally
-        GenLAProblems._la_figures[] = old_la
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 

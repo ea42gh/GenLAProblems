@@ -326,9 +326,9 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
         pb.h = svg
         return svg
     end
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     rhs = isdefined(pb, :B) ? pb.B : nothing
-    ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
+    ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "LAFigureSpecs.ge_convenience")
     rhs_status = isdefined(pb, :rhs_status) ? pb.rhs_status : Symbol[]
     rhs_status_str = [string(s) for s in rhs_status]
     resolved_output_dir, resolved_output_stem = _resolve_ge_output_targets(pb, output_dir, output_stem)
@@ -375,7 +375,7 @@ _resolve_output_dir(output_dir, tmp_dir, fallback=nothing) = output_dir !== noth
 
 function show_system(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir=nothing, render_opts=nothing) where T <: Number
     A, b = _system_matrix_rhs(pb; b_col=b_col)
-    la = load_la_figures()
+    la = load_LAFigureSpecs()
     linear_system_tex = _pygetattr(la, :linear_system_tex)
     tex = _pycall(linear_system_tex, A, b; var_name=var_name)
     _ensure_pythoncall()
@@ -611,13 +611,13 @@ function show_backsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", 
         return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
     end
     A, b = _backsub_ref(pb; b_col=b_col)
-    lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
+    lines = load_LAFigureSpecs().backsubstitution_tex(A, b, var_name=var_name)
     return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
 end
 # --------------------------------------------------------------------------------------------------------------
 function show_forwardsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true, render_opts=nothing ) where T <: Number
     A, b = _forwardsub_ref(pb; b_col=b_col)
-    lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
+    lines = load_LAFigureSpecs().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
     if render_svg
         return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
@@ -635,7 +635,7 @@ function show_solution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scal
         return Vector{T}()
     end
     A, b = _backsub_ref(pb; b_col=b_col)
-    tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
+    tex = load_LAFigureSpecs().standard_solution_tex(A, b, var_name=var_name)
     return _render_solution_svg(tex; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
 end
 # ==============================================================================================================
@@ -643,14 +643,14 @@ raw"""
     show_backsubstitution(A, b; var_name="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true)
 
     Render the back-substitution cascade for the upper-triangular system `A * x = b`
-    using `la_figures.backsubstitution_tex`. Works with Integer/Float as well as
+    using `LAFigureSpecs.backsubstitution_tex`. Works with Integer/Float as well as
     exact `Rational` and `Complex{Rational}` inputs (those are converted to tuples so
     SymPy reconstructs exact rationals on the Python side).
 """
 function show_backsubstitution(A, b; var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true, render_opts=nothing)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
-    lines = load_la_figures().backsubstitution_tex(A2, b2, var_name=var_name)
+    lines = load_LAFigureSpecs().backsubstitution_tex(A2, b2, var_name=var_name)
     if render_svg
         return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=_resolve_output_dir(output_dir, tmp_dir), render_opts=render_opts)
     end
@@ -661,14 +661,14 @@ raw"""
     show_forwardsubstitution(A, b; var_name="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true)
 
 Render the forward-substitution cascade for the lower-triangular system `A * x = b`
-using the la_figures backsubstitution cascade on a reversed system, then relabeling indices.
+using the LAFigureSpecs backsubstitution cascade on a reversed system, then relabeling indices.
 Supports Integer/Float as well as exact `Rational` and `Complex{Rational}` inputs
 converted to tuples for exact SymPy reconstruction.
 """
 function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true, render_opts=nothing)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
-    lines = load_la_figures().backsubstitution_tex(A2[end:-1:1, end:-1:1], b2[end:-1:1], var_name=var_name)
+    lines = load_LAFigureSpecs().backsubstitution_tex(A2[end:-1:1, end:-1:1], b2[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
     if render_svg
         return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=_resolve_output_dir(output_dir, tmp_dir), render_opts=render_opts)
@@ -769,8 +769,8 @@ function julia_ge( matrices, desc, pivot_cols; n_rhs=0, formatter=to_latex, pivo
         A = Ab
         rhs = nothing
     end
-    la = load_la_figures()
-    ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
+    la = load_LAFigureSpecs()
+    ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "LAFigureSpecs.ge_convenience")
     local_render_opts = render_opts === nothing ? Dict{String, Any}() : Dict{String, Any}(render_opts)
     resolved_output_dir = output_dir !== nothing ? output_dir : tmp_dir
     if !haskey(local_render_opts, "output_dir") && !haskey(local_render_opts, :output_dir)
@@ -1007,7 +1007,7 @@ end
 
 function _call_ge_convenience(mats_py; kwargs...)
     _ensure_pythoncall()
-    ge_conv = _pyimport("la_figures.ge_convenience")
+    ge_conv = _pyimport("LAFigureSpecs.ge_convenience")
     ge_fn = Base.invokelatest(PythonCall.pygetattr, ge_conv, "ge")
     return _pycall(ge_fn, mats_py; kwargs...)
 end
@@ -1037,7 +1037,7 @@ function matrixlayout_ge( matrices; n_rhs=0, formatter=to_latex, pivot_list=noth
     decorators = get(kwargs, :decorators, nothing)
     had_bg = bg_for_entries !== nothing
     bg_for_entries, decorators = _merge_bg_decorators(bg_for_entries, decorators, mats)
-    # create_medium_nodes/create_extra_nodes are handled by la_figures.ge_convenience
+    # create_medium_nodes/create_extra_nodes are handled by LAFigureSpecs.ge_convenience
     specs = get(kwargs, :specs, nothing)
     payload = _ge_pyify_payload(
         mats, pivot_list, bg_for_entries, ref_path_list,
@@ -1094,7 +1094,7 @@ function show_solution( matrices; var_name::String="x", fig_scale=1, output_dir=
     if b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}
         b = _encode_exact.(b)
     end
-    tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
+    tex = load_LAFigureSpecs().standard_solution_tex(A, b, var_name=var_name)
     if render_svg
         return _render_solution_svg(tex; fig_scale=fig_scale, output_dir=_resolve_output_dir(output_dir, tmp_dir), render_opts=render_opts)
     end

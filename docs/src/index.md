@@ -11,8 +11,8 @@ Documentation for [GenLAProblems](https://github.com/ea42gh/GenLAProblems.jl).
 | Component | Minimum | Notes |
 | --- | --- | --- |
 | Julia | 1.9 | Tested with 1.9–1.10. |
-| PythonCall | 0.9 | Required for la_figures/matrixlayout interop. |
-| la_figures | current | Spec generation + algorithms. |
+| PythonCall | 0.9 | Required for LAFigureSpecs/matrixlayout interop. |
+| LAFigureSpecs | current | Spec generation + algorithms. |
 | matrixlayout | current | TeX + SVG rendering. |
 | jupyter_tikz | itikz_port | TeX toolchains + SVG. |
 | TeX toolchain | TeX Live 2022+ | Needed for SVG rendering. |
