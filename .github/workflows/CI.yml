@@ -32,11 +32,20 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: ea42gh/LAlatex
+          path: LAlatex
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v3
+      - name: Develop sibling package
+        shell: julia --project=. {0}
+        run: |
+          using Pkg
+          Pkg.develop(path=joinpath(pwd(), "LAlatex"))
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
   docs:
@@ -48,10 +57,19 @@ jobs:
       statuses: write
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: ea42gh/LAlatex
+          path: LAlatex
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
       - uses: julia-actions/cache@v3
+      - name: Develop sibling package
+        shell: julia --project=. {0}
+        run: |
+          using Pkg
+          Pkg.develop(path=joinpath(pwd(), "LAlatex"))
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
         env:
