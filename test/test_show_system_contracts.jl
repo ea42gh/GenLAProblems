@@ -45,8 +45,8 @@ end
         # Integer path: use selected RHS column.
         A = [1 2; 3 4]
         B = [10 11; 20 21]
-        pb = ShowGE(A, B; tmp_dir="/tmp/la")
-        h = show_system(pb; b_col=2, var_name="z", fig_scale=1.7)
+        pb = ShowGE(A, B; output_dir="/tmp/la")
+        h = show_system(pb; b_col=2, var_name="z", fig_scale=1.7, output_dir="/tmp/sys")
         @test h isa GenLAProblems.SVGOut
         @test occursin("system", h.svg)
         @test seen_tex[].var_name == "z"
@@ -56,14 +56,13 @@ end
         @test seen_svg[][:show_cascade] == false
         @test seen_svg[][:show_solution] == false
         @test seen_svg[][:fig_scale] == 1.7
-        @test seen_svg[][:tmp_dir] == "/tmp/la"
-        @test seen_svg[][:output_dir] == "/tmp/la"
+        @test seen_svg[][:output_dir] == "/tmp/sys"
 
         # Rational path: A and b are encoded as tuple entries.
         Ar = Rational{Int}.(A)
         Br = Rational{Int}.(B)
-        pbr = ShowGE{Rational{Int}}(A, B; tmp_dir="/tmp/la")
-        _ = show_system(pbr; b_col=1, var_name="x")
+        pbr = ShowGE{Rational{Int}}(A, B; output_dir="/tmp/la")
+        _ = show_system(pbr; b_col=1, var_name="x", output_dir="/tmp/rational")
         A_r = PythonCall.pyconvert(Matrix{Any}, seen_tex[].A)
         b_r = PythonCall.pyconvert(Vector{Any}, seen_tex[].b)
         @test A_r[1, 1] == (1, 1)
@@ -72,8 +71,8 @@ end
         # Complex{Rational} path: should still pass tuple-like encoded entries and render.
         Ac = Complex{Int}.(A)
         Bc = Complex{Int}.(B)
-        pbc = ShowGE{Complex{Rational{Int}}}(Ac, Bc; tmp_dir="/tmp/la")
-        h3 = show_system(pbc; b_col=1, var_name="w")
+        pbc = ShowGE{Complex{Rational{Int}}}(Ac, Bc; output_dir="/tmp/la")
+        h3 = show_system(pbc; b_col=1, var_name="w", output_dir="/tmp/complex")
         @test h3 isa GenLAProblems.SVGOut
         @test seen_tex[].var_name == "w"
     finally

@@ -14,7 +14,7 @@ end
 @testset "Inconsistent RHS handling" begin
     A = [1 0; 0 0]
     B = [1 0; 1 0]
-    pb = ShowGE(A, B; tmp_dir="/tmp/la")
+    pb = ShowGE(A, B; output_dir="/tmp/la")
     ref!(pb; gj=true)
 
     @test pb.rhs_status == [:inconsistent, :consistent]

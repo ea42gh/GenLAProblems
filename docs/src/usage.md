@@ -14,7 +14,7 @@ A = [1 2 3; 2 4 6; 1 1 1]
 matrices, pivots, desc = reduce_to_ref(A; gj=true)
 
 # Render a final GE table (requires Python stack).
-svg = show_ge_final(matrices, desc, pivots; Nrhs=0)
+svg = show_ge_final(matrices, desc, pivots; n_rhs=0)
 ```
 
 ## Rendering examples
@@ -27,7 +27,7 @@ A = [1 2; 3 4]
 b = [5, 6]
 
 # Render system as SVG
-pb = ShowGE(A, b; tmp_dir="/tmp/la")
+pb = ShowGE(A, b; output_dir="/tmp/la")
 show_system(pb; var_name="x", fig_scale=1.2)
 
 # Access RHS block (or a single RHS column) from the final GE stack:
@@ -44,7 +44,7 @@ show_ge_final(matrices, desc, pivots)
 ```
 
 Rendering defaults to subdirectories under `/tmp/la` unless you pass
-`tmp_dir` or `output_dir`.
+`output_dir` or the compatibility alias `tmp_dir`.
 
 ### Inconsistent systems
 

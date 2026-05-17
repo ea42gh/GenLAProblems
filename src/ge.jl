@@ -21,21 +21,22 @@ end
 
 # ==============================================================================================================
 
-raw"""pb = ShowGE{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
-  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number"""
+raw"""pb = ShowGE{T}(A::AbstractMatrix{T}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Rational{T}}(A::AbstractMatrix{T}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number
+  <br>pb = ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; output_dir="/tmp/la/run", keep_file="/tmp/la/run/show\\_layout") where T <: Number"""
 mutable struct ShowGE{T<:Number}
     tmp_dir
     keep_file
     A
     B
-    num_rhs
+    n_rhs
     normal_eq::Bool
 
     matrices
@@ -56,59 +57,59 @@ mutable struct ShowGE{T<:Number}
     rhs_consistent
 
 
-  function ShowGE(A::AbstractMatrix; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout")
-	  ShowGE{eltype(A)}(A; tmp_dir=tmp_dir, keep_file=keep_file)
+  function ShowGE(A::AbstractMatrix; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout")
+	  ShowGE{eltype(A)}(A; tmp_dir=tmp_dir, output_dir=output_dir, keep_file=keep_file)
   end
-  function ShowGE(A::AbstractMatrix, b; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout")
-    ShowGE{eltype(A)}(A, b; tmp_dir=tmp_dir, keep_file=keep_file)
+  function ShowGE(A::AbstractMatrix, b; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout")
+    ShowGE{eltype(A)}(A, b; tmp_dir=tmp_dir, output_dir=output_dir, keep_file=keep_file)
   end
-  function ShowGE{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, A, nothing, 0, false)
+  function ShowGE{T}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, A, nothing, 0, false)
   end
-  function ShowGE{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, A, B, size(B,2), false)
+  function ShowGE{T}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, A, B, size(B,2), false)
   end
-  function ShowGE{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, A, B, size(B,2), false)
-  end
-
-  function ShowGE{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Rational{T}.(A), nothing, 0, false)
-  end
-  function ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
-  end
-  function ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
+  function ShowGE{T}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, A, B, size(B,2), false)
   end
 
-  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-    new(tmp_dir, keep_file, Complex{Rational{T}}.(A), nothing, 0, false)
+  function ShowGE{Rational{T}}(A::AbstractMatrix{T}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, Rational{T}.(A), nothing, 0, false)
   end
-  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-    new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
+  function ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractVector{T}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
   end
-  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", keep_file="/tmp/la/run/show_layout") where T <: Number
-      new(tmp_dir, keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
+  function ShowGE{Rational{T}}(A::AbstractMatrix{T}, B::AbstractMatrix{T}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, Rational{T}.(A),Rational{T}.(B),size(B,2), false)
+  end
+
+  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+    new(_resolve_output_dir(output_dir, tmp_dir), keep_file, Complex{Rational{T}}.(A), nothing, 0, false)
+  end
+  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractVector{Complex{T}}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+    new(_resolve_output_dir(output_dir, tmp_dir), keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
+  end
+  function ShowGE{Complex{Rational{T}}}(A::AbstractMatrix{Complex{T}}, B::AbstractMatrix{Complex{T}}; tmp_dir="/tmp/la/run", output_dir=nothing, keep_file="/tmp/la/run/show_layout") where T <: Number
+      new(_resolve_output_dir(output_dir, tmp_dir), keep_file, Complex{Rational{T}}.(A),Complex{Rational{T}}.(B),size(B,2), false)
   end
 end
 
 # --------------------------------------------------------------------------------------------------------------
 """
-    ref!(pb; N_rhs=:None, gj=false, normal_eq=false)
+    ref!(pb; n_rhs=:None, gj=false, normal_eq=false)
 
 Compute REF/RREF data for a `ShowGE` problem and attach pivot metadata.
 """
-function ref!( pb::ShowGE{T}; N_rhs=:None, gj::Bool=false, normal_eq::Bool=false )  where T <: Number
+function ref!( pb::ShowGE{T}; n_rhs=:None, gj::Bool=false, normal_eq::Bool=false )  where T <: Number
     M,N = size(pb.A)
     if pb.B !== nothing
         A = [pb.A pb.B]
-        if N_rhs != :None
-            pb.num_rhs = N_rhs
+        if n_rhs != :None
+            pb.n_rhs = n_rhs
         end
     else
        A = pb.A
-       pb.num_rhs = 0
+       pb.n_rhs = 0
     end
     if normal_eq
       pb.matrices, pb.pivot_cols, pb.desc = normal_eq_reduce_to_ref( A, n=N, gj=gj );
@@ -239,11 +240,22 @@ function _compute_rhs_status!(pb::ShowGE{T}) where T <: Number
 end
 # --------------------------------------------------------------------------------------------------------------
 """
-    show_layout!(pb; array_names=nothing, show_variables=true, fig_scale=1)
+    show_layout!(pb; array_names=nothing, show_variables=true, fig_scale=1, output_dir=nothing, output_stem=nothing)
 
 Render the GE layout for a `ShowGE` problem as SVG.
+Use `output_dir` and `output_stem` to retain TeX/PDF/SVG artifacts.
 """
-function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true, fig_scale=1, render_opts=nothing )   where T <: Number
+function _keep_file_output_parts(keep_file)
+    if keep_file === nothing
+        return nothing, nothing
+    end
+    path = String(keep_file)
+    dir = dirname(path)
+    stem = splitext(basename(path))[1]
+    return dir, stem
+end
+
+function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true, fig_scale=1, output_dir=nothing, output_stem=nothing, render_opts=nothing )   where T <: Number
     n_rhs = _rhs_col_count(pb)
     if array_names === nothing
         if n_rhs == 0
@@ -266,42 +278,48 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
             name_specs = _normal_eq_name_specs(length(pb.matrices), rhs_labels)
             array_names = Dict("name_specs" => name_specs)
         end
-        rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
-        svg = matrixlayout_ge(
-            pb.matrices;
-            Nrhs=pb.num_rhs,
+            rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
+            keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
+            resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
+            resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
+            svg = matrixlayout_ge(
+                pb.matrices;
+                n_rhs=pb.n_rhs,
             pivot_list=pb.pivot_list,
             bg_for_entries=pb.bg_for_entries,
             ref_path_list=pb.ref_path_list,
             variable_summary=show_variables ? pb.basic_var : nothing,
             variable_colors=["red", "black"],
-            rhs_status=rhs_status,
-            array_names=array_names,
-            fig_scale=fig_scale,
-            tmp_dir=pb.tmp_dir,
-            keep_file=pb.keep_file,
-            render_opts=render_opts,
-        )
+                rhs_status=rhs_status,
+                array_names=array_names,
+                fig_scale=fig_scale,
+                output_dir=resolved_output_dir,
+                output_stem=resolved_output_stem,
+                render_opts=render_opts,
+            )
         pb.h = svg
         return svg
     end
     if isdefined(pb, :matrices) && pb.matrices !== nothing && length(pb.matrices) > 1
-        rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
-        svg = matrixlayout_ge(
-            pb.matrices;
-            Nrhs=pb.num_rhs,
+            rhs_status = isdefined(pb, :rhs_status) ? [string(s) for s in pb.rhs_status] : nothing
+            keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
+            resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
+            resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
+            svg = matrixlayout_ge(
+                pb.matrices;
+                n_rhs=pb.n_rhs,
             pivot_list=pb.pivot_list,
             bg_for_entries=pb.bg_for_entries,
             ref_path_list=pb.ref_path_list,
             variable_summary=show_variables ? pb.basic_var : nothing,
             variable_colors=["red", "black"],
-            rhs_status=rhs_status,
-            array_names=array_names,
-            fig_scale=fig_scale,
-            tmp_dir=pb.tmp_dir,
-            keep_file=pb.keep_file,
-            render_opts=render_opts,
-        )
+                rhs_status=rhs_status,
+                array_names=array_names,
+                fig_scale=fig_scale,
+                output_dir=resolved_output_dir,
+                output_stem=resolved_output_stem,
+                render_opts=render_opts,
+            )
         pb.h = svg
         return svg
     end
@@ -310,6 +328,9 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
     rhs_status = isdefined(pb, :rhs_status) ? pb.rhs_status : Symbol[]
     rhs_status_str = [string(s) for s in rhs_status]
+    keep_dir, keep_stem = _keep_file_output_parts(pb.keep_file)
+    resolved_output_dir = output_dir !== nothing ? output_dir : (keep_dir !== nothing ? keep_dir : pb.tmp_dir)
+    resolved_output_stem = output_stem !== nothing ? output_stem : keep_stem
     pb.h = _pycall(ge_tbl_svg, pb.A, rhs;
         show_pivots=true,
         fig_scale=fig_scale,
@@ -317,6 +338,8 @@ function show_layout!(  pb::ShowGE{T}; array_names=nothing, show_variables=true,
         variable_colors=["red", "black"],
         rhs_status=rhs_status_str,
         array_names=array_names,
+        output_dir=resolved_output_dir,
+        output_stem=resolved_output_stem,
         render_opts=render_opts,
     )
     _ensure_pythoncall()
@@ -348,7 +371,9 @@ function _system_matrix_rhs(pb::ShowGE{T}; b_col=1) where T <: Number
     return A, b
 end
 
-function show_system(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_opts=nothing) where T <: Number
+_resolve_output_dir(output_dir, tmp_dir, fallback=nothing) = output_dir !== nothing ? output_dir : (tmp_dir !== nothing ? tmp_dir : fallback)
+
+function show_system(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir=nothing, render_opts=nothing) where T <: Number
     A, b = _system_matrix_rhs(pb; b_col=b_col)
     la = load_la_figures()
     linear_system_tex = _pygetattr(la, :linear_system_tex)
@@ -357,9 +382,10 @@ function show_system(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1
     tex = Base.invokelatest(PythonCall.pyconvert, String, tex)
     bs = _pyimport("matrixlayout.backsubst")
     backsubst_svg = _pygetattr(bs, :backsubst_svg)
+    resolved_output_dir = _resolve_output_dir(output_dir, tmp_dir, pb.tmp_dir)
     svg = _pycall(backsubst_svg; system_txt=tex, show_system=true,
                   show_cascade=false, show_solution=false,
-                  fig_scale=fig_scale, tmp_dir=pb.tmp_dir, output_dir=pb.tmp_dir,
+                  fig_scale=fig_scale, output_dir=resolved_output_dir,
                   render_opts=render_opts)
     return _show_svg(svg)
 end
@@ -526,11 +552,11 @@ function _display_cascade(lines)
     return tex
 end
 
-function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, render_opts=nothing)
+function _render_backsubst_svg(lines; fig_scale=nothing, output_dir=nothing, render_opts=nothing)
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
-    render_opts = _normalize_render_opts(render_opts; tmp_dir=tmp_dir)
+    render_opts = _normalize_render_opts(render_opts; tmp_dir=output_dir)
     kwargs[:cascade_txt] = _ge_to_pylist(lines)
     kwargs[:show_system] = false
     kwargs[:show_cascade] = true
@@ -538,22 +564,18 @@ function _render_backsubst_svg(lines; fig_scale=nothing, tmp_dir=nothing, keep_f
     if fig_scale !== nothing
         kwargs[:fig_scale] = fig_scale
     end
-    if tmp_dir !== nothing
-        kwargs[:tmp_dir] = tmp_dir
-    end
-    if keep_file !== nothing
-        # backsubst_svg does not accept keep_file; map to output_dir
-        kwargs[:output_dir] = dirname(String(keep_file))
+    if output_dir !== nothing
+        kwargs[:output_dir] = output_dir
     end
     svg = _pycall(backsubst_svg; kwargs..., render_opts=render_opts)
     return _show_svg(svg)
 end
 
-function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, keep_file=nothing, render_opts=nothing)
+function _render_solution_svg(solution_tex; fig_scale=nothing, output_dir=nothing, render_opts=nothing)
     ml = load_matrixlayout()
     backsubst_svg = _pygetattr(ml, :backsubst_svg)
     kwargs = Dict{Symbol, Any}()
-    render_opts = _normalize_render_opts(render_opts; tmp_dir=tmp_dir)
+    render_opts = _normalize_render_opts(render_opts; tmp_dir=output_dir)
     kwargs[:solution_txt] = solution_tex
     kwargs[:show_system] = false
     kwargs[:show_cascade] = false
@@ -561,12 +583,8 @@ function _render_solution_svg(solution_tex; fig_scale=nothing, tmp_dir=nothing, 
     if fig_scale !== nothing
         kwargs[:fig_scale] = fig_scale
     end
-    if tmp_dir !== nothing
-        kwargs[:tmp_dir] = tmp_dir
-    end
-    if keep_file !== nothing
-        # backsubst_svg does not accept keep_file; map to output_dir
-        kwargs[:output_dir] = dirname(String(keep_file))
+    if output_dir !== nothing
+        kwargs[:output_dir] = output_dir
     end
     svg = _pycall(backsubst_svg; kwargs..., render_opts=render_opts)
     return _show_svg(svg)
@@ -590,11 +608,11 @@ function show_backsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", 
         val = _inconsistent_rhs_value(pb, b_col)
         rhs_txt = val === nothing ? "?" : _rhs_val_to_tex(val)
         lines = [string("0 = ", rhs_txt), "\\text{No Solution}"]
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
     end
     A, b = _backsub_ref(pb; b_col=b_col)
     lines = load_la_figures().backsubstitution_tex(A, b, var_name=var_name)
-    return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
+    return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
 end
 # --------------------------------------------------------------------------------------------------------------
 function show_forwardsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scale=1, render_svg=true, render_opts=nothing ) where T <: Number
@@ -602,7 +620,7 @@ function show_forwardsubstitution!(  pb::ShowGE{T}; b_col=1, var_name::String="x
     lines = load_la_figures().backsubstitution_tex(A[end:-1:1, end:-1:1], b[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
     if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, keep_file=pb.keep_file, render_opts=render_opts)
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
     end
     return _display_cascade(lines)
 end
@@ -618,42 +636,42 @@ function show_solution!(  pb::ShowGE{T}; b_col=1, var_name::String="x", fig_scal
     end
     A, b = _backsub_ref(pb; b_col=b_col)
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
-    return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=pb.tmp_dir, render_opts=render_opts)
+    return _render_solution_svg(tex; fig_scale=fig_scale, output_dir=pb.tmp_dir, render_opts=render_opts)
 end
 # ==============================================================================================================
 raw"""
-    show_backsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing, render_svg=true)
+    show_backsubstitution(A, b; var_name="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true)
 
     Render the back-substitution cascade for the upper-triangular system `A * x = b`
     using `la_figures.backsubstitution_tex`. Works with Integer/Float as well as
     exact `Rational` and `Complex{Rational}` inputs (those are converted to tuples so
     SymPy reconstructs exact rationals on the Python side).
 """
-function show_backsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing, render_svg=true, render_opts=nothing)
+function show_backsubstitution(A, b; var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true, render_opts=nothing)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
     lines = load_la_figures().backsubstitution_tex(A2, b2, var_name=var_name)
     if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file, render_opts=render_opts)
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=_resolve_output_dir(output_dir, tmp_dir), render_opts=render_opts)
     end
     return _display_cascade(lines)
 end
 # --------------------------------------------------------------------------------------------------------------
 raw"""
-    show_forwardsubstitution(A, b; var_name="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing, render_svg=true)
+    show_forwardsubstitution(A, b; var_name="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true)
 
 Render the forward-substitution cascade for the lower-triangular system `A * x = b`
 using the la_figures backsubstitution cascade on a reversed system, then relabeling indices.
 Supports Integer/Float as well as exact `Rational` and `Complex{Rational}` inputs
 converted to tuples for exact SymPy reconstruction.
 """
-function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, tmp_dir="/tmp/la/run", keep_file=nothing, render_svg=true, render_opts=nothing)
+function show_forwardsubstitution(A, b; var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir="/tmp/la/run", render_svg=true, render_opts=nothing)
     A2 = (A isa AbstractArray{<:Rational} || A isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(A) : A
     b2 = (b isa AbstractArray{<:Rational} || b isa AbstractArray{Complex{<:Rational}}) ? _encode_exact.(b) : b
     lines = load_la_figures().backsubstitution_tex(A2[end:-1:1, end:-1:1], b2[end:-1:1], var_name=var_name)
     lines = _relabel_cascade(lines, size(A, 1); var_name=var_name)
     if render_svg
-        return _render_backsubst_svg(lines; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file, render_opts=render_opts)
+        return _render_backsubst_svg(lines; fig_scale=fig_scale, output_dir=_resolve_output_dir(output_dir, tmp_dir), render_opts=render_opts)
     end
     return _display_cascade(lines)
 end
@@ -732,18 +750,18 @@ end
 #  Xh = similar(pb.A, size(pb.A,1), A - pb.rank)
 #end
 # ==============================================================================================================
-raw"""function show_ge_final( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing, <br>
+raw"""function show_ge_final( matrices, desc, pivot_cols; n_rhs=0, formatter=to_latex, pivot_list=nothing, bg_for_entries=nothing, <br>
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],  <br>
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing, <br>
-             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing )
-"""
-function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
+             start_index=1, func=nothing, fig_scale=nothing, output_dir=nothing, output_stem=nothing, tmp_dir=nothing )
+ """
+function julia_ge( matrices, desc, pivot_cols; n_rhs=0, formatter=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"],
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
-             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing,
+             start_index=1, func=nothing, fig_scale=nothing, output_dir=nothing, output_stem=nothing, tmp_dir=nothing,
              render_opts=nothing )
     Ab = matrices[end][end]
-    nrhs = Nrhs isa AbstractArray ? sum(Nrhs) : Nrhs
+    nrhs = n_rhs isa AbstractArray ? sum(n_rhs) : n_rhs
     if nrhs > 0
         A = Ab[:, 1:(end - nrhs)]
         rhs = Ab[:, (end - nrhs + 1):end]
@@ -754,16 +772,28 @@ function julia_ge( matrices, desc, pivot_cols; Nrhs=0, formater=to_latex, pivot_
     la = load_la_figures()
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "la_figures.ge_convenience")
     local_render_opts = render_opts === nothing ? Dict{String, Any}() : Dict{String, Any}(render_opts)
-    if tmp_dir !== nothing && !haskey(local_render_opts, "output_dir") && !haskey(local_render_opts, :output_dir)
-        local_render_opts["output_dir"] = mktempdir(tmp_dir)
+    resolved_output_dir = output_dir !== nothing ? output_dir : tmp_dir
+    if !haskey(local_render_opts, "output_dir") && !haskey(local_render_opts, :output_dir)
+        if output_dir !== nothing
+            local_render_opts["output_dir"] = resolved_output_dir
+        elseif tmp_dir !== nothing
+            local_render_opts["output_dir"] = mktempdir(resolved_output_dir)
+        end
     end
-    s = _pycall(ge_tbl_svg, A, rhs;
-        fig_scale=fig_scale,
-        array_names=array_names,
-        variable_summary=variable_summary,
-        variable_colors=variable_colors,
-        render_opts=local_render_opts,
+    call_kwargs = Dict{Symbol, Any}(
+        :fig_scale => fig_scale,
+        :array_names => array_names,
+        :variable_summary => variable_summary,
+        :variable_colors => variable_colors,
+        :render_opts => local_render_opts,
     )
+    if output_dir !== nothing
+        call_kwargs[:output_dir] = resolved_output_dir
+    end
+    if output_stem !== nothing
+        call_kwargs[:output_stem] = output_stem
+    end
+    s = _pycall(ge_tbl_svg, A, rhs; call_kwargs...)
     _ensure_pythoncall()
     return Base.invokelatest(PythonCall.pyconvert, String, s)
 end
@@ -954,10 +984,10 @@ function _bg_for_entries_to_decorators(bg_for_entries, mats_raw=nothing)
     return isempty(decorators) ? nothing : decorators
 end
 
-function _prepare_ge_mats(matrices, formater)
+function _prepare_ge_mats(matrices, formatter)
     mats = matrices
     if !_matrices_are_strings(mats)
-        mats = formater(mats)
+        mats = formatter(mats)
     end
     mats = _ge_normalize_grid(mats)
     return _ge_grid_to_lists(mats)
@@ -997,12 +1027,12 @@ function _ge_pyify_payload(mats, pivot_list, bg_for_entries, ref_path_list, comm
     )
 end
 
-function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothing, bg_for_entries=nothing,
+function matrixlayout_ge( matrices; n_rhs=0, formatter=to_latex, pivot_list=nothing, bg_for_entries=nothing,
              variable_colors=["blue","black"], pivot_colors=["blue","yellow!40"], pivot_text_color=nothing,
              ref_path_list=nothing, comment_list=[], variable_summary=nothing, array_names=nothing,
-             start_index=1, func=nothing, fig_scale=nothing, tmp_dir=nothing, keep_file=nothing,
+             start_index=1, func=nothing, fig_scale=nothing, output_dir=nothing, output_stem=nothing, tmp_dir=nothing,
              render_opts=nothing, rhs_status=nothing, kwargs... )
-    mats = _prepare_ge_mats(matrices, formater)
+    mats = _prepare_ge_mats(matrices, formatter)
     # Use 0-based coordinates for pivot/background specs; ge_convenience expects them.
     decorators = get(kwargs, :decorators, nothing)
     had_bg = bg_for_entries !== nothing
@@ -1017,13 +1047,14 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
     _ensure_pythoncall()
     builtins = _pyimport("builtins")
     py_str = Base.invokelatest(PythonCall.pygetattr, builtins, "str")
-    nrhs_arg = Nrhs isa AbstractVector ? _ge_to_pylist(Nrhs) : Nrhs
+    nrhs_arg = n_rhs isa AbstractVector ? _ge_to_pylist(n_rhs) : n_rhs
     if pivot_text_color === nothing
         pivot_text_color = pivot_colors[1]
     end
+    resolved_output_dir = output_dir !== nothing ? output_dir : tmp_dir
     svg = _call_ge_convenience(
         payload.mats;
-        Nrhs=nrhs_arg,
+        n_rhs=nrhs_arg,
         formatter=py_str,
         pivot_list=payload.pivot_list,
         bg_for_entries=payload.bg_for_entries,
@@ -1039,8 +1070,8 @@ function matrixlayout_ge( matrices; Nrhs=0, formater=to_latex, pivot_list=nothin
         start_index=start_index,
         func=func,
         fig_scale=fig_scale,
-        tmp_dir=tmp_dir,
-        keep_file=keep_file,
+        output_dir=resolved_output_dir,
+        output_stem=output_stem,
         render_opts=render_opts,
     )
     svg_str = Base.invokelatest(PythonCall.pyconvert, String, svg)
@@ -1049,11 +1080,11 @@ end
 
 # ------------------------------------------------------------------------------------------
 """
-    show_solution(matrices; var_name="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true)
+    show_solution(matrices; var_name="x", fig_scale=1, output_dir=nothing, tmp_dir=nothing, render_svg=true)
 
 Render the standard solution form from the final augmented matrix.
 """
-function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=nothing, keep_file=nothing, render_svg=true, render_opts=nothing )
+function show_solution( matrices; var_name::String="x", fig_scale=1, output_dir=nothing, tmp_dir=nothing, render_svg=true, render_opts=nothing )
     Ab = matrices[end][end]
     A = Ab[:, 1:(size(Ab, 2) - 1)]
     b = Ab[:, end]
@@ -1065,7 +1096,7 @@ function show_solution( matrices; var_name::String="x", fig_scale=1, tmp_dir=not
     end
     tex = load_la_figures().standard_solution_tex(A, b, var_name=var_name)
     if render_svg
-        return _render_solution_svg(tex; fig_scale=fig_scale, tmp_dir=tmp_dir, keep_file=keep_file, render_opts=render_opts)
+        return _render_solution_svg(tex; fig_scale=fig_scale, output_dir=_resolve_output_dir(output_dir, tmp_dir), render_opts=render_opts)
     end
     return _display_tex(tex)
 end

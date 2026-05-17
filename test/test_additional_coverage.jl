@@ -34,7 +34,9 @@ end
             mats = [[nothing, [1 2; 3 4]]]
             out = GenLAProblems.matrixlayout_ge(
                 mats;
-                Nrhs=1,
+                n_rhs=1,
+                output_dir="/tmp/out",
+                output_stem="ge_basic",
                 array_names=["A", "b"],
                 pivot_list=[[(0, 1), [(0, 0)]]],
                 ref_path_list=[[0, 1, [(0, 0)], "vv"]],
@@ -43,8 +45,12 @@ end
             )
             @test out isa GenLAProblems.SVGOut
             @test occursin("<svg>", out.svg)
-            @test haskey(seen[], :Nrhs)
-            @test seen[][:Nrhs] == 1
+            @test haskey(seen[], :output_dir)
+            @test seen[][:output_dir] == "/tmp/out"
+            @test haskey(seen[], :output_stem)
+            @test seen[][:output_stem] == "ge_basic"
+            @test haskey(seen[], :n_rhs)
+            @test seen[][:n_rhs] == 1
             @test haskey(seen[], :array_names)
             @test haskey(seen[], :pivot_list)
             @test haskey(seen[], :ref_path_list)
@@ -53,11 +59,11 @@ end
 
             out_vec = GenLAProblems.matrixlayout_ge(
                 mats;
-                Nrhs=[1, 1],
+                n_rhs=[1, 1],
                 array_names=["A", ["b₁", "b₂"]],
             )
             @test out_vec isa GenLAProblems.SVGOut
-            @test PythonCall.pyconvert(Vector{Int}, seen[][:Nrhs]) == [1, 1]
+            @test PythonCall.pyconvert(Vector{Int}, seen[][:n_rhs]) == [1, 1]
 
             # bg_for_entries should be converted into decorators and bg_for_entries cleared.
             out2 = GenLAProblems.matrixlayout_ge(
@@ -74,6 +80,16 @@ end
             _py_setattr_cov(ge_conv, "ge", old_ge)
         end
     end
+end
+
+@testset "keep_file path splitting" begin
+    dir, stem = GenLAProblems._keep_file_output_parts("/tmp/la/run/show_layout.tex")
+    @test dir == "/tmp/la/run"
+    @test stem == "show_layout"
+    dir2, stem2 = GenLAProblems._keep_file_output_parts("/tmp/la/run/show_layout")
+    @test dir2 == "/tmp/la/run"
+    @test stem2 == "show_layout"
+    @test GenLAProblems._keep_file_output_parts(nothing) == (nothing, nothing)
 end
 
 @testset "SymPyHelpers additional substitution edges" begin
@@ -238,9 +254,11 @@ end
         types = PythonCall.pyimport("types")
         la = PythonCall.pycall(types.SimpleNamespace)
         seen = Ref{Tuple{Any,Any}}((nothing, nothing))
+        seen_kwargs = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
 
         function fake_ge_tbl_svg(A, rhs; kwargs...)
             seen[] = (A, rhs)
+            seen_kwargs[] = Dict(kwargs)
             return "<svg>final</svg>"
         end
         _py_setattr_cov(la, "ge_tbl_svg", fake_ge_tbl_svg)
@@ -248,12 +266,14 @@ end
         try
             GenLAProblems._la_figures[] = la
             mats = [[nothing, [1 2; 3 4]], [nothing, [9 8; 7 6]]]
-            h = GenLAProblems.show_ge_final(mats, Any[], Int[]; Nrhs=0)
+            h = GenLAProblems.show_ge_final(mats, Any[], Int[]; n_rhs=0, output_dir="/tmp/final")
             @test h isa GenLAProblems.SVGOut
             @test occursin("final", h.svg)
             A_seen, rhs_seen = seen[]
             @test rhs_seen === nothing
             @test PythonCall.pyconvert(Matrix{Any}, A_seen) == Any[9 8; 7 6]
+            @test haskey(seen_kwargs[], :output_dir)
+            @test seen_kwargs[][:output_dir] == "/tmp/final"
         finally
             GenLAProblems._la_figures[] = old_la
         end

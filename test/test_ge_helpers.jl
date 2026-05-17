@@ -41,13 +41,15 @@ end
     @test GenLAProblems._ge_block_to_list([1 2; 3 4]) == Any[Any[1, 2], Any[3, 4]]
 end
 
-@testset "N_rhs divider vector compatibility" begin
+@testset "n_rhs divider vector compatibility" begin
     A = Rational.( [1 0; 0 1] )
     B = Rational.( [2 3; 4 5] )
     pb = ShowGE(A, B)
-    ref!(pb; gj=false, N_rhs=[1, 1])
+    ref!(pb; gj=false, n_rhs=[1, 1])
 
-    @test pb.num_rhs == [1, 1]
+    @test pb.n_rhs == [1, 1]
+    pb2 = ShowGE(A, B; output_dir="/tmp/alt")
+    @test pb2.tmp_dir == "/tmp/alt"
     @test length(pb.rhs_status) == size(B, 2)
     @test length(pb.rhs_consistent) == size(B, 2)
     @test all(s -> s == :consistent, pb.rhs_status)

@@ -119,7 +119,7 @@ end
         try
             A = Rational{Int}.([1 0; 0 1])
             B = reshape(Rational{Int}.([1, 2]), 2, 1)
-            pb = ShowGE{Rational{Int}}(A, B; tmp_dir="/tmp/la")
+            pb = ShowGE{Rational{Int}}(A, B; output_dir="/tmp/la")
             s = show_system(pb; b_col=1, fig_scale=1)
             @test s isa GenLAProblems.SVGOut
         catch err

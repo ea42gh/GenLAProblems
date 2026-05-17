@@ -47,7 +47,7 @@ end
 
         A = [1 2; 0 3]
         b = [4, 5]
-        pb = ShowGE(A, b; tmp_dir="/tmp/la", keep_file="/tmp/la/keep/out.svg")
+        pb = ShowGE(A, b; output_dir="/tmp/la/keep")
         ref!(pb; gj=true)
 
         # show_backsubstitution!: should render cascade svg with expected flags.
@@ -59,7 +59,6 @@ end
         @test seen_svg[][:show_cascade] == true
         @test seen_svg[][:show_solution] == false
         @test seen_svg[][:fig_scale] == 1.4
-        @test seen_svg[][:tmp_dir] == "/tmp/la"
         @test seen_svg[][:output_dir] == "/tmp/la/keep"
         @test haskey(seen_svg[], :cascade_txt)
 
@@ -91,6 +90,14 @@ end
         @test haskey(seen_svg[], :solution_txt)
         # Current contract: bang version does not map keep_file for solution path.
         @test !haskey(seen_svg[], :output_dir)
+
+        h4 = GenLAProblems.show_forwardsubstitution(A, b; var_name="x", fig_scale=0.7, output_dir="/tmp/fwd")
+        @test h4 isa GenLAProblems.SVGOut
+        @test seen_svg[][:show_system] == false
+        @test seen_svg[][:show_cascade] == true
+        @test seen_svg[][:show_solution] == false
+        @test seen_svg[][:fig_scale] == 0.7
+        @test seen_svg[][:output_dir] == "/tmp/fwd"
     finally
         GenLAProblems._la_figures[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
@@ -112,12 +119,11 @@ end
         GenLAProblems._matrixlayout[] = ml
 
         mats = [[nothing, [1 0 1; 0 1 2]]]
-        svg = GenLAProblems.show_solution(mats; render_svg=true, fig_scale=1.2, tmp_dir="/tmp/la", keep_file="/tmp/la/any.svg")
+        svg = GenLAProblems.show_solution(mats; render_svg=true, fig_scale=1.2, output_dir="/tmp/sol")
         @test svg isa GenLAProblems.SVGOut
         @test seen[][:show_solution] == true
         @test seen[][:fig_scale] == 1.2
-        @test seen[][:tmp_dir] == "/tmp/la"
-        @test seen[][:output_dir] == "/tmp/la"
+        @test seen[][:output_dir] == "/tmp/sol"
     finally
         GenLAProblems._la_figures[] = old_la
         GenLAProblems._matrixlayout[] = old_ml
@@ -141,14 +147,13 @@ end
         U = [1 2; 0 3]
         b = [4, 5]
 
-        svg = GenLAProblems.show_backsubstitution(U, b; fig_scale=1.3, tmp_dir="/tmp/la", keep_file="/tmp/la/out.svg")
+        svg = GenLAProblems.show_backsubstitution(U, b; fig_scale=1.3, output_dir="/tmp/back")
         @test svg isa GenLAProblems.SVGOut
         @test seen[][:show_system] == false
         @test seen[][:show_cascade] == true
         @test seen[][:show_solution] == false
         @test seen[][:fig_scale] == 1.3
-        @test seen[][:tmp_dir] == "/tmp/la"
-        @test seen[][:output_dir] == "/tmp/la"
+        @test seen[][:output_dir] == "/tmp/back"
         @test haskey(seen[], :cascade_txt)
 
         if hasmethod(show, Tuple{IO, MIME"text/latex", String})
