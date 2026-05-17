@@ -3,4 +3,4 @@ set -euo pipefail
 
 cd /home/jovyan/GenLAProblems
 
-julia --project=. binder/warmup.jl
+julia --project=. --sysimage=/home/jovyan/.julia/genlaproblems.so binder/warmup.jl

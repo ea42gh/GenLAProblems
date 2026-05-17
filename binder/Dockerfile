@@ -37,7 +37,13 @@ COPY --chown=jovyan:jovyan GenProblems.ipynb /home/jovyan/work/GenProblems.ipynb
 
 USER jovyan
 
-RUN julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile(); using GenLAProblems, PythonCall; GenLAProblems.import_sympy()'
+RUN julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.add("PackageCompiler"); using PackageCompiler; create_sysimage([:GenLAProblems, :PythonCall]; sysimage_path="/home/jovyan/.julia/genlaproblems.so", precompile_execution_file="binder/sysimage_warmup.jl")'
+
+RUN mkdir -p /home/jovyan/.local/share/jupyter/kernels/julia-1.10 \
+ && chown -R jovyan:jovyan /home/jovyan/.local/share/jupyter/kernels/julia-1.10
+
+COPY --chown=jovyan:jovyan binder/julia-1.10/kernel.json /home/jovyan/.local/share/jupyter/kernels/julia-1.10/kernel.json
+
 RUN bash binder/postBuild
 
 EXPOSE 8888
