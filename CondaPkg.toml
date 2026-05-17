@@ -1,2 +1,2 @@
-[deps]
-numpy = "*"
+[dev.deps]
+numpy = "~=2.0"
