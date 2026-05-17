@@ -3,7 +3,6 @@
     "/usr/local/julia/bin/julia",
     "--color=yes",
     "--project=/home/jovyan/GenLAProblems",
-    "--sysimage=/home/jovyan/.julia/genlaproblems.so",
     "-i",
     "--startup-file=yes",
     "--history-file=yes",
