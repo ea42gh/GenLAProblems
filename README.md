@@ -1,14 +1,17 @@
 # GenLAProblems
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://ea42gh.github.io/GenLAProblems.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://ea42gh.github.io/GenLAProblems.jl/dev/)
-[![Build Status](https://github.com/ea42gh/GenLAProblems.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ea42gh/GenLAProblems.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![CI](https://github.com/ea42gh/GenLAProblems.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/ea42gh/GenLAProblems.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ea42gh/GenLAProblems.jl/HEAD?filepath=GenProblems.ipynb)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://ea42gh.github.io/GenLAProblems.jl/)
 
 GenLAProblems depends on `LAlatex` for LaTeX rendering utilities and display helpers.
 
 ## Overview
 
 GenLAProblems provides linear algebra problem generators and GE/GJ helpers.
+
+The Binder notebook opens `GenProblems.ipynb` and shows the current
+`ShowGE`-based workflow.
 
 ## Display backend
 
