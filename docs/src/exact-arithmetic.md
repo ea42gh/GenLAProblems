@@ -36,6 +36,10 @@ PythonCall’s ndarray handling; prefer uniform numeric or symbolic arrays.
 returns a SymPy matrix. Use `sym_to_julia_mat` or `sym_to_julia_vec` to force conversion when
 appropriate.
 
+```@docs
+sym_subs_numeric
+```
+
 ## Known limitations
 
 - Mixed-type `Matrix{Any}` inputs can trigger PythonCall conversion issues in some environments.
