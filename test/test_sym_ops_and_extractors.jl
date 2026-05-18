@@ -106,17 +106,24 @@ end
         GenLAProblems._LAFigureSpecs[] = la
 
         out_svd = GenLAProblems.svd_matrices_from_spec("spec"; reduced=false)
-        @test out_svd == ("U", "S", "V", 2)
+        @test PythonCall.pyconvert(Tuple, out_svd) == ("U", "S", "V", 2)
         @test seen[][:which] == :svd
         @test seen[][:kwargs][:reduced] == false
 
         out_eig = GenLAProblems.eig_matrices_from_spec("espec"; orthonormal=false)
-        @test out_eig == ("L", "Q")
+        @test PythonCall.pyconvert(Tuple, out_eig) == ("L", "Q")
         @test seen[][:which] == :eig
         @test seen[][:kwargs][:orthonormal] == false
 
         out_qr = GenLAProblems.qr_matrices_from_grid("grid")
-        @test out_qr == (A=nothing, W=nothing, WtA=nothing, WtW=nothing, S=nothing, Qt=nothing, Q="q", R="r")
+        @test out_qr.A === nothing
+        @test out_qr.W === nothing
+        @test out_qr.WtA === nothing
+        @test out_qr.WtW === nothing
+        @test out_qr.S === nothing
+        @test out_qr.Qt === nothing
+        @test PythonCall.pyconvert(String, out_qr.Q) == "q"
+        @test PythonCall.pyconvert(String, out_qr.R) == "r"
         @test seen[][:which] == :qr
         @test seen[][:mats] == "grid"
     finally

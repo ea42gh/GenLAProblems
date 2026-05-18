@@ -69,6 +69,13 @@ function materialize_python_value(x)
         return materialize_python_value(converted)
     end
 
+    for T in (String, Int, Float64, Bool)
+        try
+            return Base.invokelatest(py.pyconvert, T, x)
+        catch
+        end
+    end
+
     try
         shape = Base.invokelatest(py.pygetattr, x, "shape")
         shp = Base.invokelatest(py.pyconvert, Tuple, shape)
@@ -90,6 +97,12 @@ function materialize_python_value(x)
                 materialize_python_value(pair_t[1]) => materialize_python_value(pair_t[2])
             end for pair in pairs_vec
         )
+    catch
+    end
+
+    try
+        tup = Base.invokelatest(py.pyconvert, Tuple, x)
+        return tuple((materialize_python_value(v) for v in tup)...)
     catch
     end
 
