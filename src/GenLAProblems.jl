@@ -431,7 +431,7 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         _nm_depwarn(name, "LATeachingSuite.qr_figure")
         return _nm_gram_schmidt_qr
     elseif name === :qr_tbl_svg
-        _nm_depwarn(name, "LATeachingSuite.qr_bundle")
+        _nm_depwarn(name, "LATeachingSuite.qr_svg")
         return _nm_qr_tbl_svg
     elseif name === :qr_svg
         _nm_depwarn(name, "LATeachingSuite.qr_svg")
@@ -440,10 +440,10 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         _nm_depwarn(name, "LATeachingSuite.qr_matrices_from_grid")
         return qr_matrices_from_grid
     elseif name === :eig_tbl_svg
-        _nm_depwarn(name, "LATeachingSuite.eig_bundle")
+        _nm_depwarn(name, "LATeachingSuite.eig_svg")
         return _nm_bundle_wrapper(:eig_bundle; wrap_svg=false)
     elseif name === :svd_tbl_svg
-        _nm_depwarn(name, "LATeachingSuite.svd_bundle")
+        _nm_depwarn(name, "LATeachingSuite.svd_svg")
         return _nm_bundle_wrapper(:svd_bundle; wrap_svg=false)
     end
 
