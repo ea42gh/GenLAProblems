@@ -4,4 +4,5 @@ set -euo pipefail
 cd /home/jovyan/GenLAProblems
 
 julia --project=. -e 'using Pkg; Pkg.add(PackageSpec(url="https://github.com/ea42gh/LATeachingSuite.jl.git", rev="acfb9f63e2762ad70704388b84d1b57f8916e63b")); Pkg.instantiate(); Pkg.precompile()'
+julia --project=. -e 'using LATeachingSuite, LinearAlgebra, LaTeXStrings, Random; Random.seed!(42)'
 julia --project=. binder/warmup.jl
