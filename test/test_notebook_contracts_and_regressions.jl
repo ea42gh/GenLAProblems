@@ -120,8 +120,8 @@ end
     end
 
 @testset "QR matrices from grid are Julia matrices for l_show" begin
-    if !_has_module_notebook("jupyter_tikz")
-        @info "Skipping QR matrices from grid regression test: jupyter_tikz unavailable"
+    if !_has_module_notebook("jupyter_tikz") || Sys.which("latexmk") === nothing
+        @info "Skipping QR matrices from grid regression test: jupyter_tikz/latexmk unavailable"
     else
         GenLAProblems.ensure_pythoncall!()
         A = [1 -2 -1 1; -1 2 3 -1; 1 0 1 -3; -1 0 1 -1]

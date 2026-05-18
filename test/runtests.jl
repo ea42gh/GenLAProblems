@@ -80,9 +80,9 @@ using GenLAProblems
             GenLAProblems._ensure_pythoncall()
             PythonCall.pyimport("LAFigureSpecs")
             PythonCall.pyimport("jupyter_tikz")
-            true
+            Sys.which("latexmk") !== nothing
         catch
-            @info "Skipping show_backsubstitution adjoint test: LAFigureSpecs/jupyter_tikz unavailable"
+            @info "Skipping show_backsubstitution adjoint test: LAFigureSpecs/jupyter_tikz/latexmk unavailable"
             false
         end
             @test show_backsubstitution(U', b) !== nothing
@@ -142,9 +142,9 @@ using GenLAProblems
             PythonCall.pyimport("LAFigureSpecs")
             PythonCall.pyimport("matrixlayout")
             PythonCall.pyimport("jupyter_tikz")
-            true
+            Sys.which("latexmk") !== nothing
         catch
-            @info "Skipping normal_eq layout test: Python deps/render stack unavailable"
+            @info "Skipping normal_eq layout test: Python deps/render stack/latexmk unavailable"
             false
         end
             A = [1 2 3; 4 5 6]

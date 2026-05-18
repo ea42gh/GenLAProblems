@@ -116,3 +116,36 @@ end
         GenLAProblems._matrixlayout[] = old_ml
     end
 end
+
+@testset "nM wrappers emit deprecation guidance" begin
+    la = _py_ns()
+    ml = _py_ns()
+    _py_setattr(la, "eig_tbl_bundle", (args...; kwargs...) -> _py_dict(Dict(
+        "spec" => _py_dict(Dict("kind" => "eig")),
+        "svg" => "<svg>eig</svg>",
+    )))
+    _py_setattr(la, "ge_tbl_svg", (args...; kwargs...) -> "<svg>ge_tbl</svg>")
+    _py_setattr(la, "qr_svg", (args...; kwargs...) -> "<svg>qr</svg>")
+    _py_setattr(la, "gram_schmidt_qr_matrices", (args...; kwargs...) -> Any[[nothing, nothing], [nothing, nothing]])
+    _py_setattr(la, "qr_tbl_spec_from_matrices", (mats; kwargs...) -> _py_dict(Dict("kind" => "qr")))
+    _py_setattr(ml, "render_qr_svg", (; kwargs...) -> "<svg>qr_render</svg>")
+
+    old_la = GenLAProblems._LAFigureSpecs[]
+    old_ml = GenLAProblems._matrixlayout[]
+    try
+        GenLAProblems._LAFigureSpecs[] = la
+        GenLAProblems._matrixlayout[] = ml
+
+        @test_logs (:warn, r"`nM\.show_eig_tbl` is deprecated; use `LATeachingSuite\.eig_bundle` instead\.")
+            nM.show_eig_tbl([1 0; 0 1]; tmp_dir="/tmp/la")
+
+        @test_logs (:warn, r"`nM\.show_ge_tbl` is deprecated; use `LATeachingSuite\.ge_svg \(or LATeachingSuite\.ge_bundle if you also need the spec\)` instead\.")
+            nM.show_ge_tbl([1 0; 0 1]; tmp_dir="/tmp/la")
+
+        @test_logs (:warn, r"`nM\.show_qr` is deprecated; use `LATeachingSuite\.qr_svg \(or LATeachingSuite\.qr_figure if you also need the computed matrices\)` instead\.")
+            nM.show_qr([1 0; 0 1])
+    finally
+        GenLAProblems._LAFigureSpecs[] = old_la
+        GenLAProblems._matrixlayout[] = old_ml
+    end
+end

@@ -380,6 +380,14 @@ function _nm_gram_schmidt_qr(args...; kwargs...)
     return _show_svg(svg), matrices
 end
 
+function _nm_qr_svg(args...; kwargs...)
+    return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output)(args...; kwargs...)
+end
+
+function _nm_ge_svg(args...; kwargs...)
+    return matrixlayout_ge(args...; kwargs...)
+end
+
 function _nm_qr_tbl_svg(args...; kwargs...)
     compute_kw, render_kw = _split_qr_tbl_kw(kwargs)
     spec = _qr_tbl_spec_from_args(args...; compute_kw=compute_kw)
@@ -387,36 +395,55 @@ function _nm_qr_tbl_svg(args...; kwargs...)
     return svg, spec
 end
 
+function _nm_depwarn(name::Symbol, replacement::AbstractString)
+    Base.depwarn("`nM.$name` is deprecated; use `$replacement` instead.", Symbol("nM_$(name)"))
+end
+
 function Base.getproperty(p::NMProxy, name::Symbol)
     if name === :ge || name === :_to_svg_str
-        return matrixlayout_ge
+        _nm_depwarn(name, "LATeachingSuite.ge_svg")
+        return _nm_ge_svg
     elseif name === :show_eig_tbl
+        _nm_depwarn(name, "LATeachingSuite.eig_bundle")
         return _nm_bundle_wrapper(:eig_tbl_bundle)
     elseif name === :show_svd_tbl
+        _nm_depwarn(name, "LATeachingSuite.svd_bundle")
         return _nm_bundle_wrapper(:svd_tbl_bundle)
     elseif name === :show_ge_tbl
+        _nm_depwarn(name, "LATeachingSuite.ge_svg (or LATeachingSuite.ge_bundle if you also need the spec)")
         return _nm_svg_wrapper(:ge_tbl_svg; kwcleaner=_clean_tmp_kwargs, fallback_mod="LAFigureSpecs.ge_convenience")
     elseif name === :show_qr_tbl
+        _nm_depwarn(name, "LATeachingSuite.qr_bundle")
         return _nm_bundle_wrapper(:qr_tbl_bundle; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_ge
+        _nm_depwarn(name, "LATeachingSuite.ge_svg")
         return _nm_svg_wrapper(:svg; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_qr
+        _nm_depwarn(name, "LATeachingSuite.qr_svg (or LATeachingSuite.qr_figure if you also need the computed matrices)")
         return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, with_first_arg=true)
     elseif name === :la || name === :LAFigureSpecs
+        _nm_depwarn(name, "LATeachingSuite.load_LAFigureSpecs()")
         return load_LAFigureSpecs()
     elseif name === :ml || name === :matrixlayout
+        _nm_depwarn(name, "LATeachingSuite.load_matrixlayout()")
         return load_matrixlayout()
     elseif name === :gram_schmidt_qr
+        _nm_depwarn(name, "LATeachingSuite.qr_figure")
         return _nm_gram_schmidt_qr
     elseif name === :qr_tbl_svg
+        _nm_depwarn(name, "LATeachingSuite.qr_bundle")
         return _nm_qr_tbl_svg
     elseif name === :qr_svg
+        _nm_depwarn(name, "LATeachingSuite.qr_svg")
         return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, wrap_svg=false, with_first_arg=true)
     elseif name === :qr_matrices_from_grid
+        _nm_depwarn(name, "LATeachingSuite.qr_matrices_from_grid")
         return qr_matrices_from_grid
     elseif name === :eig_tbl_svg
+        _nm_depwarn(name, "LATeachingSuite.eig_bundle")
         return _nm_bundle_wrapper(:eig_tbl_bundle; wrap_svg=false)
     elseif name === :svd_tbl_svg
+        _nm_depwarn(name, "LATeachingSuite.svd_bundle")
         return _nm_bundle_wrapper(:svd_tbl_bundle; wrap_svg=false)
     end
 
