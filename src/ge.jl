@@ -683,8 +683,8 @@ end
 
 function _call_ge_convenience(mats_py; kwargs...)
     _ensure_pythoncall()
-    ge_conv = _pyimport("LAFigureSpecs.ge_convenience")
-    ge_fn = Base.invokelatest(PythonCall.pygetattr, ge_conv, "ge")
+    la = load_LAFigureSpecs()
+    ge_fn = _pygetattr_fallback(la, :ge, "LAFigureSpecs.ge_convenience")
     return _pycall(ge_fn, mats_py; kwargs...)
 end
 

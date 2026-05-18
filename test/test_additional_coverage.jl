@@ -16,69 +16,66 @@ function _py_setattr_cov(obj, name::AbstractString, value)
 end
 
 @testset "matrixlayout_ge forwarding and merge behavior" begin
-    if !_has_module_cov("LAFigureSpecs.ge_convenience")
-        @info "Skipping matrixlayout_ge forwarding tests: LAFigureSpecs.ge_convenience unavailable"
-    else
-        ge_conv = PythonCall.pyimport("LAFigureSpecs.ge_convenience")
-        old_ge = PythonCall.pygetattr(ge_conv, "ge")
-        seen = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
+    la = PythonCall.pycall(PythonCall.pyimport("types").SimpleNamespace)
+    seen = Ref{Dict{Symbol,Any}}(Dict{Symbol,Any}())
 
-        function fake_ge(args...; kwargs...)
-            seen[] = Dict(kwargs)
-            return "<svg>ok</svg>"
-        end
+    function fake_ge(args...; kwargs...)
+        seen[] = Dict(kwargs)
+        return "<svg>ok</svg>"
+    end
 
-        try
-            _py_setattr_cov(ge_conv, "ge", fake_ge)
+    _py_setattr_cov(la, "ge", fake_ge)
+    old_la = GenLAProblems._LAFigureSpecs[]
+    try
+        GenLAProblems._LAFigureSpecs[] = la
 
-            mats = [[nothing, [1 2; 3 4]]]
-            out = GenLAProblems.matrixlayout_ge(
-                mats;
-                n_rhs=1,
-                output_dir="/tmp/out",
-                output_stem="ge_basic",
-                array_names=["A", "b"],
-                pivot_list=[[(0, 1), [(0, 0)]]],
-                ref_path_list=[[0, 1, [(0, 0)], "vv"]],
-                comment_list=["step"],
-                specs=[Dict("grid" => (0, 1), "label" => "A", "side" => "above")],
-            )
-            @test out isa GenLAProblems.SVGOut
-            @test occursin("<svg>", out.svg)
-            @test haskey(seen[], :output_dir)
-            @test seen[][:output_dir] == "/tmp/out"
-            @test haskey(seen[], :output_stem)
-            @test seen[][:output_stem] == "ge_basic"
-            @test haskey(seen[], :n_rhs)
-            @test seen[][:n_rhs] == 1
-            @test haskey(seen[], :array_names)
-            @test haskey(seen[], :pivot_list)
-            @test haskey(seen[], :ref_path_list)
-            @test haskey(seen[], :comment_list)
-            @test haskey(seen[], :specs)
+        mats = [[nothing, [1 2; 3 4]]]
+        out = GenLAProblems.matrixlayout_ge(
+            mats;
+            n_rhs=1,
+            output_dir="/tmp/out",
+            output_stem="ge_basic",
+            array_names=["A", "b"],
+            pivot_list=[[(0, 1), [(0, 0)]]],
+            ref_path_list=[[0, 1, [(0, 0)], "vv"]],
+            comment_list=["step"],
+            specs=[Dict("grid" => (0, 1), "label" => "A", "side" => "above")],
+        )
+        @test out isa GenLAProblems.SVGOut
+        @test occursin("<svg>", out.svg)
+        @test haskey(seen[], :output_dir)
+        @test seen[][:output_dir] == "/tmp/out"
+        @test haskey(seen[], :output_stem)
+        @test seen[][:output_stem] == "ge_basic"
+        @test haskey(seen[], :n_rhs)
+        @test seen[][:n_rhs] == 1
+        @test haskey(seen[], :array_names)
+        @test haskey(seen[], :pivot_list)
+        @test haskey(seen[], :ref_path_list)
+        @test haskey(seen[], :comment_list)
+        @test haskey(seen[], :specs)
 
-            out_vec = GenLAProblems.matrixlayout_ge(
-                mats;
-                n_rhs=[1, 1],
-                array_names=["A", ["b₁", "b₂"]],
-            )
-            @test out_vec isa GenLAProblems.SVGOut
-            @test PythonCall.pyconvert(Vector{Int}, seen[][:n_rhs]) == [1, 1]
+        out_vec = GenLAProblems.matrixlayout_ge(
+            mats;
+            n_rhs=[1, 1],
+            array_names=["A", ["b₁", "b₂"]],
+        )
+        @test out_vec isa GenLAProblems.SVGOut
+        @test PythonCall.pyconvert(Vector{Int}, seen[][:n_rhs]) == [1, 1]
 
-            # bg_for_entries should be converted into decorators and bg_for_entries cleared.
-            out2 = GenLAProblems.matrixlayout_ge(
-                mats;
-                bg_for_entries=[[0, 1, [[(0, 0), (1, 1)]], "yellow!35", 1]],
-                decorators=[Dict("grid" => (0, 1), "entries" => Any[], "decorator" => (x -> x))],
-            )
-            @test out2 isa GenLAProblems.SVGOut
-            @test haskey(seen[], :decorators)
-            @test !isnothing(seen[][:decorators])
-            @test haskey(seen[], :bg_for_entries)
-            @test isnothing(seen[][:bg_for_entries])
-        finally
-            _py_setattr_cov(ge_conv, "ge", old_ge)
-        end
+        # bg_for_entries should be converted into decorators and bg_for_entries cleared.
+        out2 = GenLAProblems.matrixlayout_ge(
+            mats;
+            bg_for_entries=[[0, 1, [[(0, 0), (1, 1)]], "yellow!35", 1]],
+            decorators=[Dict("grid" => (0, 1), "entries" => Any[], "decorator" => (x -> x))],
+        )
+        @test out2 isa GenLAProblems.SVGOut
+        @test haskey(seen[], :decorators)
+        @test !isnothing(seen[][:decorators])
+        @test haskey(seen[], :bg_for_entries)
+        @test isnothing(seen[][:bg_for_entries])
+    finally
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 
@@ -170,12 +167,6 @@ end
 
 @testset "matrixlayout_ge sets medium nodes for bg_for_entries" begin
     payloads = Vector{Any}()
-    try
-        import PythonCall
-    catch
-        @info "Skipping matrixlayout_ge medium nodes test: PythonCall unavailable"
-        return
-    end
     if GenLAProblems._pythoncall_disabled()
         @info "Skipping matrixlayout_ge medium nodes test: PythonCall disabled"
         return
@@ -188,18 +179,19 @@ end
         push!(payloads, kwargs)
         return "<svg/>"
     end
+    la = PythonCall.pycall(PythonCall.pyimport("types").SimpleNamespace)
+    _py_setattr_cov(la, "ge", fake_ge)
+    old_la = GenLAProblems._LAFigureSpecs[]
     try
-        GenLAProblems._ensure_pythoncall()
-        old = GenLAProblems._pyimport("LAFigureSpecs.ge_convenience")
-        PythonCall.pysetattr(old, "ge", fake_ge)
+        GenLAProblems._LAFigureSpecs[] = la
         mats = [[nothing, [1 0; 0 1]]]
         bg = [[0, 1, [[(0, 0), (0, 0)]], "yellow!25", 1]]
         GenLAProblems.matrixlayout_ge(mats; bg_for_entries=bg)
         @test !isempty(payloads)
         ro = get(payloads[end], :render_opts, nothing)
         @test ro === nothing || get(ro, "create_medium_nodes", true) == true
-    catch err
-        @info "Skipping matrixlayout_ge medium nodes test: LAFigureSpecs unavailable" exception=(err, catch_backtrace())
+    finally
+        GenLAProblems._LAFigureSpecs[] = old_la
     end
 end
 
