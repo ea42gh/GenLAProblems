@@ -448,6 +448,7 @@ function julia_ge( matrices, desc, pivot_cols; n_rhs=0, formatter=to_latex, pivo
     ge_tbl_svg = _pygetattr_fallback(la, :ge_tbl_svg, "LAFigureSpecs.ge_convenience")
     local_render_opts = render_opts === nothing ? Dict{String, Any}() : Dict{String, Any}(render_opts)
     resolved_output_dir = output_dir !== nothing ? output_dir : tmp_dir
+    resolved_output_stem = output_stem
     if !haskey(local_render_opts, "output_dir") && !haskey(local_render_opts, :output_dir)
         if output_dir !== nothing
             local_render_opts["output_dir"] = resolved_output_dir

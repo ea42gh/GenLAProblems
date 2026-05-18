@@ -11,10 +11,11 @@ let
     ENV["JULIA_CONDAPKG_BACKEND"] = get(ENV, "JULIA_CONDAPKG_BACKEND", "Null")
     ENV["CONDAPKG_BACKEND"] = get(ENV, "CONDAPKG_BACKEND", "Null")
 
-    repo = normpath(joinpath(@__DIR__, "..", "..", ".."))
+    repo = normpath(joinpath(@__DIR__, "..", ".."))
     py_paths = [
-        joinpath(repo, "0_ITIKZ", "LAFigureSpecs"),
-        joinpath(repo, "0_ITIKZ", "matrixlayout"),
+        joinpath(repo, ".pydeps"),
+        joinpath(repo, "LAFigureSpecs"),
+        joinpath(repo, "matrixlayout"),
     ]
     existing = get(ENV, "PYTHONPATH", "")
     parts = isempty(existing) ? String[] : split(existing, ':')
@@ -78,9 +79,10 @@ using GenLAProblems
         if try
             GenLAProblems._ensure_pythoncall()
             PythonCall.pyimport("LAFigureSpecs")
+            PythonCall.pyimport("jupyter_tikz")
             true
         catch
-            @info "Skipping show_backsubstitution adjoint test: LAFigureSpecs unavailable"
+            @info "Skipping show_backsubstitution adjoint test: LAFigureSpecs/jupyter_tikz unavailable"
             false
         end
             @test show_backsubstitution(U', b) !== nothing
@@ -139,9 +141,10 @@ using GenLAProblems
             GenLAProblems._ensure_pythoncall()
             PythonCall.pyimport("LAFigureSpecs")
             PythonCall.pyimport("matrixlayout")
+            PythonCall.pyimport("jupyter_tikz")
             true
         catch
-            @info "Skipping normal_eq layout test: Python deps unavailable"
+            @info "Skipping normal_eq layout test: Python deps/render stack unavailable"
             false
         end
             A = [1 2 3; 4 5 6]

@@ -58,7 +58,8 @@ and can include options such as:
 
 **`ModuleNotFoundError: No module named 'LAFigureSpecs'`**
 - Verify `PYTHONPATH` includes the local repos or install the packages into the Python env.
-- In tests, `PYTHONPATH` is set to include `0_ITIKZ/LAFigureSpecs` and `0_ITIKZ/matrixlayout`.
+- In tests, `PYTHONPATH` is set to include the local `LA` workspace repos such as
+  `LA/LAFigureSpecs` and `LA/matrixlayout`.
 
 **`ModuleNotFoundError: No module named 'matrixlayout'`**
 - Same fix as above; ensure the module is on `PYTHONPATH` or installed.

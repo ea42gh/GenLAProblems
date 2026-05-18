@@ -45,6 +45,6 @@ If you are working from this monorepo, install the local `LAlatex` checkout in t
 
 ```julia
 import Pkg
-Pkg.activate("/home/lab/NOTEBOOKS/LSHOW/GenLAProblems")
-Pkg.develop(path="/home/lab/NOTEBOOKS/LSHOW/LAlatex")
+Pkg.activate("/home/lab/NOTEBOOKS/LA/GenLAProblems")
+Pkg.develop(path="/home/lab/NOTEBOOKS/LA/LAlatex")
 ```
