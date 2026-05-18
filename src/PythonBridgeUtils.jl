@@ -120,20 +120,28 @@ end
 
 Load the Python `LAFigureSpecs` module via PythonCall.
 """
+function _is_missing_python_module(err, module_name::AbstractString)
+    msg = sprint(showerror, err)
+    return occursin("ModuleNotFoundError", msg) && occursin("No module named '$module_name'", msg)
+end
+
 function load_LAFigureSpecs()
     if _LAFigureSpecs[] === nothing
+        pc = _ensure_pythoncall()
+        if pc === nothing
+            return nothing
+        end
         try
-            pc = _ensure_pythoncall()
-            if pc === nothing
-                return nothing
-            end
             _LAFigureSpecs[] = Base.invokelatest(pc.pyimport, "LAFigureSpecs")
         catch err
-            error(
-                "Python module `LAFigureSpecs` is required by GenLAProblems.\n" *
-                "Install it in the active Python environment.\n\n" *
-                "Original error:\n$err"
-            )
+            if _is_missing_python_module(err, "LAFigureSpecs")
+                error(
+                    "Python module `LAFigureSpecs` is required by GenLAProblems.\n" *
+                    "Install it in the active Python environment.\n\n" *
+                    "Original error:\n$err"
+                )
+            end
+            rethrow(err)
         end
     end
     return _LAFigureSpecs[]
@@ -146,18 +154,21 @@ Load the Python `matrixlayout` module via PythonCall.
 """
 function load_matrixlayout()
     if _matrixlayout[] === nothing
+        pc = _ensure_pythoncall()
+        if pc === nothing
+            return nothing
+        end
         try
-            pc = _ensure_pythoncall()
-            if pc === nothing
-                return nothing
-            end
             _matrixlayout[] = Base.invokelatest(pc.pyimport, "matrixlayout")
         catch err
-            error(
-                "Python module `matrixlayout` is required by GenLAProblems.\n" *
-                "Install it in the active Python environment.\n\n" *
-                "Original error:\n$err"
-            )
+            if _is_missing_python_module(err, "matrixlayout")
+                error(
+                    "Python module `matrixlayout` is required by GenLAProblems.\n" *
+                    "Install it in the active Python environment.\n\n" *
+                    "Original error:\n$err"
+                )
+            end
+            rethrow(err)
         end
     end
     return _matrixlayout[]

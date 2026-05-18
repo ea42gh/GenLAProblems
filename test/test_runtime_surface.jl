@@ -39,6 +39,16 @@ end
     @test mod !== nothing
 end
 
+@testset "Python import error classification" begin
+    missing_la = ErrorException("Python: ModuleNotFoundError: No module named 'LAFigureSpecs'")
+    missing_ml = ErrorException("Python: ModuleNotFoundError: No module named 'matrixlayout'")
+    internal = ErrorException("Python: RuntimeError: import side effect failed")
+
+    @test GenLAProblems._is_missing_python_module(missing_la, "LAFigureSpecs")
+    @test GenLAProblems._is_missing_python_module(missing_ml, "matrixlayout")
+    @test !GenLAProblems._is_missing_python_module(internal, "LAFigureSpecs")
+end
+
 @testset "qr_matrices_dict_from_grid presence" begin
     @test hasmethod(GenLAProblems.qr_matrices_dict_from_grid, Tuple{Any})
 end
