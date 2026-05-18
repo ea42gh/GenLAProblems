@@ -125,7 +125,15 @@ end
 end
 
 @testset "materialize_python_value converts nested Python containers" begin
-    sym = PythonCall.pyimport("sympy")
+    sym = try
+        PythonCall.pyimport("sympy")
+    catch
+        @info "Skipping materialize_python_value nested-container test: sympy unavailable"
+        nothing
+    end
+    if sym === nothing
+        return
+    end
     pymat = sym.Matrix(PythonCall.pylist([
         PythonCall.pylist([sym.Integer(1), sym.Integer(2)]),
         PythonCall.pylist([sym.Integer(3), sym.Integer(4)]),
@@ -155,7 +163,15 @@ end
 end
 
 @testset "materialize_python_value converts nested dict/list mixtures" begin
-    sym = PythonCall.pyimport("sympy")
+    sym = try
+        PythonCall.pyimport("sympy")
+    catch
+        @info "Skipping materialize_python_value nested dict/list test: sympy unavailable"
+        nothing
+    end
+    if sym === nothing
+        return
+    end
     inner = PythonCall.pydict(Dict(
         "vec" => PythonCall.pylist([sym.Integer(1), sym.Integer(2)]),
         "none" => PythonCall.pygetattr(PythonCall.pyimport("builtins"), "None"),
@@ -175,7 +191,15 @@ end
 end
 
 @testset "qr_matrices_from_grid preserves missing entries and converts values" begin
-    sym = PythonCall.pyimport("sympy")
+    sym = try
+        PythonCall.pyimport("sympy")
+    catch
+        @info "Skipping qr_matrices_from_grid extractor test: sympy unavailable"
+        nothing
+    end
+    if sym === nothing
+        return
+    end
     types = PythonCall.pyimport("types")
     pybuiltins = PythonCall.pyimport("builtins")
     la = PythonCall.pycall(types.SimpleNamespace)
@@ -217,7 +241,15 @@ end
 end
 
 @testset "eig and svd matrix extractors return Julia values" begin
-    sym = PythonCall.pyimport("sympy")
+    sym = try
+        PythonCall.pyimport("sympy")
+    catch
+        @info "Skipping eig/svd extractor test: sympy unavailable"
+        nothing
+    end
+    if sym === nothing
+        return
+    end
     types = PythonCall.pyimport("types")
     la = PythonCall.pycall(types.SimpleNamespace)
 

@@ -39,9 +39,9 @@ end
         return PythonCall.pydict(Dict("spec" => spec, "svg" => "<svg>bundle</svg>"))
     end
 
-    _py_setattr_more(la, "eig_tbl_bundle", fake_bundle)
-    _py_setattr_more(la, "svd_tbl_bundle", fake_bundle)
-    _py_setattr_more(la, "qr_tbl_bundle", fake_bundle)
+    _py_setattr_more(la, "eig_bundle", fake_bundle)
+    _py_setattr_more(la, "svd_bundle", fake_bundle)
+    _py_setattr_more(la, "qr_bundle", fake_bundle)
 
     old_la = GenLAProblems._LAFigureSpecs[]
     try

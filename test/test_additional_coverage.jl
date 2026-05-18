@@ -24,7 +24,7 @@ end
         return "<svg>ok</svg>"
     end
 
-    _py_setattr_cov(la, "ge", fake_ge)
+    _py_setattr_cov(la, "ge_svg", fake_ge)
     old_la = GenLAProblems._LAFigureSpecs[]
     try
         GenLAProblems._LAFigureSpecs[] = la
@@ -63,17 +63,21 @@ end
         @test out_vec isa GenLAProblems.SVGOut
         @test PythonCall.pyconvert(Vector{Int}, seen[][:n_rhs]) == [1, 1]
 
-        # bg_for_entries should be converted into decorators and bg_for_entries cleared.
-        out2 = GenLAProblems.matrixlayout_ge(
-            mats;
-            bg_for_entries=[[0, 1, [[(0, 0), (1, 1)]], "yellow!35", 1]],
-            decorators=[Dict("grid" => (0, 1), "entries" => Any[], "decorator" => (x -> x))],
-        )
-        @test out2 isa GenLAProblems.SVGOut
-        @test haskey(seen[], :decorators)
-        @test !isnothing(seen[][:decorators])
-        @test haskey(seen[], :bg_for_entries)
-        @test isnothing(seen[][:bg_for_entries])
+        if _has_module_cov("matrixlayout")
+            # bg_for_entries should be converted into decorators and bg_for_entries cleared.
+            out2 = GenLAProblems.matrixlayout_ge(
+                mats;
+                bg_for_entries=[[0, 1, [[(0, 0), (1, 1)]], "yellow!35", 1]],
+                decorators=[Dict("grid" => (0, 1), "entries" => Any[], "decorator" => (x -> x))],
+            )
+            @test out2 isa GenLAProblems.SVGOut
+            @test haskey(seen[], :decorators)
+            @test !isnothing(seen[][:decorators])
+            @test haskey(seen[], :bg_for_entries)
+            @test isnothing(seen[][:bg_for_entries])
+        else
+            @info "Skipping matrixlayout_ge bg_for_entries merge test: matrixlayout unavailable"
+        end
     finally
         GenLAProblems._LAFigureSpecs[] = old_la
     end
@@ -175,12 +179,16 @@ end
         @info "Skipping matrixlayout_ge medium nodes test: precompile mode"
         return
     end
+    if !_has_module_cov("matrixlayout")
+        @info "Skipping matrixlayout_ge medium nodes test: matrixlayout unavailable"
+        return
+    end
     function fake_ge(mats_py; kwargs...)
         push!(payloads, kwargs)
         return "<svg/>"
     end
     la = PythonCall.pycall(PythonCall.pyimport("types").SimpleNamespace)
-    _py_setattr_cov(la, "ge", fake_ge)
+    _py_setattr_cov(la, "ge_svg", fake_ge)
     old_la = GenLAProblems._LAFigureSpecs[]
     try
         GenLAProblems._LAFigureSpecs[] = la

@@ -405,19 +405,19 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return _nm_ge_svg
     elseif name === :show_eig_tbl
         _nm_depwarn(name, "LATeachingSuite.eig_bundle")
-        return _nm_bundle_wrapper(:eig_tbl_bundle)
+        return _nm_bundle_wrapper(:eig_bundle)
     elseif name === :show_svd_tbl
         _nm_depwarn(name, "LATeachingSuite.svd_bundle")
-        return _nm_bundle_wrapper(:svd_tbl_bundle)
+        return _nm_bundle_wrapper(:svd_bundle)
     elseif name === :show_ge_tbl
         _nm_depwarn(name, "LATeachingSuite.ge_svg (or LATeachingSuite.ge_bundle if you also need the spec)")
         return _nm_svg_wrapper(:ge_tbl_svg; kwcleaner=_clean_tmp_kwargs, fallback_mod="LAFigureSpecs.ge_convenience")
     elseif name === :show_qr_tbl
         _nm_depwarn(name, "LATeachingSuite.qr_bundle")
-        return _nm_bundle_wrapper(:qr_tbl_bundle; kwcleaner=_clean_tmp_kwargs)
+        return _nm_bundle_wrapper(:qr_bundle; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_ge
         _nm_depwarn(name, "LATeachingSuite.ge_svg")
-        return _nm_svg_wrapper(:svg; kwcleaner=_clean_tmp_kwargs)
+        return _nm_svg_wrapper(:ge_svg; kwcleaner=_clean_tmp_kwargs)
     elseif name === :show_qr
         _nm_depwarn(name, "LATeachingSuite.qr_svg (or LATeachingSuite.qr_figure if you also need the computed matrices)")
         return _nm_svg_wrapper(:qr_svg; kwcleaner=_map_tmp_to_output, with_first_arg=true)
@@ -441,10 +441,10 @@ function Base.getproperty(p::NMProxy, name::Symbol)
         return qr_matrices_from_grid
     elseif name === :eig_tbl_svg
         _nm_depwarn(name, "LATeachingSuite.eig_bundle")
-        return _nm_bundle_wrapper(:eig_tbl_bundle; wrap_svg=false)
+        return _nm_bundle_wrapper(:eig_bundle; wrap_svg=false)
     elseif name === :svd_tbl_svg
         _nm_depwarn(name, "LATeachingSuite.svd_bundle")
-        return _nm_bundle_wrapper(:svd_tbl_bundle; wrap_svg=false)
+        return _nm_bundle_wrapper(:svd_bundle; wrap_svg=false)
     end
 
     _ensure_pythoncall()

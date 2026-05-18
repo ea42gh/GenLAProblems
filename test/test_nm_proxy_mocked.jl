@@ -60,9 +60,9 @@ end
         return "<svg>qr_render</svg>"
     end
 
-    _py_setattr(la, "eig_tbl_bundle", fake_bundle)
-    _py_setattr(la, "svd_tbl_bundle", fake_bundle)
-    _py_setattr(la, "qr_tbl_bundle", fake_bundle)
+    _py_setattr(la, "eig_bundle", fake_bundle)
+    _py_setattr(la, "svd_bundle", fake_bundle)
+    _py_setattr(la, "qr_bundle", fake_bundle)
     _py_setattr(la, "ge_tbl_svg", fake_ge_tbl_svg)
     _py_setattr(la, "qr_svg", fake_qr_svg)
     _py_setattr(la, "gram_schmidt_qr_matrices", fake_gs_mats)
@@ -120,7 +120,7 @@ end
 @testset "nM wrappers emit deprecation guidance" begin
     la = _py_ns()
     ml = _py_ns()
-    _py_setattr(la, "eig_tbl_bundle", (args...; kwargs...) -> _py_dict(Dict(
+    _py_setattr(la, "eig_bundle", (args...; kwargs...) -> _py_dict(Dict(
         "spec" => _py_dict(Dict("kind" => "eig")),
         "svg" => "<svg>eig</svg>",
     )))

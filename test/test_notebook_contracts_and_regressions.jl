@@ -70,7 +70,7 @@ end
         ))
     end
 
-    _py_setattr_notebook(la, "svd_tbl_bundle", fake_bundle)
+    _py_setattr_notebook(la, "svd_bundle", fake_bundle)
 
     old_la = GenLAProblems._LAFigureSpecs[]
     try
