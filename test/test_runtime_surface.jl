@@ -43,6 +43,15 @@ end
     @test hasmethod(GenLAProblems.qr_matrices_dict_from_grid, Tuple{Any})
 end
 
+@testset "Curated submodule surfaces" begin
+    @test isdefined(GenLAProblems, :WorkflowDisplay)
+    @test isdefined(GenLAProblems, :PythonBridge)
+    @test isdefined(GenLAProblems.WorkflowDisplay, :show_layout!)
+    @test isdefined(GenLAProblems.WorkflowDisplay, :ShowGE)
+    @test isdefined(GenLAProblems.PythonBridge, :ensure_pythoncall!)
+    @test isdefined(GenLAProblems.PythonBridge, :load_LAFigureSpecs)
+end
+
 @testset "SVG helper negative contract" begin
     if !_has_module_rt("IPython.display")
         @info "Skipping SVG helper negative tests: IPython.display unavailable"
