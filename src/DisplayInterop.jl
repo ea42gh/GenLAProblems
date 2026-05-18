@@ -33,6 +33,12 @@ function _show_svg(svg)
         return SVGOut(Base.invokelatest(py.pyconvert, String, svg))
     elseif svg isa AbstractString
         return SVGOut(svg)
+    elseif isdefined(@__MODULE__, :PythonCall)
+        py = getfield(@__MODULE__, :PythonCall)
+        try
+            return SVGOut(Base.invokelatest(py.pyconvert, String, svg))
+        catch
+        end
     end
     return svg
 end
