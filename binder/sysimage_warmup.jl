@@ -1,4 +1,4 @@
-using LATeachingSuite, GenLAProblems
+using LATeachingSuite
 
 warmup_dir = "/tmp/genla_sysimage"
 mkpath(warmup_dir)
