@@ -83,7 +83,7 @@ using .SymPyHelpers:
     svd_matrices_from_spec(spec; reduced=true)
 
 Build `(U, Σ, V, rank)` from an SVD spec dictionary (as returned by
-`nM.show_svd_tbl` / `LAFigureSpecs.svd_tbl_spec`). The matrix type is preserved:
+`LATeachingSuite.svd_bundle` / `LAFigureSpecs.svd_tbl_spec`). The matrix type is preserved:
 if the spec contains SymPy objects, returns SymPy matrices; otherwise returns
 Julia matrices. When `reduced=true`, only nonzero singular value groups are included.
 """
@@ -98,7 +98,7 @@ end
     eig_matrices_from_spec(spec; orthonormal=true)
 
 Build `(Λ, V)` from an eigen-table spec dictionary (as returned by
-`nM.show_eig_tbl` / `LAFigureSpecs.eig_tbl_spec`). Uses `qvecs` when available
+`LATeachingSuite.eig_bundle` / `LAFigureSpecs.eig_tbl_spec`). Uses `qvecs` when available
 and `orthonormal=true`, otherwise uses `evecs`. The matrix type is preserved.
 """
 function eig_matrices_from_spec(spec; orthonormal::Bool=true)
@@ -112,7 +112,7 @@ end
     qr_matrices_from_grid(mats)
 
 Extract QR-related matrices from a Gram–Schmidt QR grid (as returned by
-`nM.gram_schmidt_qr`). Returns `(A, W, WtA, WtW, S, Qt, Q, R)` as a named tuple.
+`LATeachingSuite.qr_figure`). Returns `(A, W, WtA, WtW, S, Qt, Q, R)` as a named tuple.
 The matrix type is preserved (Julia or SymPy).
 """
 function qr_matrices_from_grid(mats)
