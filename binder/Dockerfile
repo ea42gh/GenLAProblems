@@ -47,11 +47,6 @@ COPY --chown=jovyan:jovyan KernelProbe.ipynb /home/jovyan/work/KernelProbe.ipynb
 
 USER jovyan
 
-RUN mkdir -p /home/jovyan/.local/share/jupyter/kernels/julia-1.10 \
- && chown -R jovyan:jovyan /home/jovyan/.local/share/jupyter/kernels/julia-1.10
-
-COPY --chown=jovyan:jovyan binder/julia-1.10/kernel.json /home/jovyan/.local/share/jupyter/kernels/julia-1.10/kernel.json
-
 RUN bash binder/postBuild
 
 EXPOSE 8888

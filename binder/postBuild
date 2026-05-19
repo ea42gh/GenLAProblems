@@ -7,3 +7,4 @@ julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 julia --project=. -e 'using GenLAProblems, LinearAlgebra, LaTeXStrings, Random; Random.seed!(42)'
 julia --project=. binder/warmup.jl
 bash binder/kernel_probe.sh
+julia -e 'using Pkg; Pkg.add("IJulia"); Pkg.precompile(); using IJulia; installkernel("Julia GenLAProblems", "--project=/home/jovyan/GenLAProblems", env=Dict("JULIA_PROJECT"=>"/home/jovyan/GenLAProblems", "JULIA_PYTHONCALL_EXE"=>"/usr/local/bin/python3", "JULIA_CONDAPKG_BACKEND"=>"Null", "CONDAPKG_BACKEND"=>"Null", "PYTHONNOUSERSITE"=>"1", "PYTHONDONTWRITEBYTECODE"=>"1", "ENABLE_JULIACALL_AUTACTIVATE"=>"0"))'
