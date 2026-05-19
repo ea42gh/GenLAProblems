@@ -9,3 +9,5 @@ julia --project=. binder/warmup.jl
 bash binder/kernel_probe.sh
 julia -e 'using Pkg; Pkg.add("IJulia"); Pkg.precompile(); using IJulia; installkernel("Julia 1.10", "--project=/home/jovyan/GenLAProblems"; specname="julia-1.10", displayname="Julia 1.10", env=Dict("JULIA_PROJECT"=>"/home/jovyan/GenLAProblems", "JULIA_PYTHONCALL_EXE"=>"/usr/local/bin/python3", "JULIA_CONDAPKG_BACKEND"=>"Null", "CONDAPKG_BACKEND"=>"Null", "PYTHONNOUSERSITE"=>"1", "PYTHONDONTWRITEBYTECODE"=>"1", "ENABLE_JULIACALL_AUTACTIVATE"=>"0"))'
 julia --project=. binder/notebook_warmup.jl
+jupyter trust /home/jovyan/work/GenProblems.ipynb /home/jovyan/work/KernelProbe.ipynb
+jupyter nbconvert --to notebook --execute --inplace /home/jovyan/work/KernelProbe.ipynb
