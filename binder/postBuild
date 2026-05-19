@@ -6,3 +6,4 @@ cd /home/jovyan/GenLAProblems
 julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 julia --project=. -e 'using GenLAProblems, LinearAlgebra, LaTeXStrings, Random; Random.seed!(42)'
 julia --project=. binder/warmup.jl
+bash binder/kernel_probe.sh

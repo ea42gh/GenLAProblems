@@ -43,6 +43,7 @@ RUN mkdir -p /home/jovyan/work \
  && chown -R jovyan:jovyan /home/jovyan/work
 
 COPY --chown=jovyan:jovyan GenProblems.ipynb /home/jovyan/work/GenProblems.ipynb
+COPY --chown=jovyan:jovyan KernelProbe.ipynb /home/jovyan/work/KernelProbe.ipynb
 
 USER jovyan
 
