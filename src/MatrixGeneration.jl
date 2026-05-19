@@ -539,7 +539,8 @@ end
 raw""" A = gen_qr_problem(even_n;maxint=3)
 """
 function gen_qr_problem(even_n;maxint=3)
-    hadamard(even_n)[:,shuffle(1:even_n)]*lower(even_n,maxint=maxint)'
+    H = _ensure_hadamard()
+    Base.invokelatest(H.hadamard, even_n)[:,shuffle(1:even_n)]*lower(even_n,maxint=maxint)'
 end
 
 raw""" A = gen_qr_problem_3(;maxint=3)

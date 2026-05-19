@@ -551,17 +551,17 @@ function normalize_columns( int_W )
                 if sz^2 == numerator(norm_squared)
                     push!(norms, sz)
                 else
-                    push!(norms, Symbolics.sqrt(norm_squared))
+                    push!(norms, _ensure_symbolics().sqrt(norm_squared))
                 end
             else
-                push!(norms, Symbolics.sqrt(norm_squared))
+                push!(norms, _ensure_symbolics().sqrt(norm_squared))
             end
         else
             sz = isqrt(norm_squared)
             if sz^2 == norm_squared
                 push!(norms, sz)
             else
-                push!(norms, Symbolics.sqrt(norm_squared))
+                push!(norms, _ensure_symbolics().sqrt(norm_squared))
             end
         end
     end
@@ -656,7 +656,7 @@ function gram_schmidt_stable(A::AbstractMatrix{T}; reorthogonalize=false) where 
         end
 
         norm_sq = dot_any(v, v)
-        R[j, j] = Symbolics.sqrt(norm_sq)
+        R[j, j] = _ensure_symbolics().sqrt(norm_sq)
         Q[:, j] = v ./ R[j, j]
 
         for i = j+1:n

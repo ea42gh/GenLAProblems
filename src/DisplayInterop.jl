@@ -89,9 +89,10 @@ Display an SVD factorization with block structure separating the rank and null
 space components.
 """
 function l_show_svd(A, U, Σ, Vt, rankA)
-    Ub = BlockArray(U, [size(U, 1)], [rankA, size(U, 2) - rankA])
-    Σb = BlockArray(Σ, [rankA, size(Σ, 1) - rankA], [rankA, size(Σ, 2) - rankA])
-    Vtb = BlockArray(Vt, [rankA, size(Vt, 1) - rankA], [size(Vt, 2)])
+    BA = _ensure_blockarrays()
+    Ub = BA.BlockArray(U, [size(U, 1)], [rankA, size(U, 2) - rankA])
+    Σb = BA.BlockArray(Σ, [rankA, size(Σ, 1) - rankA], [rankA, size(Σ, 2) - rankA])
+    Vtb = BA.BlockArray(Vt, [rankA, size(Vt, 1) - rankA], [size(Vt, 2)])
     display(l_show(LaTeXString("A = U \\Sigma V^T : "), A, " = ", Ub, Σb, Vtb))
     return nothing
 end

@@ -60,13 +60,10 @@ function _pygetattr_fallback(obj, name::Symbol, mod::String)
     return _pygetattr(sub, name)
 end
 
-import Symbolics
-using AbstractAlgebra
-import AbstractAlgebra: charpoly
-using BlockArrays
 using LinearAlgebra
 using Random
-using Hadamard
+using AbstractAlgebra
+import AbstractAlgebra: charpoly
 
 using Reexport
 @reexport using LAlatex
@@ -77,6 +74,34 @@ using .SymPyHelpers:
     sym_mat, sym_vec, sym_zero,
     sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero,
     sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
+
+const _symbolics_mod = Ref{Any}(nothing)
+const _blockarrays_mod = Ref{Any}(nothing)
+const _hadamard_mod = Ref{Any}(nothing)
+
+function _ensure_symbolics()
+    if _symbolics_mod[] === nothing
+        @eval import Symbolics
+        _symbolics_mod[] = Base.invokelatest(() -> Symbolics)
+    end
+    return _symbolics_mod[]
+end
+
+function _ensure_blockarrays()
+    if _blockarrays_mod[] === nothing
+        @eval import BlockArrays
+        _blockarrays_mod[] = Base.invokelatest(() -> BlockArrays)
+    end
+    return _blockarrays_mod[]
+end
+
+function _ensure_hadamard()
+    if _hadamard_mod[] === nothing
+        @eval import Hadamard
+        _hadamard_mod[] = Base.invokelatest(() -> Hadamard)
+    end
+    return _hadamard_mod[]
+end
 
 
 """
@@ -564,7 +589,6 @@ export WorkflowDisplay, PythonBridge
     charpoly(A)
     gen_eigenproblem([1, 2, 3])
     gen_symmetric_eigenproblem([1, 2, 3])
-    gen_qr_problem(4)
     gen_qr_problem_4()
 end
 
