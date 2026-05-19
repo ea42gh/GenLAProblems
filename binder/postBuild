@@ -6,4 +6,3 @@ cd /home/jovyan/GenLAProblems
 julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 julia --project=. -e 'using GenLAProblems, LinearAlgebra, LaTeXStrings, Random; Random.seed!(42)'
 julia --project=. binder/warmup.jl
-julia -e 'using Pkg; Pkg.activate(mktempdir()); Pkg.add(PackageSpec(name="PackageCompiler", version="2")); using PackageCompiler; create_sysimage([:GenLAProblems, :LinearAlgebra, :LaTeXStrings, :Random]; project="/home/jovyan/GenLAProblems", sysimage_path="/home/jovyan/.local/share/jupyter/genla_sysimage.so", precompile_execution_file="/home/jovyan/GenLAProblems/binder/sysimage_warmup.jl")'

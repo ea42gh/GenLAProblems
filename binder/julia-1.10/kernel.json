@@ -2,7 +2,6 @@
   "argv": [
     "/usr/local/julia/bin/julia",
     "--color=yes",
-    "--sysimage=/home/jovyan/.local/share/jupyter/genla_sysimage.so",
     "--project=/home/jovyan/GenLAProblems",
     "-i",
     "--startup-file=yes",
