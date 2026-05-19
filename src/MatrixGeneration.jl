@@ -667,7 +667,18 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
         end
     end
 
-    J = zeros(eltype(block_descriptions[1]), total_size, total_size)
+    function block_value_type(desc)
+        if desc isa Int
+            return Int
+        elseif desc isa Tuple && length(desc) == 2
+            return typeof(desc[1])
+        else
+            throw(ArgumentError("Each block description must be an integer or a tuple (λ, n)."))
+        end
+    end
+
+    T = foldl(promote_type, (block_value_type(desc) for desc in block_descriptions))
+    J = zeros(T, total_size, total_size)
     current_row = 1
 
     for desc in block_descriptions
@@ -678,7 +689,7 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
             λ,n = desc
             J[current_row:(current_row+n-1), current_row:(current_row+n-1)] .= jordan_block(λ, n)
         end
-        current_row += desc isa Int ? desc : desc[1]
+        current_row += desc isa Int ? desc : desc[2]
     end
 
     P, P_inv = gen_inv_pb(total_size, maxint=maxint)
