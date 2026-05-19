@@ -344,6 +344,8 @@ function gen_inv_pb(n; maxint=3)
     e2 = unit_lower( n,n, maxint=maxint )
     A  = e1*e2'
 
+    # A is unimodular: unit-lower factors and their transpose have determinant 1,
+    # so the inverse remains integral.
     #A_inv = invert_unit_lower(e2)'*invert_unit_lower(e1)
     A_inv = Int.(inv(Rational{Int}.(A)))
     A, A_inv
@@ -355,6 +357,7 @@ function gen_ldlt_pb(m;maxint=3,rank=nothing, squares = false)
     L   = unit_lower(m,maxint=maxint) 
     p   =  squares ? (1:maxint).^2 : 1:maxint
     if rank !== nothing
+        0 <= rank <= m || throw(ArgumentError("rank must satisfy 0 <= rank <= m"))
         pivots = [rand( p, rank); zeros(Int, m-rank)]
         D   = Diagonal( pivots )
     else
@@ -540,7 +543,19 @@ raw""" A = gen_qr_problem(even_n;maxint=3)
 """
 function gen_qr_problem(even_n;maxint=3)
     H = _ensure_hadamard()
-    Base.invokelatest(H.hadamard, even_n)[:,shuffle(1:even_n)]*lower(even_n,maxint=maxint)'
+    had = try
+        Base.invokelatest(H.hadamard, even_n)
+    catch err
+        if err isa ArgumentError
+            throw(
+                ArgumentError(
+                    "gen_qr_problem($even_n) requires a size supported by Hadamard.hadamard; not every even size is available.",
+                ),
+            )
+        end
+        rethrow()
+    end
+    had[:,shuffle(1:even_n)]*lower(even_n,maxint=maxint)'
 end
 
 raw""" A = gen_qr_problem_3(;maxint=3)
@@ -698,9 +713,10 @@ end
 # ------------------------------------------------------------------------------
 raw""" U, Σ, Vt, U * Σ * Vt = gen_svd_problem(m,n,σ; maxint = 3) """
 """
-    gen_svd_problem(m, n, σ; maxint=3) -> A, U, Σ, V
+    gen_svd_problem(m, n, σ; maxint=3) -> U, Σ, Vt, A
 
 Generate an SVD problem with specified singular values.
+Returns orthogonal factors `U`, `Vt`, the diagonal matrix `Σ`, and the product `A = U * Σ * Vt`.
 """
 function gen_svd_problem(m,n,σ; maxint = 3)
     U  = sparse_Q_matrix( m, maxint=maxint)
