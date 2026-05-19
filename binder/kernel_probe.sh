@@ -9,10 +9,16 @@ report=/home/jovyan/work/kernel_probe_report.txt
 run_probe() {
   local label="$1"
   local code="$2"
+  local start end status
   {
     echo "=== $label ==="
-    /usr/bin/time -f 'elapsed=%E maxrss=%MKB exit=%x' \
-      julia --project=. -e "$code"
+    start=$(date +%s)
+    set +e
+    julia --project=. -e "$code"
+    status=$?
+    set -e
+    end=$(date +%s)
+    echo "elapsed=$((end-start))s exit=$status"
     echo
   } >>"$report" 2>&1
 }
