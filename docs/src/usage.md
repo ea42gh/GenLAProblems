@@ -17,6 +17,73 @@ matrices, pivots, desc = reduce_to_ref(A; gj=true)
 svg = show_ge_final(matrices, desc, pivots; n_rhs=0)
 ```
 
+## Problem generators
+
+### QR families
+
+`gen_qr_problem` is the canonical QR exercise generator:
+
+```julia
+using GenLAProblems
+
+A_pyth = gen_qr_problem(3; family=:pythagorean, maxint=2)
+A_had  = gen_qr_problem(4; family=:hadamard, maxint=2)
+A_cay  = gen_qr_problem(5; family=:cayley, maxint=2)
+A_sp   = gen_qr_problem((2, 2); family=:sparse, maxint=2)
+```
+
+Family notes:
+- `:pythagorean` uses the small exact `W_k` / `Q_k` families.
+- `:hadamard` uses the Hadamard-based QR constructor.
+- `:cayley` uses a dense Cayley-transform orthogonal seed.
+- `:sparse` uses `sparse_Q_matrix`; when you pass a tuple like `(2, 2)`, it is
+  interpreted as block sizes.
+
+The old Hadamard-only constructor remains available explicitly as:
+
+```julia
+A = gen_qr_problem_hadamard(4; maxint=2)
+```
+
+### SVD orthogonal-factor families
+
+`gen_svd_problem` now lets you choose the orthogonal-family construction for
+the left and right factors independently:
+
+```julia
+U, Σ, Vt, A = gen_svd_problem(
+    4, 4, [3, 1, 0, 0];
+    left_family=:hadamard,
+    right_family=:cayley,
+    maxint=2,
+)
+```
+
+The default remains:
+
+```julia
+U, Σ, Vt, A = gen_svd_problem([2, 1], [2, 1], [3, 1, 0]; maxint=2)
+```
+
+which uses `left_family=:sparse` and `right_family=:sparse`.
+
+### `W_*` and `Q_*` constructors
+
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, A)`
+  where `A' * A` is diagonal.
+- `Q_2_matrix`, `Q_3_matrix`, and `Q_4_matrix` return orthogonal matrices.
+- `W_matrix` now follows the same two-value contract in both the specialized and
+  general cases.
+
+### Eigenvalue input shape
+
+`gen_eigenproblem` and `gen_symmetric_eigenproblem` accept:
+- a standard vector like `[3, -1, 2]`
+- a row matrix like `[3 -1 2]`
+- a column matrix like `[3, -1, 2;;]`
+
+General matrix-shaped eigenvalue input is rejected.
+
 ## Rendering examples
 
 ```julia

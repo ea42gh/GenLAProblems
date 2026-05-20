@@ -33,6 +33,17 @@ Set `GENLAPROBLEMS_SMOKE_OUT` to control the output directory.
 - [Python dependencies and rendering](python-deps.md)
 - [Exact arithmetic and SymPy helpers](exact-arithmetic.md)
 
+## Generator notes
+
+- `gen_qr_problem` is the canonical QR dispatcher and supports
+  `family=:pythagorean`, `:hadamard`, `:cayley`, and `:sparse`.
+- `gen_qr_problem_hadamard` is the explicit Hadamard-only QR constructor.
+- `gen_svd_problem` supports independent `left_family` / `right_family`
+  keywords for the orthogonal factors.
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, A)`
+  with diagonal `A' * A`; the corresponding `Q_*` constructors return
+  orthogonal matrices.
+
 ```@index
 ```
 

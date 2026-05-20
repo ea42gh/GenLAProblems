@@ -416,6 +416,8 @@ raw""" c,W =  W_3_matrix(; maxint=3)
 """
 function W_3_matrix(; maxint=3)
     a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
+    # The Pythagorean scale c governs the 2×2 rotation block only; the third
+    # row/column uses an independent small integer so A' * A remains diagonal.
     A = [ a -b 0
           b  a 0
           0  0 rand( [-maxint:-1; 1:maxint]) ]
@@ -469,7 +471,7 @@ function W_4_matrix()
           c  0  a  a3 
           0  c -b  a4 ]
     A = A[shuffle(1:4), :]
-    d,A[ :, shuffle(1:4)] ,(a,-b,-c, a2,a3,a4)
+    d, A[:, shuffle(1:4)]
 end
 # ------------------------------------------------------------------------------
 raw""" Q = Q_4_matrix()
@@ -479,7 +481,7 @@ function Q_4_matrix()
     W//d
 end
 # ------------------------------------------------------------------------------
-raw""" W = W_matrix(n; general=false)
+raw""" d,W = W_matrix(n; general=false)
 """
 function W_matrix(n; general=false)
   if general == false
@@ -489,8 +491,7 @@ function W_matrix(n; general=false)
     end
   end
   A = Q_matrix(n; general=general)
-  _,Aint = factor_out_denominator( A )
-  Aint
+  factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
 raw""" Q = Q_matrix(n; maxint=3, with_zeros=false, general=false )
@@ -506,6 +507,20 @@ function Q_matrix(n; maxint=3, with_zeros=false, general=false )
 end
 # ------------------------------------------------------------------------------
 raw""" Q = sparse_Q_matrix(n; maxint=3, with_zeros=false )
+"""
+"""
+    sparse_Q_matrix(n; maxint=3, with_zeros=false) -> Matrix
+
+Construct an exact rational orthogonal matrix from block sizes `n`.
+For each block size `m` in `n`, the function builds a skew-symmetric
+matrix and applies the Cayley transform `(S - I)^(-1) * (S + I)` to get
+an orthogonal block. Those blocks are assembled into a block-diagonal
+matrix and then randomly permuted by rows and columns.
+
+When `n` is a single integer, this is the one-block case.
+For very small block sizes such as `(2,2)`, the number of distinct
+outputs can be limited when `maxint` is small; increase `maxint` if
+more variation is desired.
 """
 function sparse_Q_matrix(n; maxint=3, with_zeros=false )
     sz = sum(n)
@@ -539,9 +554,9 @@ function ca_projection_matrix(A)
     A*inv(A'A)*A'
 end
 # ------------------------------------------------------------------------------
-raw""" A = gen_qr_problem(even_n;maxint=3)
+raw""" A = gen_qr_problem_hadamard(even_n;maxint=3)
 """
-function gen_qr_problem(even_n;maxint=3)
+function gen_qr_problem_hadamard(even_n;maxint=3)
     H = _ensure_hadamard()
     had = try
         Base.invokelatest(H.hadamard, even_n)
@@ -549,7 +564,7 @@ function gen_qr_problem(even_n;maxint=3)
         if err isa ArgumentError
             throw(
                 ArgumentError(
-                    "gen_qr_problem($even_n) requires a size supported by Hadamard.hadamard; not every even size is available.",
+                    "gen_qr_problem_hadamard($even_n) requires a size supported by Hadamard.hadamard; not every even size is available.",
                 ),
             )
         end
@@ -571,17 +586,142 @@ function gen_qr_problem_4(;maxint=3)
     _,W = W_4_matrix()
     W*unit_lower(4,maxint=maxint)'
 end
+
+"""
+    gen_qr_problem(n; family=:auto, maxint=3) -> Matrix
+
+Generate a QR exercise matrix from one of several orthogonal-seed families.
+
+- `family=:hadamard` uses the existing Hadamard-based construction and requires
+  an integer size supported by `Hadamard.hadamard`.
+- `family=:pythagorean` uses the specialized 3×3 or 4×4 `W_k_matrix` families.
+- `family=:cayley` uses a dense Cayley-transform orthogonal seed.
+- `family=:sparse` uses `sparse_Q_matrix`, treating `n` as block sizes.
+- `family=:auto` chooses `:pythagorean` for `n == 3` or `n == 4`, otherwise
+  tries `:hadamard` and falls back to `:cayley` for integer sizes or `:sparse`
+  for block-size inputs.
+"""
+function gen_qr_problem(n; family=:auto, maxint=3)
+    function total_size(n)
+        n isa Integer && return n
+        return sum(n)
+    end
+
+    function dense_qr_from_seed(Qseed, ncols)
+        Qseed * lower(ncols, maxint=maxint)'
+    end
+
+    function pythagorean_qr(n)
+        if n == 3
+            return gen_qr_problem_3(maxint=maxint)
+        elseif n == 4
+            return gen_qr_problem_4(maxint=maxint)
+        end
+        throw(ArgumentError("family=:pythagorean is only supported for n == 3 or n == 4"))
+    end
+
+    if family == :auto
+        if n isa Integer && (n == 3 || n == 4)
+            return pythagorean_qr(n)
+        elseif n isa Integer
+            try
+                return gen_qr_problem_hadamard(n; maxint=maxint)
+            catch err
+                if err isa ArgumentError
+                    return dense_qr_from_seed(Q_matrix(n; maxint=maxint, general=true), n)
+                end
+                rethrow()
+            end
+        else
+            return dense_qr_from_seed(sparse_Q_matrix(n; maxint=maxint), total_size(n))
+        end
+    elseif family == :hadamard
+        n isa Integer || throw(ArgumentError("family=:hadamard requires an integer size n"))
+        return gen_qr_problem_hadamard(n; maxint=maxint)
+    elseif family == :pythagorean
+        n isa Integer || throw(ArgumentError("family=:pythagorean requires an integer size n"))
+        return pythagorean_qr(n)
+    elseif family == :cayley
+        n isa Integer || throw(ArgumentError("family=:cayley requires an integer size n"))
+        return dense_qr_from_seed(Q_matrix(n; maxint=maxint, general=true), n)
+    elseif family == :sparse
+        return dense_qr_from_seed(sparse_Q_matrix(n; maxint=maxint), total_size(n))
+    end
+
+    throw(ArgumentError("unknown QR generator family: $family"))
+end
+# ------------------------------------------------------------------------------
+function _orthogonal_matrix_family(n; family=:auto, maxint=3)
+    if family == :auto
+        if n isa Integer && n in (2, 3, 4)
+            return _orthogonal_matrix_family(n; family=:pythagorean, maxint=maxint)
+        elseif n isa Integer
+            try
+                return _orthogonal_matrix_family(n; family=:hadamard, maxint=maxint)
+            catch err
+                if err isa ArgumentError
+                    return _orthogonal_matrix_family(n; family=:cayley, maxint=maxint)
+                end
+                rethrow()
+            end
+        else
+            return _orthogonal_matrix_family(n; family=:sparse, maxint=maxint)
+        end
+    elseif family == :pythagorean
+        n isa Integer || throw(ArgumentError("family=:pythagorean requires an integer size n"))
+        if n == 2
+            return Q_2_matrix()
+        elseif n == 3
+            return Q_3_matrix()
+        elseif n == 4
+            return Q_4_matrix()
+        end
+        throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
+    elseif family == :hadamard
+        n isa Integer || throw(ArgumentError("family=:hadamard requires an integer size n"))
+        H = _ensure_hadamard()
+        had = try
+            Base.invokelatest(H.hadamard, n)
+        catch err
+            if err isa ArgumentError
+                throw(ArgumentError("family=:hadamard requires a size supported by Hadamard.hadamard"))
+            end
+            rethrow()
+        end
+        d = isqrt(n)
+        d * d == n || throw(ArgumentError("family=:hadamard requires n to have an integer square root for exact orthogonal factors"))
+        Rational{Int64}.(had) ./ d
+    elseif family == :cayley
+        n isa Integer || throw(ArgumentError("family=:cayley requires an integer size n"))
+        Q_matrix(n; maxint=maxint, general=true)
+    elseif family == :sparse
+        sparse_Q_matrix(n; maxint=maxint)
+    else
+        throw(ArgumentError("unknown orthogonal matrix family: $family"))
+    end
+end
 # ------------------------------------------------------------------------------
 # ---------------------------------------------------------------- Eigenproblems
 # ------------------------------------------------------------------------------
+function _eigenvalues_vector(e_vals)
+    if e_vals isa AbstractVector
+        return collect(e_vals)
+    elseif e_vals isa AbstractMatrix
+        min(size(e_vals)...) == 1 || throw(ArgumentError("e_vals must be a vector or a 1×n/n×1 matrix"))
+        return vec(e_vals)
+    end
+    throw(ArgumentError("e_vals must be a vector or a 1×n/n×1 matrix"))
+end
+
 """
     gen_eigenproblem(e_vals; maxint=3) -> S, Λ, S_inv, A
 
 Generate a random eigenproblem with prescribed eigenvalues.
 """
 function gen_eigenproblem( e_vals; maxint=3 )
-    Λ = Diagonal( e_vals )
-    S,S_inv = gen_inv_pb( size(e_vals,1), maxint=maxint )
+    vals = _eigenvalues_vector(e_vals)
+    Λ = Diagonal(vals)
+    S,S_inv = gen_inv_pb(length(vals), maxint=maxint )
     S,Λ,S_inv, S*Λ*S_inv
 end
 # ------------------------------------------------------------------------------
@@ -625,8 +765,9 @@ raw""" S, Λ, A = gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false
 Generate a symmetric eigenproblem with prescribed eigenvalues.
 """
 function gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false, general=true )
-    S = Q_matrix( size(e_vals,1); maxint=maxint, with_zeros=with_zeros, general=general )
-    Λ = Diagonal( e_vals )
+    vals = _eigenvalues_vector(e_vals)
+    S = Q_matrix( length(vals); maxint=maxint, with_zeros=with_zeros, general=general )
+    Λ = Diagonal(vals)
     S, Λ, S * Λ * S'
 end
 # ------------------------------------------------------------------------------
@@ -711,16 +852,18 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
     P, J, P_inv, P * J * P_inv
 end
 # ------------------------------------------------------------------------------
-raw""" U, Σ, Vt, U * Σ * Vt = gen_svd_problem(m,n,σ; maxint = 3) """
+raw""" U, Σ, Vt, U * Σ * Vt = gen_svd_problem(m,n,σ; left_family=:sparse, right_family=:sparse, maxint = 3) """
 """
-    gen_svd_problem(m, n, σ; maxint=3) -> U, Σ, Vt, A
+    gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3) -> U, Σ, Vt, A
 
 Generate an SVD problem with specified singular values.
 Returns orthogonal factors `U`, `Vt`, the diagonal matrix `Σ`, and the product `A = U * Σ * Vt`.
+The `left_family` and `right_family` keywords choose the orthogonal-matrix
+construction used for the left and right factors independently.
 """
-function gen_svd_problem(m,n,σ; maxint = 3)
-    U  = sparse_Q_matrix( m, maxint=maxint)
-    Vt = sparse_Q_matrix( n, maxint=maxint)
+function gen_svd_problem(m,n,σ; left_family=:sparse, right_family=:sparse, maxint = 3)
+    U  = _orthogonal_matrix_family(m; family=left_family, maxint=maxint)
+    Vt = _orthogonal_matrix_family(n; family=right_family, maxint=maxint)
     m = sum(m); n=sum(n)
     Σ  = zeros(eltype(σ[1]), m,n)
     for i in 1:min( m, size(σ,1) )

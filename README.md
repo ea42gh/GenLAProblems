@@ -11,7 +11,25 @@ GenLAProblems depends on `LAlatex` for LaTeX rendering utilities and display hel
 GenLAProblems provides linear algebra problem generators and GE/GJ helpers.
 
 The Binder notebook opens `GenProblems.ipynb` and shows the current
-`ShowGE`-based workflow.
+generator-focused workflow.
+
+## Generator updates
+
+Recent generator changes to note:
+
+- `gen_qr_problem(n; family=:auto, maxint=3)` is now the canonical QR-problem
+  entrypoint. Supported families are `:pythagorean`, `:hadamard`, `:cayley`,
+  and `:sparse`.
+- The old Hadamard-specific constructor is now explicit:
+  `gen_qr_problem_hadamard(n; maxint=3)`.
+- `gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3)`
+  now lets you choose the orthogonal-family construction for the left and right
+  SVD factors independently.
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` consistently return
+  `(d, A)` where `A' * A` is diagonal. `Q_2_matrix`, `Q_3_matrix`, and
+  `Q_4_matrix` return orthogonal matrices.
+- `gen_eigenproblem` and `gen_symmetric_eigenproblem` accept either a standard
+  vector of eigenvalues or a `1×n` / `n×1` matrix input.
 
 ## Display backend
 

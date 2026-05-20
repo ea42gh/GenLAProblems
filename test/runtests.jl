@@ -39,6 +39,38 @@ using GenLAProblems
         pivot_cols, A = gen_gj_matrix(4, 6, 3; maxint=3, pivot_in_first_col=true, has_zeros=true)
         @test size(A) == (4, 6)
         @test length(pivot_cols) == 3
+
+        S, Λ, S_inv, Aeig = gen_eigenproblem([3 -1 2]; maxint=2)
+        @test size(S) == (3, 3)
+        @test size(Λ) == (3, 3)
+        @test size(S_inv) == (3, 3)
+        @test size(Aeig) == (3, 3)
+
+        Q, D, Asym = gen_symmetric_eigenproblem([4 1 -2]; maxint=2)
+        @test size(Q) == (3, 3)
+        @test size(D) == (3, 3)
+        @test size(Asym) == (3, 3)
+
+        @test_throws ArgumentError gen_eigenproblem([1 2; 3 4]; maxint=2)
+        @test_throws ArgumentError gen_symmetric_eigenproblem([1 2; 3 4]; maxint=2)
+
+        @test size(gen_qr_problem_hadamard(4; maxint=2)) == (4, 4)
+        @test size(gen_qr_problem(3; family=:pythagorean, maxint=2)) == (3, 3)
+        @test size(gen_qr_problem(4; family=:hadamard, maxint=2)) == (4, 4)
+        @test size(gen_qr_problem(5; family=:cayley, maxint=2)) == (5, 5)
+        @test size(gen_qr_problem((2, 2); family=:sparse, maxint=2)) == (4, 4)
+        @test size(gen_qr_problem(3; maxint=2)) == (3, 3)
+        @test size(gen_qr_problem(6; maxint=2)) == (6, 6)
+        @test_throws ArgumentError gen_qr_problem(5; family=:pythagorean, maxint=2)
+        @test_throws ArgumentError gen_qr_problem((2, 2); family=:hadamard, maxint=2)
+
+        U1, Σ1, Vt1, Asvd1 = gen_svd_problem([2, 1], [2, 1], [3, 1, 0]; maxint=2)
+        @test U1 * Σ1 * Vt1 == Asvd1
+
+        U2, Σ2, Vt2, Asvd2 = gen_svd_problem(4, 4, [3, 1, 0, 0]; left_family=:hadamard, right_family=:cayley, maxint=2)
+        @test size(U2) == (4, 4)
+        @test size(Vt2) == (4, 4)
+        @test U2 * Σ2 * Vt2 == Asvd2
     end
 
     @testset "Reduction helpers" begin
