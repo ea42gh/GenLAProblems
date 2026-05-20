@@ -613,12 +613,15 @@ function gen_qr_problem(n; family=:auto, maxint=3)
     end
 
     function pythagorean_qr(n)
-        if n == 3
+        if n == 2
+            _, W = W_2_matrix()
+            return W * unit_lower(2, maxint=maxint)'
+        elseif n == 3
             return gen_qr_problem_3(maxint=maxint)
         elseif n == 4
             return gen_qr_problem_4(maxint=maxint)
         end
-        throw(ArgumentError("family=:pythagorean is only supported for n == 3 or n == 4"))
+        throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
     end
 
     if family == :auto

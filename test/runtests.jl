@@ -61,13 +61,14 @@ using GenLAProblems
         @test q4_general == q4_special
 
         @test size(gen_qr_problem_hadamard(4; maxint=2)) == (4, 4)
+        @test size(gen_qr_problem(2; family=:pythagorean, maxint=2)) == (2, 2)
         @test size(gen_qr_problem(3; family=:pythagorean, maxint=2)) == (3, 3)
         @test size(gen_qr_problem(4; family=:hadamard, maxint=2)) == (4, 4)
         @test size(gen_qr_problem(5; family=:cayley, maxint=2)) == (5, 5)
         @test size(gen_qr_problem((2, 2); family=:sparse, maxint=2)) == (4, 4)
         @test size(gen_qr_problem(3; maxint=2)) == (3, 3)
         @test size(gen_qr_problem(6; maxint=2)) == (6, 6)
-        @test_throws ArgumentError gen_qr_problem(5; family=:pythagorean, maxint=2)
+        @test_throws ArgumentError gen_qr_problem(1; family=:pythagorean, maxint=2)
         @test_throws ArgumentError gen_qr_problem((2, 2); family=:hadamard, maxint=2)
 
         U1, Σ1, Vt1, Asvd1 = gen_svd_problem([2, 1], [2, 1], [3, 1, 0]; maxint=2)
