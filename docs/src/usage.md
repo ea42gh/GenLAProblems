@@ -39,12 +39,6 @@ Family notes:
 - `:sparse` uses `sparse_Q_matrix`; when you pass a tuple like `(2, 2)`, it is
   interpreted as block sizes.
 
-The old Hadamard-only constructor remains available explicitly as:
-
-```julia
-A = gen_qr_problem_hadamard(4; maxint=2)
-```
-
 ### SVD orthogonal-factor families
 
 `gen_svd_problem` now lets you choose the orthogonal-family construction for

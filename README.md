@@ -8,10 +8,32 @@ GenLAProblems depends on `LAlatex` for LaTeX rendering utilities and display hel
 
 ## Overview
 
-GenLAProblems provides linear algebra problem generators and GE/GJ helpers.
+GenLAProblems is the exercise-generation layer of this teaching stack.
+It provides exact linear algebra problem generators and supporting matrix
+constructors for standard classroom topics such as GE/GJ, LU/PLU/LDLT, QR,
+eigenvalue problems, and SVD.
+
+It is not a general-purpose numerical linear algebra package. The focus is on
+exact, classroom-friendly examples rather than large-scale numerical
+computation.
 
 The Binder notebook opens `GenProblems.ipynb` and shows the current
 generator-focused workflow.
+
+## Why This Package Exists
+
+GenLAProblems exists to make it easy to generate linear algebra exercises whose
+arithmetic is still readable by students and instructors.
+
+- It favors exact arithmetic over floating-point approximations.
+- It generates standard exercise families used in linear algebra courses.
+- It is designed for notebooks, worksheets, and teaching demos rather than
+  benchmarking or production numerical workflows.
+- It pairs naturally with:
+  - `LAlatex` for matrix/factorization display
+  - `LAFigureSpecs` and `matrixlayout` for algorithm and workflow
+    visualizations
+  - `LATeachingSuite` as the Julia-facing umbrella API for those displays
 
 ## Generator updates
 
@@ -20,8 +42,6 @@ Recent generator changes to note:
 - `gen_qr_problem(n; family=:auto, maxint=3)` is now the canonical QR-problem
   entrypoint. Supported families are `:pythagorean`, `:hadamard`, `:cayley`,
   and `:sparse`.
-- The old Hadamard-specific constructor is now explicit:
-  `gen_qr_problem_hadamard(n; maxint=3)`.
 - `gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3)`
   now lets you choose the orthogonal-family construction for the left and right
   SVD factors independently.

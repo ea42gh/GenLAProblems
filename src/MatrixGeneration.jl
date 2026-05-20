@@ -555,39 +555,6 @@ function ca_projection_matrix(A)
     A*inv(A'A)*A'
 end
 # ------------------------------------------------------------------------------
-raw""" A = gen_qr_problem_hadamard(even_n;maxint=3)
-"""
-function gen_qr_problem_hadamard(even_n;maxint=3)
-    H = _ensure_hadamard()
-    had = try
-        Base.invokelatest(H.hadamard, even_n)
-    catch err
-        if err isa ArgumentError
-            throw(
-                ArgumentError(
-                    "gen_qr_problem_hadamard($even_n) requires a size supported by Hadamard.hadamard; not every even size is available.",
-                ),
-            )
-        end
-        rethrow()
-    end
-    had[:,shuffle(1:even_n)]*lower(even_n,maxint=maxint)'
-end
-
-raw""" A = gen_qr_problem_3(;maxint=3)
-"""
-function gen_qr_problem_3(;maxint=3)
-    _,W = W_3_matrix(maxint=maxint)
-    W*unit_lower(3, maxint=maxint)'
-end
-
-raw""" A = gen_qr_problem_4(;maxint=3)
-"""
-function gen_qr_problem_4(;maxint=3)
-    _,W = W_4_matrix()
-    W*unit_lower(4,maxint=maxint)'
-end
-
 """
     gen_qr_problem(n; family=:auto, maxint=3) -> Matrix
 
@@ -613,9 +580,11 @@ function gen_qr_problem(n; family=:auto, maxint=3)
             _, W = W_2_matrix()
             return W * unit_lower(2, maxint=maxint)'
         elseif n == 3
-            return gen_qr_problem_3(maxint=maxint)
+            _, W = W_3_matrix(maxint=maxint)
+            return W * unit_lower(3, maxint=maxint)'
         elseif n == 4
-            return gen_qr_problem_4(maxint=maxint)
+            _, W = W_4_matrix()
+            return W * unit_lower(4, maxint=maxint)'
         end
         throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
     elseif family == :auto && n isa Integer && n in (2, 3, 4)

@@ -37,7 +37,6 @@ Set `GENLAPROBLEMS_SMOKE_OUT` to control the output directory.
 
 - `gen_qr_problem` is the canonical QR dispatcher and supports
   `family=:pythagorean`, `:hadamard`, `:cayley`, and `:sparse`.
-- `gen_qr_problem_hadamard` is the explicit Hadamard-only QR constructor.
 - `gen_svd_problem` supports independent `left_family` / `right_family`
   keywords for the orthogonal factors.
 - For exact rational SVD factors, `family=:hadamard` additionally requires the

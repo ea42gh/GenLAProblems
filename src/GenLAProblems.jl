@@ -564,7 +564,7 @@ export gen_gj_matrix, gen_rhs, gen_gj_pb
 export gen_inv_pb, gen_lu_pb, gen_plu_pb, gen_ldlt_pb
 export normal_eq_reduce_to_ref, reduce_to_ref, decorate_ge, ge_variable_type
 export ca_projection_matrix
-export gen_qr_problem_3, gen_qr_problem_4, gen_qr_problem_hadamard, gen_qr_problem
+export gen_qr_problem
 export gram_schmidt_w, normalize_columns, qr_layout, gram_schmidt_stable
 export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eigenproblem, gen_svd_problem
 export gen_cx_eigenproblem
@@ -589,7 +589,7 @@ export WorkflowDisplay, PythonBridge
     charpoly(A)
     gen_eigenproblem([1, 2, 3])
     gen_symmetric_eigenproblem([1, 2, 3])
-    gen_qr_problem_4()
+    gen_qr_problem(4; family=:pythagorean)
 end
 
 end
