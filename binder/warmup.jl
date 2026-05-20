@@ -1,5 +1,6 @@
 using GenLAProblems
 using LAlatex
+using LaTeXStrings
 
 warmup_dir = "/tmp/genla_warmup"
 mkpath(warmup_dir)

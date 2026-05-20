@@ -36,3 +36,12 @@ using LAlatex
 A, X, B = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=2)
 l_show("A X = B : ", A, X, " = ", B)
 ```
+
+## SymPy substitution helper
+
+`GenLAProblems` also provides a small helper for substituting numeric values
+into symbolic matrices while preserving exact values when possible.
+
+```@docs
+GenLAProblems.SymPyHelpers.sym_subs_numeric
+```
