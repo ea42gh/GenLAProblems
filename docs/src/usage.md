@@ -11,12 +11,23 @@ using GenLAProblems
 
 # Build a small exact exercise.
 A_ge, X_ge, B_ge = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=2)
+
+# Build an inconsistent GE/GJ system.
+A_bad, B_bad = gen_inconsistent_gj_pb(4, 6, 3; maxint=2, num_rhs=1)
 ```
 
 For Gaussian-elimination workflows, reduction helpers, and teaching displays,
 the canonical Julia surface is `LATeachingSuite`.
 
 ## Problem generators
+
+### GE/GJ systems
+
+- `gen_gj_pb(m, n, r; ...)` returns a consistent system `A, X, B` with `A * X = B`.
+- `gen_inconsistent_gj_pb(m, n, r; ...)` returns `A, B` with each RHS column
+  chosen outside `col(A)`, so the system is inconsistent.
+- `gen_inconsistent_gj_pb` requires `r < m`, since a full row-rank system
+  cannot be inconsistent.
 
 ### QR families
 

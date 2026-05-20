@@ -523,7 +523,7 @@ export Q_4_blocks
 export W_4_matrix, Q_4_matrix
 export W_matrix, Q_matrix, sparse_W_matrix, sparse_Q_matrix
 export gen_particular_solution
-export gen_gj_matrix, gen_rhs, gen_gj_pb
+export gen_gj_matrix, gen_rhs, gen_gj_pb, gen_inconsistent_gj_pb
 export gen_inv_pb, gen_lu_pb, gen_plu_pb, gen_ldlt_pb
 export gen_qr_problem
 export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eigenproblem, gen_svd_problem

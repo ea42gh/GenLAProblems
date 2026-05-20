@@ -31,6 +31,15 @@ using GenLAProblems
         nonpivots = setdiff(1:size(A, 2), pivot_cols)
         @test all(Xrhs[nonpivots, :] .== 0)
 
+        Ainc, Binc = gen_inconsistent_gj_pb(4, 6, 3; maxint=2, num_rhs=2)
+        @test size(Ainc) == (4, 6)
+        @test size(Binc) == (4, 2)
+        Ar = Rational.(Ainc)
+        for j in axes(Binc, 2)
+            @test rank(hcat(Ar, Rational.(Binc[:, j]))) > rank(Ar)
+        end
+        @test_throws ArgumentError gen_inconsistent_gj_pb(3, 5, 3; maxint=2)
+
         S, Λ, S_inv, Aeig = gen_eigenproblem([3 -1 2]; maxint=2)
         @test size(S) == (3, 3)
         @test size(Λ) == (3, 3)

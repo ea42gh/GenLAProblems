@@ -19,7 +19,7 @@ floating-point benchmark matrices.
 
 | Generator family | Typical output style |
 | --- | --- |
-| `gen_gj_pb`, `gen_lu_pb`, `gen_plu_pb`, `gen_ldlt_pb` | Small integers and exact rationals |
+| `gen_gj_pb`, `gen_inconsistent_gj_pb`, `gen_lu_pb`, `gen_plu_pb`, `gen_ldlt_pb` | Small integers and exact rationals |
 | `gen_qr_problem(...; family=:pythagorean)` | Small exact matrices built from structured orthogonal seeds |
 | `gen_qr_problem(...; family=:cayley)` | Exact rational orthogonal factors with denser mixing |
 | `gen_symmetric_eigenproblem`, `gen_svd_problem` | Exact matrices; orthogonal factors may contain rational structure |

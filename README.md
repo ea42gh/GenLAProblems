@@ -38,6 +38,7 @@ Pkg.add("LAlatex")
 using GenLAProblems
 
 A, X, B = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=1)
+A_bad, B_bad = gen_inconsistent_gj_pb(4, 6, 3; maxint=2, num_rhs=1)
 ```
 
 With `LAlatex` installed, the same example can be rendered in a notebook:
