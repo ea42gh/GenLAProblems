@@ -9,13 +9,12 @@ CurrentModule = GenLAProblems
 ```julia
 using GenLAProblems
 
-# Build a small system and reduce to REF/RREF.
-A = [1 2 3; 2 4 6; 1 1 1]
-matrices, pivots, desc = reduce_to_ref(A; gj=true)
-
-# Render a final GE table (requires Python stack).
-svg = show_ge_final(matrices, desc, pivots; n_rhs=0)
+# Build a small exact exercise.
+A_ge, X_ge, B_ge = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=2)
 ```
+
+For Gaussian-elimination workflows, reduction helpers, and teaching displays,
+the canonical Julia surface is `LATeachingSuite`.
 
 ## Problem generators
 
@@ -90,7 +89,7 @@ General matrix-shaped eigenvalue input is rejected.
 ## Rendering examples
 
 ```julia
-using GenLAProblems
+using LATeachingSuite
 
 # Example system
 A = [1 2; 3 4]
@@ -130,12 +129,11 @@ backsubstitution view is reduced to `0 = rhs` with **No Solution**, and
 
 Pure Julia (no Python needed):
 - Matrix generation helpers (`gen_*`, `unit_lower`, `lower`, `ref_matrix`, `rref_matrix`)
-- REF/RREF helpers (`reduce_to_ref`, `normal_eq_reduce_to_ref`, `homogeneous_solutions`)
 - QR helpers (`gram_schmidt_w`, `normalize_columns`, `gram_schmidt_stable`, `qr_layout`)
 - Polynomial helpers (`charpoly`)
 
 Python-backed (requires `LAFigureSpecs`, `matrixlayout`, `jupyter_tikz`, `sympy` via PythonCall):
-- Rendering helpers (`show_layout!`, `show_system`, `show_backsubstitution`, `show_solution`, `show_ge_final`)
+- Rendering helpers (`show_layout!`, `show_system`, `show_backsubstitution`, `show_solution`, `show_ge_final`) exposed canonically through `LATeachingSuite`
 - SymPy helpers (`sym_*`, `sym_subs_numeric`, `sym_to_julia_*`)
 
 ## Adjoint inputs
