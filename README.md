@@ -18,6 +18,37 @@ computation.
 The Binder notebook opens `GenProblems.ipynb` and shows the current
 generator-focused workflow.
 
+## Installation
+
+```julia
+import Pkg
+Pkg.add("GenLAProblems")
+```
+
+For notebook-friendly matrix display, install `LAlatex` separately:
+
+```julia
+import Pkg
+Pkg.add("LAlatex")
+```
+
+## Minimal example
+
+```julia
+using GenLAProblems
+
+A, X, B = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=1)
+```
+
+With `LAlatex` installed, the same example can be rendered in a notebook:
+
+```julia
+using GenLAProblems, LAlatex
+
+A, X, B = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=1)
+l_show("A X = B : ", A, X, " = ", B)
+```
+
 ## Why This Package Exists
 
 GenLAProblems exists to make it easy to generate linear algebra exercises whose
@@ -31,6 +62,16 @@ arithmetic is still readable by students and instructors.
   - `LAlatex` for matrix/factorization display
   - `LATeachingSuite` for Julia-side reduction workflows and display helpers
   - `LAFigureSpecs` and `matrixlayout` for the Python-backed figure/rendering stack
+
+## Intended audience
+
+GenLAProblems is for:
+
+- instructors building worksheets, notebooks, and demos
+- students exploring exact linear algebra examples
+- developers who need small exact matrices with controlled algebraic structure
+
+It is not intended to replace general-purpose numerical linear algebra libraries.
 
 ## Generator notes
 
@@ -54,8 +95,7 @@ arithmetic is still readable by students and instructors.
 GenLAProblems is intentionally generator-focused.
 
 - Use `GenLAProblems` to construct exact matrices and exercise instances.
-- Import `LAlatex` separately when you want notebook-friendly LaTeX display
-  (`Pkg.add("LAlatex")` works directly from the General registry).
+- Import `LAlatex` separately when you want notebook-friendly LaTeX display.
 - Import `LATeachingSuite` when you want GE reduction workflows, `ShowGE`,
   back-substitution displays, or Python-backed figure helpers.
 

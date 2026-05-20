@@ -10,7 +10,7 @@ Documentation for [GenLAProblems](https://github.com/ea42gh/GenLAProblems.jl).
 
 | Component | Minimum | Notes |
 | --- | --- | --- |
-| Julia | 1.9 | Tested with 1.9–1.12. |
+| Julia | 1.10 | Tested with 1.10–1.12. |
 | LAlatex | current | Optional companion package for notebook display. |
 
 ## Guides
