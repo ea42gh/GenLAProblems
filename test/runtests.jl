@@ -43,9 +43,25 @@ using GenLAProblems
         @test length(pivots) == 3
         @test all(M[i, pivots[i]] == 1 for i in 1:length(pivots))
 
+        Pvec = gen_permutation_matrix([3, 1, 2])
+        @test Pvec * [10, 20, 30] == [20, 30, 10]
+        Pn = gen_permutation_matrix(4)
+        @test Pn * Pn' == Matrix{Int}(I, 4, 4)
+        @test Pn' * Pn == Matrix{Int}(I, 4, 4)
+
+        Afull = gen_full_col_rank_matrix([2, 2], [1, 1]; maxint=2)
+        @test size(Afull) == (4, 2)
+        @test rank(Afull) == 2
+
         pivot_cols, A = gen_gj_matrix(4, 6, 3; maxint=3, pivot_in_first_col=true, has_zeros=true)
         @test size(A) == (4, 6)
         @test length(pivot_cols) == 3
+        Xrhs, Brhs = gen_rhs(A, pivot_cols; maxint=2, num_rhs=2, has_zeros=true)
+        @test size(Xrhs) == (6, 2)
+        @test size(Brhs) == (4, 2)
+        @test A * Xrhs == Brhs
+        nonpivots = setdiff(1:size(A, 2), pivot_cols)
+        @test all(Xrhs[nonpivots, :] .== 0)
 
         S, Λ, S_inv, Aeig = gen_eigenproblem([3 -1 2]; maxint=2)
         @test size(S) == (3, 3)

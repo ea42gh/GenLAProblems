@@ -598,7 +598,7 @@ Generate a QR exercise matrix from one of several orthogonal-seed families.
 - `family=:pythagorean` uses the specialized 2×2, 3×3, or 4×4 `W_k_matrix` families.
 - `family=:cayley` uses a dense Cayley-transform orthogonal seed.
 - `family=:sparse` uses `sparse_Q_matrix`, treating `n` as block sizes.
-- `family=:auto` chooses `:pythagorean` for `n == 3` or `n == 4`, otherwise
+- `family=:auto` chooses `:pythagorean` for `n == 2`, `3`, or `4`, otherwise
   tries `:hadamard` and falls back to `:cayley` for integer sizes or `:sparse`
   for block-size inputs.
 """

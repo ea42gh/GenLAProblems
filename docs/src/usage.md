@@ -50,6 +50,11 @@ A = gen_qr_problem_hadamard(4; maxint=2)
 `gen_svd_problem` now lets you choose the orthogonal-family construction for
 the left and right factors independently:
 
+- `m` and `n` may be plain integer dimensions such as `4`, or block-size
+  partitions such as `[2, 1]` or `(2, 2)`.
+- When you pass partitions, those block sizes are used by the sparse/block
+  orthogonal families to build more structured exact factors.
+
 ```julia
 U, Σ, Vt, A = gen_svd_problem(
     4, 4, [3, 1, 0, 0];
