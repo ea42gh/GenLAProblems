@@ -10,7 +10,7 @@ Documentation for [GenLAProblems](https://github.com/ea42gh/GenLAProblems.jl).
 
 | Component | Minimum | Notes |
 | --- | --- | --- |
-| Julia | 1.9 | Tested with 1.9–1.10. |
+| Julia | 1.9 | Tested with 1.9–1.12. |
 | PythonCall | 0.9 | Required for LAFigureSpecs/matrixlayout interop. |
 | LAFigureSpecs | current | Spec generation + algorithms. |
 | matrixlayout | current | TeX + SVG rendering. |

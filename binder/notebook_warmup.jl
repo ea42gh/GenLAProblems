@@ -14,7 +14,7 @@ display(LAlatex.l_show(L"A = LU, \qquad = ", A_lu, L_lu, U_lu))
 pivot_cols_plu, P_plu, L_plu, U_plu, A_plu = gen_plu_pb(3, 3, 3; maxint=2)
 display(LAlatex.l_show(L"A = P L U, \qquad = ", A_plu, P_plu, L_plu, U_plu))
 
-A_qr = gen_qr_problem_4(maxint=2)
+A_qr = gen_qr_problem(4; family=:pythagorean, maxint=2)
 display(LAlatex.l_show(L"A = ", A_qr))
 
 S_eig, Lambda_eig, S_inv_eig, A_eig = gen_eigenproblem([3, -1, 2]; maxint=2)
