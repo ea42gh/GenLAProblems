@@ -25,6 +25,9 @@ Recent generator changes to note:
 - `gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3)`
   now lets you choose the orthogonal-family construction for the left and right
   SVD factors independently.
+  The `:hadamard` family is exact-rational only when the size both supports a
+  Hadamard matrix and has an integer square root (for example `n = 4`, but not
+  `n = 12`).
 - `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` consistently return
   `(d, A)` where `A' * A` is diagonal. `Q_2_matrix`, `Q_3_matrix`, and
   `Q_4_matrix` return orthogonal matrices.

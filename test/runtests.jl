@@ -54,6 +54,12 @@ using GenLAProblems
         @test_throws ArgumentError gen_eigenproblem([1 2; 3 4]; maxint=2)
         @test_throws ArgumentError gen_symmetric_eigenproblem([1 2; 3 4]; maxint=2)
 
+        Random.seed!(1234)
+        q4_general = Q_matrix(4)
+        Random.seed!(1234)
+        q4_special = Q_4_matrix()
+        @test q4_general == q4_special
+
         @test size(gen_qr_problem_hadamard(4; maxint=2)) == (4, 4)
         @test size(gen_qr_problem(3; family=:pythagorean, maxint=2)) == (3, 3)
         @test size(gen_qr_problem(4; family=:hadamard, maxint=2)) == (4, 4)

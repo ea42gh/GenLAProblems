@@ -40,6 +40,8 @@ Set `GENLAPROBLEMS_SMOKE_OUT` to control the output directory.
 - `gen_qr_problem_hadamard` is the explicit Hadamard-only QR constructor.
 - `gen_svd_problem` supports independent `left_family` / `right_family`
   keywords for the orthogonal factors.
+- For exact rational SVD factors, `family=:hadamard` additionally requires the
+  size to have an integer square root; a Hadamard order alone is not enough.
 - `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, A)`
   with diagonal `A' * A`; the corresponding `Q_*` constructors return
   orthogonal matrices.

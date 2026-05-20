@@ -67,6 +67,10 @@ U, Σ, Vt, A = gen_svd_problem([2, 1], [2, 1], [3, 1, 0]; maxint=2)
 
 which uses `left_family=:sparse` and `right_family=:sparse`.
 
+For exact rational orthogonal factors, `family=:hadamard` has an extra
+constraint: the dimension must both support a Hadamard matrix and have an
+integer square root. For example, `4` works, but `12` does not.
+
 ### `W_*` and `Q_*` constructors
 
 - `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, A)`
