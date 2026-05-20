@@ -491,34 +491,6 @@ end
 
 include("MatrixGeneration.jl")
 include("SolveProblems.jl")
-include("ge.jl")
-
-module WorkflowDisplay
-
-using Reexport
-
-@reexport using ..GenLAProblems:
-    ShowGE,
-    ref!,
-    show_layout!,
-    show_system,
-    create_cascade!,
-    show_backsubstitution!,
-    show_solution!,
-    show_backsubstitution,
-    show_forwardsubstitution,
-    show_solution,
-    solutions,
-    rhs_block,
-    show_ge_final,
-    py_show_svg,
-    show_svg,
-    l_show_svd,
-    nM,
-    mm_to_px,
-    px_to_mm
-
-end
 
 module PythonBridge
 

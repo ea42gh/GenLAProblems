@@ -1,3 +1,23 @@
+"""
+    SVGOut(svg::String)
+
+Wrapper type for SVG output used by notebook-friendly display helpers.
+"""
+struct SVGOut
+    svg::String
+end
+
+import Base: show
+
+"""
+    show(io::IO, ::MIME"image/svg+xml", x::SVGOut)
+
+Emit the SVG payload for rich notebook display.
+"""
+function show(io::IO, ::MIME"image/svg+xml", x::SVGOut)
+    print(io, x.svg)
+end
+
 function _named_qr_matrices(qr)
     getmat(name::String) = begin
         if qr isa NamedTuple

@@ -32,9 +32,7 @@ arithmetic is still readable by students and instructors.
   - `LATeachingSuite` for Julia-side reduction workflows and display helpers
   - `LAFigureSpecs` and `matrixlayout` for the Python-backed figure/rendering stack
 
-## Generator updates
-
-Recent generator changes to note:
+## Generator notes
 
 - `gen_qr_problem(n; family=:auto, maxint=3)` is now the canonical QR-problem
   entrypoint. Supported families are `:pythagorean`, `:hadamard`, `:cayley`,
