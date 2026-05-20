@@ -3,7 +3,7 @@ module SymPyHelpers
 export sym_mat, sym_vec, sym_zero, sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
 export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
 
-using ..GenLAProblems: import_sympy, ensure_pythoncall!
+using ..GenLAProblems: ensure_pythoncall!
 
 const _sympy = Ref{Any}(nothing)
 
@@ -12,7 +12,7 @@ _is_py(x) = x isa getfield(_py(), :Py)
 
 function _sympy_module()
     if _sympy[] === nothing
-        _sympy[] = import_sympy()
+        _sympy[] = getfield(parentmodule(@__MODULE__), :sympy)
     end
     return _sympy[]
 end
