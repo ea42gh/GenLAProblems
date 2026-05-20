@@ -608,11 +608,7 @@ function gen_qr_problem(n; family=:auto, maxint=3)
         return sum(n)
     end
 
-    function dense_qr_from_seed(Qseed, ncols)
-        Qseed * lower(ncols, maxint=maxint)'
-    end
-
-    function pythagorean_qr(n)
+    if family == :pythagorean
         if n == 2
             _, W = W_2_matrix()
             return W * unit_lower(2, maxint=maxint)'
@@ -624,35 +620,8 @@ function gen_qr_problem(n; family=:auto, maxint=3)
         throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
     end
 
-    if family == :auto
-        if n isa Integer && (n == 3 || n == 4)
-            return pythagorean_qr(n)
-        elseif n isa Integer
-            try
-                return gen_qr_problem_hadamard(n; maxint=maxint)
-            catch err
-                if err isa ArgumentError
-                    return dense_qr_from_seed(Q_matrix(n; maxint=maxint, general=true), n)
-                end
-                rethrow()
-            end
-        else
-            return dense_qr_from_seed(sparse_Q_matrix(n; maxint=maxint), total_size(n))
-        end
-    elseif family == :hadamard
-        n isa Integer || throw(ArgumentError("family=:hadamard requires an integer size n"))
-        return gen_qr_problem_hadamard(n; maxint=maxint)
-    elseif family == :pythagorean
-        n isa Integer || throw(ArgumentError("family=:pythagorean requires an integer size n"))
-        return pythagorean_qr(n)
-    elseif family == :cayley
-        n isa Integer || throw(ArgumentError("family=:cayley requires an integer size n"))
-        return dense_qr_from_seed(Q_matrix(n; maxint=maxint, general=true), n)
-    elseif family == :sparse
-        return dense_qr_from_seed(sparse_Q_matrix(n; maxint=maxint), total_size(n))
-    end
-
-    throw(ArgumentError("unknown QR generator family: $family"))
+    Qseed = _orthogonal_matrix_family(n; family=family, maxint=maxint)
+    return Qseed * lower(total_size(n), maxint=maxint)'
 end
 # ------------------------------------------------------------------------------
 function _orthogonal_matrix_family(n; family=:auto, maxint=3)
