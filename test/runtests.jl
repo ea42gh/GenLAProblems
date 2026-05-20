@@ -1,12 +1,17 @@
 using Test
-using PythonCall
 using Random
+using LinearAlgebra
 
 # Ensure Python modules in local workspace are importable during tests.
 let
     # Pin PythonCall to the same interpreter used for local notebook/runtime checks.
-    if !haskey(ENV, "JULIA_PYTHONCALL_EXE")
-        ENV["JULIA_PYTHONCALL_EXE"] = get(ENV, "PYTHON", Sys.which("python3"))
+    pycall_exe = get(ENV, "JULIA_PYTHONCALL_EXE", "")
+    if isempty(pycall_exe) || !isfile(pycall_exe)
+        pyexe = get(ENV, "PYTHON", "")
+        if isempty(pyexe) || !isfile(pyexe)
+            pyexe = something(Sys.which("python3"), "")
+        end
+        ENV["JULIA_PYTHONCALL_EXE"] = pyexe
     end
     # Avoid CondaPkg creating an isolated Python during tests.
     ENV["JULIA_CONDAPKG_BACKEND"] = get(ENV, "JULIA_CONDAPKG_BACKEND", "Null")
@@ -28,6 +33,7 @@ let
     ENV["PYTHONPATH"] = join(parts, ':')
 end
 
+using PythonCall
 using GenLAProblems
 
 @testset "GenLAProblems.jl" begin
@@ -95,6 +101,31 @@ using GenLAProblems
         @test size(U2) == (4, 4)
         @test size(Vt2) == (4, 4)
         @test U2 * Σ2 * Vt2 == Asvd2
+
+        Ainv, Ainv_inv = gen_inv_pb(4; maxint=2)
+        @test Ainv * Ainv_inv == Matrix{Int}(I, 4, 4)
+        @test Ainv_inv * Ainv == Matrix{Int}(I, 4, 4)
+
+        Ldlt, Ddlt, Adlt = gen_ldlt_pb(4; maxint=2, rank=3)
+        @test Adlt == Ldlt * Ddlt * Ldlt'
+
+        _, Pplu, Lplu, Uplu, Aplu = gen_plu_pb(4, 4, 3; maxint=2)
+        @test Aplu == Pplu * Lplu * Uplu
+
+        Pc, Jc, Pinvc, Ac = gen_degenerate_matrix((2, 2), (0, 1); maxint=2)
+        @test Ac == Pc * Jc * Pinvc
+
+        Scx, Λcx, S_invcx, Acx = gen_cx_eigenproblem([-1 + 2im]; maxint=1)
+        @test Acx == Scx * Λcx * S_invcx
+
+        Adef = Rational.(gen_non_diagonalizable_eigenproblem(2, 0; maxint=2))
+        @test charpoly(Adef) == charpoly([2 1 0; 0 2 0; 0 0 0])
+        @test rank(Adef - 2I) == 2
+
+        J1 = jordan_block(2, 2)
+        J2 = jordan_block(0, 1)
+        Afrom = gen_from_jordan_form([J1, J2]; maxint=2)
+        @test charpoly(Afrom) == charpoly([2 1 0; 0 2 0; 0 0 0])
     end
 
     @testset "Reduction helpers" begin
