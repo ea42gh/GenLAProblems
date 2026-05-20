@@ -66,7 +66,7 @@ using AbstractAlgebra
 import AbstractAlgebra: charpoly
 
 using Reexport
-@reexport using LAlatex
+using LAlatex
 using LaTeXStrings: LaTeXString
 using PrecompileTools
 include("SymPyHelpers.jl")
@@ -542,14 +542,6 @@ using Reexport
 end
 
 export __version__, __build__
-export la_version, la_build, ml_version, ml_build
-export load_LAFigureSpecs, load_matrixlayout, nM, sympy
-export ensure_pythoncall!
-export materialize_python_value
-export sym_mat, sym_vec, sym_zero
-export sym_mul, sym_add, sym_pow, sym_eq, sym_is_zero, sym_vec_zero
-export sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
-export symbol_vector, symbols_matrix, form_linear_combination
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix
 export e_i, i_with_onecol, gen_permutation_matrix
@@ -558,26 +550,13 @@ export W_3_matrix, Q_3_matrix
 export Q_4_blocks
 export W_4_matrix, Q_4_matrix
 export W_matrix, Q_matrix, sparse_W_matrix, sparse_Q_matrix
-export split_R_RHS, particular_solution, homogeneous_solutions
 export gen_particular_solution
 export gen_gj_matrix, gen_rhs, gen_gj_pb
 export gen_inv_pb, gen_lu_pb, gen_plu_pb, gen_ldlt_pb
-export normal_eq_reduce_to_ref, reduce_to_ref, decorate_ge, ge_variable_type
-export ca_projection_matrix
 export gen_qr_problem
-export gram_schmidt_w, normalize_columns, qr_layout, gram_schmidt_stable
 export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eigenproblem, gen_svd_problem
 export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
-export charpoly
-export show_ge_final, show_solution, py_show_svg, show_svg, l_show_svd
-export ShowGE, ref!, show_layout!, show_system, create_cascade!, show_backsubstitution!, show_solution!
-export show_backsubstitution, show_forwardsubstitution, solutions, rhs_block
-export round_value, round_matrices
-export svd_matrices_from_spec, eig_matrices_from_spec, qr_matrices_from_grid
-export qr_matrices_dict_from_grid
-export mm_to_px, px_to_mm
-export WorkflowDisplay, PythonBridge
 
 # Precompile pure-Julia workloads to reduce latency without PythonCall.
 @compile_workload begin

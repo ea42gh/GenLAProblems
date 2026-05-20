@@ -1,6 +1,7 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: nM
 
 function _py_ns()
     types = PythonCall.pyimport("types")

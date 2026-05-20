@@ -1,6 +1,7 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: nM
 
 function _has_module_more(name::String)
     try

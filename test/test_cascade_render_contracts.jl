@@ -1,6 +1,7 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: ShowGE
 
 function _py_ns_cascade()
     types = PythonCall.pyimport("types")

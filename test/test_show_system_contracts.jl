@@ -1,6 +1,7 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: ShowGE, show_system
 
 function _py_setattr_sys(obj, name::AbstractString, value)
     PythonCall.pycall(PythonCall.pybuiltins.setattr, obj, name, value)

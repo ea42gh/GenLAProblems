@@ -1,6 +1,8 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: ShowGE, rhs_block, solutions
+using GenLAProblems: nM
 
 function _has_module_cov(name::String)
     try

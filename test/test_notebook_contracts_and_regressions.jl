@@ -1,6 +1,8 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: nM
+using LAlatex
 using LaTeXStrings
 
 function _has_module_notebook(name::String)

@@ -35,6 +35,21 @@ end
 
 using PythonCall
 using GenLAProblems
+using GenLAProblems:
+    ShowGE,
+    ca_projection_matrix,
+    charpoly,
+    gram_schmidt_stable,
+    gram_schmidt_w,
+    homogeneous_solutions,
+    normal_eq_reduce_to_ref,
+    particular_solution,
+    qr_layout,
+    reduce_to_ref,
+    show_backsubstitution,
+    show_forwardsubstitution,
+    show_layout!,
+    split_R_RHS
 
 @testset "GenLAProblems.jl" begin
     @testset "Matrix generation" begin

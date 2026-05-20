@@ -86,58 +86,23 @@ integer square root. For example, `4` works, but `12` does not.
 
 General matrix-shaped eigenvalue input is rejected.
 
-## Rendering examples
+## Display and workflow packages
 
-```julia
-using LATeachingSuite
+`GenLAProblems` only owns the generation layer.
 
-# Example system
-A = [1 2; 3 4]
-b = [5, 6]
+- Import `LAlatex` separately when you want to display generated matrices or
+  factorizations in notebooks.
+- Import `LATeachingSuite` when you want Gaussian-elimination workflows,
+  reduction helpers, `ShowGE`, or rendered teaching displays.
 
-# Render system as SVG
-pb = ShowGE(A, b; output_dir="/tmp/la")
-show_system(pb; var_name="x", fig_scale=1.2)
+## Public surface
 
-# Access RHS block (or a single RHS column) from the final GE stack:
-rhs = rhs_block(pb)
-rhs1 = rhs_block(pb; b_col=1)
-
-# Render backsubstitution cascade
-U = [1 2; 0 3]
-show_backsubstitution(U, b)
-
-# Render final GE table directly
-matrices, pivots, desc = reduce_to_ref(A; gj=true)
-show_ge_final(matrices, desc, pivots)
-```
-
-Rendering defaults to subdirectories under `/tmp/la` unless you pass
-`output_dir` or the compatibility alias `tmp_dir`.
-
-### Inconsistent systems
-
-When a system is inconsistent, `ShowGE` records per-RHS status in
-`pb.rhs_status` (e.g., `[:inconsistent, :consistent, ...]`) and sets
-`pb.status` to `:inconsistent` or `:mixed`. In the rendered layout, inconsistent
-RHS columns are marked with a red **×** in the variable-summary row. The
-backsubstitution view is reduced to `0 = rhs` with **No Solution**, and
-`show_solution!` returns an empty vector for those RHS columns. The
-`solutions(pb)` helper returns only consistent particular solutions.
-
-## Pure Julia vs Python-backed APIs
-
-Pure Julia (no Python needed):
+Generator-oriented APIs in `GenLAProblems`:
 - Matrix generation helpers (`gen_*`, `unit_lower`, `lower`, `ref_matrix`, `rref_matrix`)
-- QR helpers (`gram_schmidt_w`, `normalize_columns`, `gram_schmidt_stable`, `qr_layout`)
-- Polynomial helpers (`charpoly`)
-
-Python-backed (requires `LAFigureSpecs`, `matrixlayout`, `jupyter_tikz`, `sympy` via PythonCall):
-- Rendering helpers (`show_layout!`, `show_system`, `show_backsubstitution`, `show_solution`, `show_ge_final`) exposed canonically through `LATeachingSuite`
-- SymPy helpers (`sym_*`, `sym_subs_numeric`, `sym_to_julia_*`)
+- Matrix-construction helpers used by those generators (`W_*`, `Q_*`,
+  `sparse_Q_matrix`, `gen_permutation_matrix`, `gen_full_col_rank_matrix`)
 
 ## Adjoint inputs
 
-Most top-level APIs accept `AbstractMatrix` and will work with adjoint wrappers like `A'`.
-In-place helpers that mutate matrices (e.g., row swap/eliminate utilities) require mutable
-matrices and will not work with `Adjoint`/`Transpose` inputs.
+Most generator APIs accept `AbstractMatrix` and will work with adjoint wrappers
+like `A'` when no in-place mutation is required.

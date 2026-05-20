@@ -2,46 +2,37 @@
 CurrentModule = GenLAProblems
 ```
 
-# Exact Arithmetic and SymPy Helpers
+# Exact Arithmetic
 
-## Exact QR helpers
+`GenLAProblems` is designed to generate exact classroom examples rather than
+floating-point benchmark matrices.
 
-`gram_schmidt_stable` supports exact inputs (e.g., `Rational`, `Complex{Rational}`), but the
-exact path returns matrices with symbolic square roots (via Symbolics). This means results are
-`Matrix{Any}` and may contain `Symbolics.sqrt(...)` terms. If you need purely numeric results,
-use floating inputs or post-process the symbolic output.
+## What to expect
 
-`gram_schmidt_w` produces exact, rational-valued orthogonalized columns for integer inputs and
-`normalize_columns` introduces symbolic square roots as needed. These helpers are intended for
-pedagogical output and may not be suitable for numeric downstream computations without
-additional conversion.
+- Most generators start from small integer data.
+- Elimination-oriented examples are constructed so they can be represented with
+  exact integers or rationals.
+- QR/eigen/SVD examples may still introduce structured rational entries in the
+  orthogonal factors, depending on the selected family.
 
-## Exact vs numeric (quick comparison)
+## Typical arithmetic behavior
 
-| Topic | Exact inputs (`Rational`, `Complex{Rational}`) | Numeric inputs (`Float64`, `ComplexF64`) |
-| --- | --- | --- |
-| `gram_schmidt_stable` | Returns symbolic square roots; `Matrix{Any}` | Returns numeric `Q, R` |
-| `gram_schmidt_w` | Rational orthogonal columns | Not intended for floats |
-| `normalize_columns` | Uses `Symbolics.sqrt` when needed | Returns numeric Q |
-| Downstream math | May need symbolic handling | Direct numeric workflows |
+| Generator family | Typical output style |
+| --- | --- |
+| `gen_gj_pb`, `gen_lu_pb`, `gen_plu_pb`, `gen_ldlt_pb` | Small integers and exact rationals |
+| `gen_qr_problem(...; family=:pythagorean)` | Small exact matrices built from structured orthogonal seeds |
+| `gen_qr_problem(...; family=:cayley)` | Exact rational orthogonal factors with denser mixing |
+| `gen_symmetric_eigenproblem`, `gen_svd_problem` | Exact matrices; orthogonal factors may contain rational structure |
 
-## SymPy helpers
+## Displaying exact outputs
 
-`sym_mat`/`sym_vec` convert Julia arrays to SymPy matrices and preserve exact rationals
-(`Rational`) and complex rationals (`Complex{Rational}`) as SymPy rationals and `I`.
-If you pass mixed-type `Matrix{Any}` inputs, SymPy conversion can still be sensitive to
-PythonCall’s ndarray handling; prefer uniform numeric or symbolic arrays.
+Use `LAlatex` when you want notebook-friendly rendering of the generated
+matrices and factorizations:
 
-`sym_subs_numeric` returns a Julia array only when all symbols are substituted; otherwise it
-returns a SymPy matrix. Use `sym_to_julia_mat` or `sym_to_julia_vec` to force conversion when
-appropriate.
+```julia
+using GenLAProblems
+using LAlatex
 
-```@docs
-sym_subs_numeric
+A, X, B = gen_gj_pb(3, 4, 3; maxint=3, num_rhs=2)
+l_show("A X = B : ", A, X, " = ", B)
 ```
-
-## Known limitations
-
-- Mixed-type `Matrix{Any}` inputs can trigger PythonCall conversion issues in some environments.
-- Some rendering helpers require the full Python stack; without it they will throw errors.
-- Symbolic outputs from exact QR are not guaranteed to simplify unless you apply Symbolics/SymPy simplification.

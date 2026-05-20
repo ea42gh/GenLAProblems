@@ -1,6 +1,7 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: ShowGE, ref!
 
 @testset "GE helper normalization" begin
     mats = [[1 2; 3 4], [5 6; 7 8]]

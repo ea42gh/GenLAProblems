@@ -1,6 +1,8 @@
 using Test
 using PythonCall
 using GenLAProblems
+using GenLAProblems: ShowGE, show_system
+using GenLAProblems: nM
 
 @testset "SymPy helper surface API" begin
     @test isdefined(GenLAProblems, :sym_mat)
