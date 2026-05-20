@@ -1,6 +1,6 @@
 name = "GenLAProblems"
 uuid = "f8228cda-011f-463c-ac28-4f36d81e7604"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["ea42_github@mail.com"]
 
 [deps]

@@ -1,6 +1,6 @@
 module GenLAProblems
 
-const __version__ = "0.1.0"
+const __version__ = "1.0.0"
 const __build__ = "908575d 2026-02-06T15:37:28-05:00"
 
 const _pythoncall_loaded = Ref(false)
