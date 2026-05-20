@@ -1,5 +1,6 @@
 using Test
 using PythonCall
+using Random
 
 # Ensure Python modules in local workspace are importable during tests.
 let
