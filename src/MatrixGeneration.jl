@@ -595,7 +595,7 @@ Generate a QR exercise matrix from one of several orthogonal-seed families.
 
 - `family=:hadamard` uses the existing Hadamard-based construction and requires
   an integer size supported by `Hadamard.hadamard`.
-- `family=:pythagorean` uses the specialized 3×3 or 4×4 `W_k_matrix` families.
+- `family=:pythagorean` uses the specialized 2×2, 3×3, or 4×4 `W_k_matrix` families.
 - `family=:cayley` uses a dense Cayley-transform orthogonal seed.
 - `family=:sparse` uses `sparse_Q_matrix`, treating `n` as block sizes.
 - `family=:auto` chooses `:pythagorean` for `n == 3` or `n == 4`, otherwise
@@ -618,6 +618,8 @@ function gen_qr_problem(n; family=:auto, maxint=3)
             return gen_qr_problem_4(maxint=maxint)
         end
         throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
+    elseif family == :auto && n isa Integer && n in (2, 3, 4)
+        return gen_qr_problem(n; family=:pythagorean, maxint=maxint)
     end
 
     Qseed = _orthogonal_matrix_family(n; family=family, maxint=maxint)

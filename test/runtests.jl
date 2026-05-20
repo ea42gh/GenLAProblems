@@ -61,12 +61,28 @@ using GenLAProblems
         @test q4_general == q4_special
 
         @test size(gen_qr_problem_hadamard(4; maxint=2)) == (4, 4)
+        Random.seed!(2026)
+        auto2 = gen_qr_problem(2; maxint=2)
+        Random.seed!(2026)
+        pyth2 = gen_qr_problem(2; family=:pythagorean, maxint=2)
+        @test auto2 == pyth2
+
         @test size(gen_qr_problem(2; family=:pythagorean, maxint=2)) == (2, 2)
+        Random.seed!(2027)
+        auto3 = gen_qr_problem(3; maxint=2)
+        Random.seed!(2027)
+        pyth3 = gen_qr_problem(3; family=:pythagorean, maxint=2)
+        @test auto3 == pyth3
         @test size(gen_qr_problem(3; family=:pythagorean, maxint=2)) == (3, 3)
+
+        Random.seed!(2028)
+        auto4 = gen_qr_problem(4; maxint=2)
+        Random.seed!(2028)
+        pyth4 = gen_qr_problem(4; family=:pythagorean, maxint=2)
+        @test auto4 == pyth4
         @test size(gen_qr_problem(4; family=:hadamard, maxint=2)) == (4, 4)
         @test size(gen_qr_problem(5; family=:cayley, maxint=2)) == (5, 5)
         @test size(gen_qr_problem((2, 2); family=:sparse, maxint=2)) == (4, 4)
-        @test size(gen_qr_problem(3; maxint=2)) == (3, 3)
         @test size(gen_qr_problem(6; maxint=2)) == (6, 6)
         @test_throws ArgumentError gen_qr_problem(1; family=:pythagorean, maxint=2)
         @test_throws ArgumentError gen_qr_problem((2, 2); family=:hadamard, maxint=2)
