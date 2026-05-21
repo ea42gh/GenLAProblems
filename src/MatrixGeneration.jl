@@ -485,13 +485,20 @@ function gen_lu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
     pivot_cols, L, U, A
 end
 # ------------------------------------------------------------------------------
-function _forced_plu_schedule(m, r; maxint=3)
+function _forced_plu_schedule(m, r; maxint=3, nswaps=nothing)
     swaps = collect(1:r)
     multipliers = zeros(Int, m, r)
+    maxswaps = min(r, m - 1)
 
-    if r > 0 && m > 1
-        kswap = rand(1:min(r, m - 1))
-        swaps[kswap] = rand(kswap + 1:m)
+    if nswaps === nothing
+        nswaps = maxswaps > 0 ? 1 : 0
+    end
+    0 <= nswaps <= maxswaps || throw(ArgumentError("nswaps must satisfy 0 <= nswaps <= $(maxswaps)"))
+
+    if nswaps > 0
+        for kswap in sort(shuffle!(collect(1:maxswaps))[1:nswaps])
+            swaps[kswap] = rand(kswap + 1:m)
+        end
     end
 
     for k in 1:r
@@ -546,35 +553,41 @@ function _is_identity_permutation(P)
     P == Matrix{Int}(I, size(P, 1), size(P, 2))
 end
 
-function _gen_plu_from_reverse_ge(U, r; maxint=3)
+function _swap_count(swaps)
+    count(i -> swaps[i] != i, eachindex(swaps))
+end
+
+function _gen_plu_from_reverse_ge(U, r; maxint=3, nswaps=nothing, return_schedule=false)
     m = size(U, 1)
 
-    for _ in 1:1_000
-        swaps, multipliers = _forced_plu_schedule(m, r; maxint=maxint)
-        A = _reverse_plu_matrix(U, r, swaps, multipliers)
-        P, L = _plu_factors_from_schedule(m, r, swaps, multipliers)
-        A == P * L * U || continue
-        if r == 0 || m <= 1 || !_is_identity_permutation(P)
-            return P, L, A
-        end
-    end
+    swaps, multipliers = _forced_plu_schedule(m, r; maxint=maxint, nswaps=nswaps)
+    A = _reverse_plu_matrix(U, r, swaps, multipliers)
+    P, L = _plu_factors_from_schedule(m, r, swaps, multipliers)
+    A == P * L * U || throw(ArgumentError("failed to generate a consistent PLU backward history"))
 
-    throw(ArgumentError("failed to generate a nontrivial PLU backward history"))
+    if return_schedule
+        return P, L, A, swaps
+    end
+    return P, L, A
 end
 
  # ------------------------------------------------------------------------------
 """
-    gen_plu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> pivot_cols, P, L, U, A
+    gen_plu_pb(m, n, r;
+        maxint=3, pivot_in_first_col=true, has_zeros=false, nswaps=nothing) -> pivot_cols, P, L, U, A
 
 Generate an exact PLU factorization exercise with `A = P * L * U`.
 `U` is the canonical row-echelon factor. `A` is built by running a Gaussian
 elimination history backward from `U`, interleaving inverse elimination steps
-with at least one row exchange when possible. The returned `L` and `P` collapse
-that history into a unit lower-triangular factor and a permutation matrix.
+with a controlled number of row exchanges. Set `nswaps` to choose the exact
+number of row exchanges in the generated elimination history, subject to
+`0 <= nswaps <= min(r, m-1)`. When `nswaps` is omitted, the generator uses
+one swap whenever that is possible. The returned `L` and `P` collapse that
+history into a unit lower-triangular factor and a permutation matrix.
 """
-function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
+function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false, nswaps=nothing)
     U, pivot_cols = ref_matrix(m,n,r; maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
-    P, L, A = _gen_plu_from_reverse_ge(U, r; maxint=maxint)
+    P, L, A = _gen_plu_from_reverse_ge(U, r; maxint=maxint, nswaps=nswaps)
     pivot_cols, P, L, U, A
 end
 # ------------------------------------------------------------------------------
