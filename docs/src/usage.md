@@ -113,6 +113,60 @@ Generator-oriented APIs in `GenLAProblems`:
 - Matrix-construction helpers used by those generators (`W_*`, `Q_*`,
   `sparse_Q_matrix`, `gen_permutation_matrix`, `gen_full_col_rank_matrix`)
 
+### Metadata exports
+
+- `__version__` is the package version string for the loaded module.
+- `__build__` is build or source-revision metadata when available.
+
+### Basic matrix constructors
+
+- `symbol_vector(s, indices)` returns a vector of `Symbol` names such as `:x_1`, `:x_2`, `:x_3`.
+- `symbols_matrix(s, row_indices, col_indices)` returns a matrix of `Symbol` names indexed by the supplied row and column labels.
+- `unit_lower(m, n; ...)` and `unit_lower(m; ...)` construct unit lower-triangular matrices.
+- `lower(m, n; ...)` and `lower(m; ...)` construct lower-triangular matrices with nonzero diagonal.
+- `rref_matrix(m, n, r; ...)` returns a reduced row-echelon matrix and its pivot columns.
+- `ref_matrix(m, n, r; ...)` returns a row-echelon matrix and its pivot columns.
+- `symmetric_matrix(m; ...)` returns a symmetric integer matrix.
+- `skew_symmetric_matrix(m; ...)` returns a skew-symmetric integer matrix.
+- `e_i(i, n)` returns the `i`th standard basis vector in `R^n`.
+- `i_with_onecol(m, c; ...)` constructs an identity-like elimination matrix with one randomized column.
+- `gen_permutation_matrix(row_order)` and `gen_permutation_matrix(n)` construct permutation matrices.
+- `gen_full_col_rank_matrix(mc, nc; ...)` builds a small exact matrix with full column rank.
+- `ca_projection_matrix(A)` returns the orthogonal projection matrix onto `col(A)` when `A' * A` is invertible.
+
+### Linear-system and factorization helpers
+
+- `gen_gj_matrix(m, n, r; ...)` builds the coefficient matrix used by the GE/GJ problem generators.
+- `gen_rhs(A, pivot_cols; ...)` returns a consistent solution/RHS pair `X, B` with `B = A * X`.
+- `gen_particular_solution(pivot_cols, n; ...)` returns a particular solution with free variables set to zero.
+- `gen_gj_pb(m, n, r; ...)` and `gen_gj_pb(m, n; ...)` generate consistent systems `A, X, B`.
+- `gen_inconsistent_gj_pb(m, n, r; ...)` generates inconsistent systems `A, B`.
+- `invert_unit_lower(L)` returns the inverse of a unit lower-triangular matrix.
+- `gen_inv_pb(n; ...)` returns an invertible matrix together with its exact inverse.
+- `gen_lu_pb(m, n, r; ...)` returns `pivot_cols, L, U, A` with `A = L * U`.
+- `gen_plu_pb(m, n, r; ...)` returns `pivot_cols, P, L, U, A` with `A = P * L * U`.
+- `gen_ldlt_pb(m; ...)` returns `L, D, A` with `A = L * D * L'`.
+
+### Orthogonal and QR constructors
+
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, W)` where `(W // d)` is orthogonal.
+- `Q_2_matrix`, `Q_3_matrix`, `Q_4_blocks`, `Q_4_matrix`, and `Q_matrix` return exact orthogonal matrices.
+- `sparse_Q_matrix(n; ...)` builds a block-structured exact orthogonal matrix.
+- `sparse_W_matrix(n)` returns the denominator-factor representation of `sparse_Q_matrix(n)`.
+- `gen_qr_problem(n; ...)` is the canonical QR exercise generator.
+
+### Eigenvalue, Jordan, and SVD constructors
+
+- `gen_eigenproblem(e_vals; ...)` returns `S, Λ, S_inv, A` with prescribed eigenvalues.
+- `gen_cx_eigenproblem(evals_no_conj; ...)` returns a real matrix with complex-conjugate eigenstructure encoded in `2 × 2` blocks.
+- `gen_symmetric_eigenproblem(e_vals; ...)` returns `Q, Λ, A` with `A = Q * Λ * Q'`.
+- `gen_non_diagonalizable_eigenproblem(e_dup, e; ...)` returns a small non-diagonalizable matrix.
+- `jordan_block(λ, k)` constructs a single Jordan block.
+- `jordan_form(j_blocks)` assembles a block-diagonal Jordan matrix.
+- `gen_from_jordan_form(j_blocks; ...)` constructs a matrix similar to a supplied Jordan form.
+- `gen_degenerate_matrix(block_descriptions...; ...)` returns `P, J, P_inv, A` with `A = P * J * P_inv`.
+- `gen_svd_problem(m, n, σ; ...)` returns `U, Σ, Vt, A` for an exact SVD exercise.
+
 ## Adjoint inputs
 
 Most generator APIs accept `AbstractMatrix` and will work with adjoint wrappers

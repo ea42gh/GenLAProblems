@@ -49,33 +49,27 @@ PythagoreanNumberQuadruplets =
 # ------------------------------------------------------------------------------
 # ---------------------------------------------- matrices and vectors of symbols
 # ------------------------------------------------------------------------------
-raw""" symbol_vec = symbol_vector( s="x", indices )"""
 """
     symbol_vector(s, indices) -> Vector{Symbol}
 
-Return a vector of Symbol names like `s_i` for the given indices.
+Construct a vector of symbolic names using the base string `s` and the supplied
+indices.
+
+For example, `symbol_vector("x", 1:3)` returns `[:x_1, :x_2, :x_3]`.
 """
 function symbol_vector( s, indices )
     [Symbol(s*"_$i") for i in collect(indices)]
 end
 # ------------------------------------------------------------------------------
-raw"""
-Create a matrix of symbolic variables with names based on given indices.
-
-    symbols_matrix(s, row_indices, col_indices)
-
-    # Arguments
-    - `s::String`: Base string for the symbols (e.g., "a").
-    - `row_indices`: Iterable of row indices.
-    - `col_indices`: Iterable of column indices.
-
-    # Returns
-    - `Matrix{Symbol}`: A matrix of symbolic names.
-"""
 """
     symbols_matrix(s, row_indices, col_indices)
 
-Create a matrix of symbolic names like `s_{i,j}`.
+Create a matrix of symbolic names using the base string `s`.
+Entry `(i, j)` is named like `:a_{1,3}` after collecting the supplied row and
+column index iterables.
+
+For example, `symbols_matrix("a", 1:2, 3:4)` returns
+`[:a_{1,3} :a_{1,4}; :a_{2,3} :a_{2,4}]`.
 """
 function symbols_matrix(s::String, row_indices, col_indices)
     rows = collect(row_indices)
@@ -100,20 +94,32 @@ function _int_range( maxint, has_zeros)
     rng
 end
 # ------------------------------------------------------------------------------
-raw""" L = unit_lower(m,n; maxint=3)
+"""
+    unit_lower(m, n; maxint=3) -> Matrix{Int}
+    unit_lower(m; maxint=3) -> Matrix{Int}
+
+Construct an `m × n` unit lower-triangular integer matrix.
+Entries strictly below the main diagonal are sampled from `-maxint:maxint`,
+diagonal entries are `1`, and entries above the diagonal are `0`.
+The one-argument method returns the square `m × m` case.
 """
 function unit_lower(m,n; maxint=3)
     # create a unit lower triangular matrix
     [ x>y ? rand(-maxint:maxint) : (x == y ? 1 : 0) for x in 1:m, y in 1:n]
 end
 # ------------------------------------------------------------------------------
-raw""" L = unit_lower(m; maxint=3)
-"""
 function unit_lower(m; maxint=3)
    unit_lower(m,m,maxint=maxint)
 end
 # ------------------------------------------------------------------------------
-""" L = lower(m,n; maxint=3)
+"""
+    lower(m, n; maxint=3) -> Matrix{Int}
+    lower(m; maxint=3) -> Matrix{Int}
+
+Construct an integer lower-triangular matrix with nonzero diagonal.
+This starts from `unit_lower` and replaces each diagonal entry by a random
+integer chosen from `[-maxint:-1; 1:maxint]`.
+The one-argument method returns the square `m × m` case.
 """
 function lower(m,n; maxint=3)
     L = unit_lower(m,n; maxint=maxint)
@@ -123,13 +129,18 @@ function lower(m,n; maxint=3)
     L
 end
 # ------------------------------------------------------------------------------
-""" L = lower(m; maxint=3)
-"""
 function lower(m; maxint=3)
     lower(m,m,maxint=maxint)
 end
 # ------------------------------------------------------------------------------
-raw""" R,pivot_cols = rref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
+"""
+    rref_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> R, pivot_cols
+
+Generate an `m × n` reduced row-echelon matrix of rank `r`.
+`pivot_cols` contains the pivot column indices. When `pivot_in_first_col=true`,
+column `1` is forced to be a pivot unless `r == 0`. Nonpivot entries are
+sampled from a small integer range controlled by `maxint`; zeros may also be
+sampled when `has_zeros=true`.
 """
 function rref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
     # create a reduced row echelon form matrix of size m x n and rank r
@@ -158,7 +169,13 @@ function rref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
     M, pivot_cols
 end
 # ------------------------------------------------------------------------------
-raw""" U, pivot_cols = ref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
+"""
+    ref_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> U, pivot_cols
+
+Generate an `m × n` row-echelon-form matrix of rank `r`.
+This starts from `rref_matrix(...)` and then scales pivot rows and mixes
+nonpivot columns so the result remains in row echelon form rather than reduced
+row echelon form. `pivot_cols` lists the pivot columns.
 """
 function ref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
     M,pivot_cols = rref_matrix(m,n,r; maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
@@ -167,7 +184,14 @@ function ref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
     M, pivot_cols
 end
 # ------------------------------------------------------------------------------
-raw""" A = gen_full_col_rank_matrix(mc,nc; maxint=3)
+"""
+    gen_full_col_rank_matrix(mc, nc; maxint=3) -> Matrix{Int}
+
+Generate a small exact matrix with full column rank.
+`mc` and `nc` may be integers or block-size collections whose sums define the
+row and column counts. The construction uses a structured orthogonal factor and
+an invertible lower-triangular mixing matrix so that the resulting matrix has
+rank equal to its number of columns.
 """
 function gen_full_col_rank_matrix(mc,nc; maxint=3)
     # produce a reasonable A'A matrix; need m ≥ n
@@ -183,7 +207,12 @@ function gen_full_col_rank_matrix(mc,nc; maxint=3)
     Q[:,1:m]*unit_lower(m,maxint=maxint)*M
 end
 # ------------------------------------------------------------------------------
-raw""" S = symmetric_matrix(m;maxint=3, with_zeros=false )
+"""
+    symmetric_matrix(m; maxint=3, with_zeros=false) -> Matrix{Int}
+
+Generate a random symmetric `m × m` integer matrix with nonzero diagonal.
+Off-diagonal entries are sampled from the integer range controlled by `maxint`;
+when `with_zeros=true`, zeros may also appear off the diagonal.
 """
 function symmetric_matrix(m;maxint=3, with_zeros=false )
     rng = _int_range(maxint,with_zeros)
@@ -195,7 +224,12 @@ function symmetric_matrix(m;maxint=3, with_zeros=false )
     A
 end
 # ------------------------------------------------------------------------------
-raw""" A = skew_symmetric_matrix(m;maxint=3, with_zeros=false )
+"""
+    skew_symmetric_matrix(m; maxint=5, with_zeros=false) -> Matrix{Int}
+
+Generate a random skew-symmetric `m × m` integer matrix.
+The diagonal is zero by construction, and entries below the diagonal are drawn
+from the integer range controlled by `maxint`.
 """
 function skew_symmetric_matrix(m;maxint=5, with_zeros=false )
     rng = _int_range(maxint,with_zeros)
@@ -203,7 +237,10 @@ function skew_symmetric_matrix(m;maxint=5, with_zeros=false )
     A - A'
 end
 # ------------------------------------------------------------------------------
-raw""" e_i = e_i(i,n)
+"""
+    e_i(i, n) -> Vector{Int}
+
+Return the `i`th standard basis vector in `R^n`.
 """
 function e_i(i,n)
     v = zeros( Int, n )
@@ -211,7 +248,13 @@ function e_i(i,n)
     v
 end
 # ------------------------------------------------------------------------------
-raw""" E = i_with_onecol(m,c; maxint=3, with_zeros=false, lower=true, upper=true)
+"""
+    i_with_onecol(m, c; maxint=3, with_zeros=false, lower=true, upper=true) -> Matrix{Int}
+
+Construct an identity-like elimination matrix whose `c`th column is randomized.
+The diagonal entry `(c,c)` remains `1`. Entries below that position are filled
+when `lower=true`, entries above it are filled when `upper=true`, and sampled
+values are controlled by `maxint` and `with_zeros`.
 """
 function i_with_onecol(m,c; maxint=3, with_zeros=false, lower=true, upper=true)
     rng = _int_range(maxint,with_zeros)
@@ -227,7 +270,11 @@ function i_with_onecol(m,c; maxint=3, with_zeros=false, lower=true, upper=true)
     E
 end
 # ------------------------------------------------------------------------------
-raw""" P = gen_permutation_matrix(row_order::AbstractVector{<:Integer})
+"""
+    gen_permutation_matrix(row_order::AbstractVector{<:Integer}) -> Matrix{Int}
+
+Construct the permutation matrix determined by `row_order`.
+If `row_order[i] == j`, then column `i` of the result is the basis vector `e_j`.
 """
 function gen_permutation_matrix(row_order::AbstractVector{<:Integer})
     n = length(row_order)
@@ -238,7 +285,10 @@ function gen_permutation_matrix(row_order::AbstractVector{<:Integer})
     P
 end
 # ------------------------------------------------------------------------------
-raw""" P = gen_permutation_matrix(n)
+"""
+    gen_permutation_matrix(n) -> Matrix{Int}
+
+Construct a uniformly shuffled `n × n` permutation matrix.
 """
 function gen_permutation_matrix(n)
     locs = randperm(n)
@@ -251,7 +301,12 @@ end
 # ------------------------------------------------------------------------------
 # -------------------------------------------------------------- GE, GJ problems
 # ------------------------------------------------------------------------------
-raw""" pivot_cols, A = gen_gj_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false )
+"""
+    gen_gj_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> pivot_cols, A
+
+Generate a matrix suitable for Gauss-Jordan style exercises.
+The returned matrix has rank `r`, controlled pivot placement, and exact integer
+entries. `pivot_cols` records the pivot columns of the underlying echelon model.
 """
 function gen_gj_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false )
     M,pivot_cols=rref_matrix(m,n,r,maxint=maxint,pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros )
@@ -278,7 +333,12 @@ function gen_rhs( A, pivot_cols; maxint=3,num_rhs=1,has_zeros=false)
 end
 # ------------------------------------------------------------------------------
 # given the pivot locations, generate a particular solution of N integer entries, free variables set to zero
-raw""" X = gen_particular_solution( pivot_cols, n; maxint=3, num_rhs=1 )
+"""
+    gen_particular_solution(pivot_cols, n; maxint=3, num_rhs=1) -> Matrix{Int}
+
+Generate one or more particular solution vectors with prescribed pivot entries.
+Only the pivot coordinates listed in `pivot_cols` are assigned nonzero random
+integers; all free-variable coordinates are set to zero.
 """
 function gen_particular_solution( pivot_cols, n; maxint=3, num_rhs=1 )
     X               = zeros(Int64, (n,num_rhs))
@@ -286,7 +346,11 @@ function gen_particular_solution( pivot_cols, n; maxint=3, num_rhs=1 )
     X
 end
 # ------------------------------------------------------------------------------
-raw""" A,X,B = gen_gj_pb(m,n,r;
+"""
+    gen_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1) -> A, X, B
+
+Generate a consistent linear system `A * X = B` of rank `r`.
+The right-hand side is produced from an exact integer solution matrix `X`.
 """
 function gen_gj_pb(m,n,r;
         maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1 )
@@ -296,7 +360,10 @@ function gen_gj_pb(m,n,r;
     A,X,B
 end
 # ------------------------------------------------------------------------------
-raw""" A,X,B = gen_gj_pb(m,n; maxint=3)
+"""
+    gen_gj_pb(m, n; maxint=3) -> A, X, B
+
+Convenience method for the full-rank case `r = min(m, n)`.
 """
 function gen_gj_pb(m,n; maxint=3)
     gen_gj_pb( m,n,min(m,n); maxint=maxint )
@@ -340,7 +407,11 @@ function gen_inconsistent_gj_pb(m,n,r;
     A, B
 end
 # ------------------------------------------------------------------------------
-raw""" L_inv = invert_unit_lower(L::Matrix{Int})
+"""
+    invert_unit_lower(L) -> Matrix
+
+Return the inverse of a unit lower-triangular matrix `L`.
+The result has the same element type as `L`.
 """
 function invert_unit_lower(L)
     n = size(L, 1)
@@ -356,7 +427,11 @@ function invert_unit_lower(L)
     return L_inv
 end
 # ------------------------------------------------------------------------------
-raw""" A, A_inv = gen_inv_pb(n; maxint=3)
+"""
+    gen_inv_pb(n; maxint=3) -> A, A_inv
+
+Generate an invertible `n × n` integer matrix together with its exact inverse.
+The construction is unimodular, so `A_inv` also has integer entries.
 """
 function gen_inv_pb(n; maxint=3)
     # create an invertible matix problem of size n x n
@@ -372,7 +447,13 @@ function gen_inv_pb(n; maxint=3)
     A, A_inv
 end
 # ------------------------------------------------------------------------------
-raw""" L,D,A = gen_ldlt_pb(m;maxint=3,rank=nothing, squares = false)
+"""
+    gen_ldlt_pb(m; maxint=3, rank=nothing, squares=false) -> L, D, A
+
+Generate an exact symmetric matrix in `L * D * L'` form.
+When `rank` is provided, trailing diagonal entries of `D` are set to zero to
+control the rank. When `squares=true`, the nonzero diagonal entries of `D` are
+chosen from perfect squares.
 """
 function gen_ldlt_pb(m;maxint=3,rank=nothing, squares = false)
     L   = unit_lower(m,maxint=maxint) 
@@ -389,7 +470,12 @@ function gen_ldlt_pb(m;maxint=3,rank=nothing, squares = false)
     L, D, A
 end
 # ------------------------------------------------------------------------------
-raw""" pivot_cols,L,U,A = gen_lu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
+"""
+    gen_lu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> pivot_cols, L, U, A
+
+Generate an exact LU factorization exercise with `A = L * U`.
+`U` is an `m × n` row-echelon matrix of rank `r`, `L` is unit lower triangular,
+and `pivot_cols` records the pivot columns of `U`.
 """
 function gen_lu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
     U,pivot_cols = ref_matrix(m,n,r,maxint=maxint,pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros )
@@ -399,35 +485,128 @@ function gen_lu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
     pivot_cols, L, U, A
 end
 # ------------------------------------------------------------------------------
-raw"""pivot_cols,P,L,U,A =  gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
+function _forced_plu_schedule(m, r; maxint=3)
+    swaps = collect(1:r)
+    multipliers = zeros(Int, m, r)
+
+    if r > 0 && m > 1
+        kswap = rand(1:min(r, m - 1))
+        swaps[kswap] = rand(kswap + 1:m)
+    end
+
+    for k in 1:r
+        for i in k+1:m
+            multipliers[i, k] = rand(-maxint:maxint)
+        end
+    end
+
+    swaps, multipliers
+end
+
+function _reverse_plu_matrix(U, r, swaps, multipliers)
+    A = copy(U)
+    m = size(A, 1)
+
+    for k in r:-1:1
+        for i in k+1:m
+            μ = multipliers[i, k]
+            if μ != 0
+                A[i, :] .+= μ .* A[k, :]
+            end
+        end
+
+        s = swaps[k]
+        if s != k
+            A[[k, s], :] = A[[s, k], :]
+        end
+    end
+
+    A
+end
+
+function _plu_factors_from_schedule(m, r, swaps, multipliers)
+    Pstd = Matrix{Int}(I, m, m)
+    L = Matrix{Int}(I, m, m)
+
+    for k in 1:r
+        s = swaps[k]
+        if s != k
+            Pstd[[k, s], :] = Pstd[[s, k], :]
+            if k > 1
+                L[[k, s], 1:k-1] = L[[s, k], 1:k-1]
+            end
+        end
+        L[k+1:m, k] = multipliers[k+1:m, k]
+    end
+
+    Pstd', L
+end
+
+function _is_identity_permutation(P)
+    P == Matrix{Int}(I, size(P, 1), size(P, 2))
+end
+
+function _gen_plu_from_reverse_ge(U, r; maxint=3)
+    m = size(U, 1)
+
+    for _ in 1:1_000
+        swaps, multipliers = _forced_plu_schedule(m, r; maxint=maxint)
+        A = _reverse_plu_matrix(U, r, swaps, multipliers)
+        P, L = _plu_factors_from_schedule(m, r, swaps, multipliers)
+        A == P * L * U || continue
+        if r == 0 || m <= 1 || !_is_identity_permutation(P)
+            return P, L, A
+        end
+    end
+
+    throw(ArgumentError("failed to generate a nontrivial PLU backward history"))
+end
+
+ # ------------------------------------------------------------------------------
+"""
+    gen_plu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> pivot_cols, P, L, U, A
+
+Generate an exact PLU factorization exercise with `A = P * L * U`.
+`U` is the canonical row-echelon factor. `A` is built by running a Gaussian
+elimination history backward from `U`, interleaving inverse elimination steps
+with at least one row exchange when possible. The returned `L` and `P` collapse
+that history into a unit lower-triangular factor and a permutation matrix.
 """
 function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
     U, pivot_cols = ref_matrix(m,n,r; maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
-    L = unit_lower(m; maxint=maxint)
-    P = gen_permutation_matrix(m)
-
-    # Keep U as the canonical echelon factor and let P scatter its row order.
-    A = P * L * U
+    P, L, A = _gen_plu_from_reverse_ge(U, r; maxint=maxint)
     pivot_cols, P, L, U, A
 end
 # ------------------------------------------------------------------------------
 # ---------------------------------------------------------- orthogonal matrices
 # ------------------------------------------------------------------------------
-raw""" c,W = W_2_matrix()
+"""
+    W_2_matrix() -> d, W
+
+Return a `2 × 2` exact matrix `W` built from a Pythagorean triple such that
+`W' * W = d^2 * I`.
 """
 function W_2_matrix()
     a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
     c,[ a -b; b a]
 end
 # ------------------------------------------------------------------------------
-raw""" Q = Q_2_matrix()
+"""
+    Q_2_matrix() -> Matrix{Rational{Int}}
+
+Return the exact orthogonal matrix obtained by normalizing `W_2_matrix()`.
 """
 function Q_2_matrix()
     c,W = W_2_matrix()
     W // c
 end
 # ------------------------------------------------------------------------------
-raw""" c,W =  W_3_matrix(; maxint=3)
+"""
+    W_3_matrix(; maxint=3) -> d, W
+
+Return a structured `3 × 3` exact matrix whose Gram matrix is diagonal.
+The leading `2 × 2` block comes from a Pythagorean triple and the remaining
+entry is an independent small integer.
 """
 function W_3_matrix(; maxint=3)
     a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
@@ -440,7 +619,11 @@ function W_3_matrix(; maxint=3)
     c,A[ :, shuffle(1:3)]
 end
 # ------------------------------------------------------------------------------
-raw""" Q = Q_3_matrix()
+"""
+    Q_3_matrix() -> Matrix{Rational{Int}}
+
+Return the exact orthogonal matrix obtained by normalizing the `W_3_matrix`
+construction.
 """
 function Q_3_matrix()
     a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
@@ -452,7 +635,11 @@ function Q_3_matrix()
 end
 # ------------------------------------------------------------------------------
 # the following matrix has a block structure
-raw""" Q = Q_4_blocks()
+"""
+    Q_4_blocks() -> Matrix{Rational{Int}}
+
+Return a `4 × 4` exact orthogonal matrix formed from two independent
+Pythagorean `2 × 2` rotation blocks, followed by row and column shuffling.
 """
 function Q_4_blocks()
     a1,b1,c1 = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
@@ -467,7 +654,11 @@ function Q_4_blocks()
     A[ :, shuffle(1:4)]
 end
 # ------------------------------------------------------------------------------
-raw""" d,W = W_4_matrix()
+"""
+    W_4_matrix() -> d, W
+
+Return a structured `4 × 4` exact matrix with diagonal Gram matrix.
+The normalization factor `d` satisfies that `(W // d)` is orthogonal.
 """
 function W_4_matrix()
     a,b,c,d = PythagoreanNumberQuadruplets[ rand(1:size(PythagoreanNumberQuadruplets,1)), : ]
@@ -489,14 +680,23 @@ function W_4_matrix()
     d, A[:, shuffle(1:4)]
 end
 # ------------------------------------------------------------------------------
-raw""" Q = Q_4_matrix()
+"""
+    Q_4_matrix() -> Matrix{Rational{Int}}
+
+Return the exact orthogonal matrix obtained by normalizing `W_4_matrix()`.
 """
 function Q_4_matrix()
     d,W = W_4_matrix()
     W//d
 end
 # ------------------------------------------------------------------------------
-raw""" d,W = W_matrix(n; general=false)
+"""
+    W_matrix(n; general=false) -> d, W
+
+Return a structured exact matrix `W` together with a common denominator `d`
+such that `(W // d)` is orthogonal.
+For `n == 2`, `3`, or `4` and `general=false`, specialized families are used;
+otherwise the result is derived from `Q_matrix`.
 """
 function W_matrix(n; general=false)
   if general == false
@@ -509,7 +709,13 @@ function W_matrix(n; general=false)
   factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
-raw""" Q = Q_matrix(n; maxint=3, with_zeros=false, general=false )
+"""
+    Q_matrix(n; maxint=3, with_zeros=false, general=false) -> Matrix
+
+Return an exact orthogonal matrix.
+For sizes `2`, `3`, and `4` with `general=false`, this dispatches to the
+specialized `Q_k_matrix` families. Otherwise it applies the Cayley transform to
+a random skew-symmetric matrix.
 """
 function Q_matrix(n; maxint=3, with_zeros=false, general=false )
   if general == false
@@ -555,7 +761,11 @@ function sparse_Q_matrix(n; maxint=3, with_zeros=false )
     A[ :, shuffle(1:sz)]
 end
 # ------------------------------------------------------------------------------
-raw""" d,W = sparse_W_matrix(n)
+"""
+    sparse_W_matrix(n) -> d, W
+
+Return the denominator-factor representation of `sparse_Q_matrix(n)`.
+The pair satisfies `(W // d) == sparse_Q_matrix(n)`.
 """
 function sparse_W_matrix(n)
     A = sparse_Q_matrix(n)
@@ -564,7 +774,14 @@ end
 # ------------------------------------------------------------------------------
 # ---------------------------------------------------------------- Orthogonality
 # ------------------------------------------------------------------------------
-raw""" P = ca_projection_matrix(A)
+"""
+    ca_projection_matrix(A) -> Matrix
+
+Return the orthogonal projection matrix onto the column space of `A`,
+computed as `A * inv(A' * A) * A'`.
+
+This assumes that the columns of `A` are linearly independent so that
+`A' * A` is invertible.
 """
 function ca_projection_matrix(A)
     A*inv(A'A)*A'
@@ -675,7 +892,9 @@ end
 """
     gen_eigenproblem(e_vals; maxint=3) -> S, Λ, S_inv, A
 
-Generate a random eigenproblem with prescribed eigenvalues.
+Generate a diagonalizable exact eigenproblem with prescribed eigenvalues.
+`e_vals` may be a vector, a `1 × n` matrix, or an `n × 1` matrix. The return
+values satisfy `A = S * Λ * S_inv`.
 """
 function gen_eigenproblem( e_vals; maxint=3 )
     vals = _eigenvalues_vector(e_vals)
@@ -688,7 +907,9 @@ raw""" S,Λ,S_inv,A = gen_cx_eigenproblem( evals_no_conj; maxint=1 ) """
 """
     gen_cx_eigenproblem(evals_no_conj; maxint=1) -> S, Λ, S_inv, A
 
-Generate a complex eigenproblem from non-conjugate eigenvalues.
+Generate a real matrix whose eigenstructure includes the supplied complex
+eigenvalues. Each nonreal scalar is expanded to its real `2 × 2` companion
+block, so the returned `Λ` is block diagonal and `A = S * Λ * S_inv`.
 """
 function gen_cx_eigenproblem( evals_no_conj; maxint=1 )
     function construct_diagonal_blocks()
@@ -721,7 +942,8 @@ raw""" S, Λ, A = gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false
 """
     gen_symmetric_eigenproblem(e_vals; maxint=5, with_zeros=false, general=true) -> Q, Λ, A
 
-Generate a symmetric eigenproblem with prescribed eigenvalues.
+Generate a symmetric exact eigenproblem with prescribed eigenvalues.
+The return values satisfy `A = Q * Λ * Q'`, where `Q` is orthogonal.
 """
 function gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false, general=true )
     vals = _eigenvalues_vector(e_vals)
@@ -730,7 +952,11 @@ function gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false, general
     S, Λ, S * Λ * S'
 end
 # ------------------------------------------------------------------------------
-raw""" A = gen_non_diagonalizable_eigenproblem( e_dup, e; maxint=4 )
+"""
+    gen_non_diagonalizable_eigenproblem(e_dup, e; maxint=4) -> Matrix
+
+Generate a `3 × 3` exact matrix with a repeated eigenvalue `e_dup` and a
+nontrivial Jordan block, so the matrix is not diagonalizable.
 """
 function gen_non_diagonalizable_eigenproblem( e_dup, e; maxint=4 )
     # size 3x3 problem
@@ -739,13 +965,19 @@ function gen_non_diagonalizable_eigenproblem( e_dup, e; maxint=4 )
     S * Λ * S_inv
 end
 # ------------------------------------------------------------------------------
-raw""" J = jordan_block(lambda,k)
+"""
+    jordan_block(λ, k) -> Bidiagonal
+
+Construct the `k × k` Jordan block with eigenvalue `λ`.
 """
 function jordan_block(lambda,k)
     J = Bidiagonal( fill(lambda,k), ones(typeof(lambda),k-1),:U)
 end
 # ------------------------------------------------------------------------------
-raw""" A = jordan_form( j_blocks )
+"""
+    jordan_form(j_blocks) -> Matrix
+
+Assemble a block-diagonal Jordan matrix from a collection of Jordan blocks.
 """
 function jordan_form( j_blocks )
     sz = sum([ size(b,1) for b in j_blocks ])
@@ -759,7 +991,11 @@ function jordan_form( j_blocks )
     A
 end
 # ------------------------------------------------------------------------------
-raw""" A = gen_from_jordan_form( j_blocks; maxint=3 )
+"""
+    gen_from_jordan_form(j_blocks; maxint=3) -> Matrix
+
+Generate a matrix similar to the block-diagonal Jordan form built from
+`j_blocks`, using an exact invertible change of basis.
 """
 function gen_from_jordan_form( j_blocks; maxint=3 )
     A = jordan_form( j_blocks )
@@ -768,7 +1004,13 @@ function gen_from_jordan_form( j_blocks; maxint=3 )
 end
 # ------------------------------------------------------------------------------
 # Generate a degenerate matrix based on block sizes or (eigenvalue, size) pairs
-raw""" P,J,P_inv,A = gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
+"""
+    gen_degenerate_matrix(block_descriptions...; maxint=3) -> P, J, P_inv, A
+
+Generate a matrix similar to a Jordan matrix with repeated or nilpotent blocks.
+Each block description is either an integer `n` for a nilpotent `n × n` block or
+a tuple `(λ, n)` for a Jordan block of size `n` with eigenvalue `λ`.
+The return values satisfy `A = P * J * P_inv`.
 """
 function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
     total_size = 0

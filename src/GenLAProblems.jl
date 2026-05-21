@@ -1,6 +1,18 @@
 module GenLAProblems
 
+"""
+    __version__::String
+
+Package version string for the loaded `GenLAProblems` module.
+"""
 const __version__ = "1.0.0"
+
+"""
+    __build__::String
+
+Build or source revision metadata for the loaded `GenLAProblems` module.
+When unavailable, this is set to `"unknown"`.
+"""
 const __build__ = "unknown"
 
 using LinearAlgebra
@@ -31,6 +43,8 @@ is_none_val(x) = x === :none || x === nothing
 include("MatrixGeneration.jl")
 
 export __version__, __build__
+export symbol_vector, symbols_matrix
+export ca_projection_matrix
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix
 export e_i, i_with_onecol, gen_permutation_matrix

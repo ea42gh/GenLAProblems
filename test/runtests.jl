@@ -151,6 +151,7 @@ using GenLAProblems
 
         _, Pplu, Lplu, Uplu, Aplu = gen_plu_pb(4, 4, 3; maxint=2)
         @test Aplu == Pplu * Lplu * Uplu
+        @test Pplu != Matrix{Int}(I, 4, 4)
 
         Pc, Jc, Pinvc, Ac = gen_degenerate_matrix((2, 2), (0, 1); maxint=2)
         @test Ac == Pc * Jc * Pinvc
