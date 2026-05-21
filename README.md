@@ -99,9 +99,15 @@ GenLAProblems is intentionally generator-focused.
 - Import `LAlatex` separately when you want notebook-friendly LaTeX display.
 - Import `LATeachingSuite` when you want GE reduction workflows, `ShowGE`,
   back-substitution displays, or Python-backed figure helpers.
+- The Julia-facing Python bridge is owned by `LATeachingSuite.PythonBridge`,
+  not by `GenLAProblems`.
 - Legacy render/display compatibility shims now live only in
   `LATeachingSuite`; `GenLAProblems` no longer exposes the old `nM` proxy or
   bundle/spec extraction helpers.
+
+The package itself no longer depends on `LAlatex`; display support is an
+explicit companion-layer choice rather than a hard dependency of the generator
+core.
 
 ## Local development
 

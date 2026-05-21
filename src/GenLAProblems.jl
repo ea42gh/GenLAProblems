@@ -66,8 +66,6 @@ using AbstractAlgebra
 import AbstractAlgebra: charpoly
 
 using Reexport
-using LAlatex
-using LaTeXStrings: LaTeXString
 using PrecompileTools
 include("SymPyHelpers.jl")
 using .SymPyHelpers:
@@ -76,7 +74,6 @@ using .SymPyHelpers:
     sym_to_julia_vec, sym_to_julia_mat, sym_subs_numeric
 
 const _symbolics_mod = Ref{Any}(nothing)
-const _blockarrays_mod = Ref{Any}(nothing)
 const _hadamard_mod = Ref{Any}(nothing)
 
 function _ensure_symbolics()
@@ -85,14 +82,6 @@ function _ensure_symbolics()
         _symbolics_mod[] = Base.invokelatest(() -> Symbolics)
     end
     return _symbolics_mod[]
-end
-
-function _ensure_blockarrays()
-    if _blockarrays_mod[] === nothing
-        @eval import BlockArrays
-        _blockarrays_mod[] = Base.invokelatest(() -> BlockArrays)
-    end
-    return _blockarrays_mod[]
 end
 
 function _ensure_hadamard()
@@ -113,43 +102,7 @@ Return `true` when `x` is `:none` or `nothing`.
 """
 is_none_val(x) = x === :none || x === nothing
 
-"""
-    mm_to_px(mm) -> Float64
-
-Convert millimeters to px-equivalent SVG units (96 px per inch).
-"""
-mm_to_px(mm::Real) = float(mm) * 96.0 / 25.4
-
-"""
-    px_to_mm(px) -> Float64
-
-Convert px-equivalent SVG units to millimeters (96 px per inch).
-"""
-px_to_mm(px::Real) = float(px) * 25.4 / 96.0
-
-const _LAFigureSpecs = Ref{Any}(nothing)
-const _matrixlayout = Ref{Any}(nothing)
 const _sympy = Ref{Any}(nothing)
-
-function _py_is_none(svg)
-    if !isdefined(@__MODULE__, :PythonCall)
-        return false
-    end
-    try
-        py = getfield(@__MODULE__, :PythonCall)
-        return Base.invokelatest(py.pyconvert, Any, svg) === nothing
-    catch
-        return false
-    end
-end
-
-function _py_is_py(svg)
-    if !isdefined(@__MODULE__, :PythonCall)
-        return false
-    end
-    py = getfield(@__MODULE__, :PythonCall)
-    return svg isa py.Py
-end
 
 include("PythonBridgeUtils.jl")
 
@@ -168,23 +121,6 @@ end
 
 include("MatrixGeneration.jl")
 include("SolveProblems.jl")
-
-module PythonBridge
-
-using Reexport
-
-@reexport using ..GenLAProblems:
-    ensure_pythoncall!,
-    load_LAFigureSpecs,
-    load_matrixlayout,
-    la_version,
-    la_build,
-    ml_version,
-    ml_build,
-    materialize_python_value,
-    sympy
-
-end
 
 export __version__, __build__
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix

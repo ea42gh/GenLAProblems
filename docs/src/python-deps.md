@@ -19,3 +19,5 @@ In other words:
 
 - `GenLAProblems` generates exact example data.
 - `LATeachingSuite` handles the cross-language workflow/rendering layer.
+
+`GenLAProblems` no longer provides a `PythonBridge` submodule.
