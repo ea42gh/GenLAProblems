@@ -356,6 +356,47 @@ function invert_unit_lower(L)
     return L_inv
 end
 # ------------------------------------------------------------------------------
+"""
+    _ref_no_row_swaps(A)
+
+Compute the elimination factorization of `A` using REF-style elimination without
+row swaps.
+
+This stays private because `GenLAProblems` only needs it internally for the
+canonical PLU generator.
+"""
+function _ref_no_row_swaps(A)
+    T = eltype(A) <: Integer ? Rational{Int}.(A) : copy(A)
+    m, n = size(T)
+    L = Matrix{eltype(T)}(I, m, m)
+    U = copy(T)
+
+    row = 1
+    col = 1
+    while row <= m && col <= n
+        if iszero(U[row, col])
+            if any(i -> !iszero(U[i, col]), (row + 1):m)
+                throw(ArgumentError("matrix does not admit no-swap REF factorization"))
+            end
+            col += 1
+            continue
+        end
+
+        for i in (row + 1):m
+            if !iszero(U[i, col])
+                multiplier = U[i, col] // U[row, col]
+                L[i, row] = multiplier
+                U[i, col:n] .-= multiplier .* U[row, col:n]
+            end
+        end
+
+        row += 1
+        col += 1
+    end
+
+    L, U
+end
+# ------------------------------------------------------------------------------
 raw""" A, A_inv = gen_inv_pb(n; maxint=3)
 """
 function gen_inv_pb(n; maxint=3)
@@ -405,15 +446,8 @@ function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
     pivot_cols, L, U, A = gen_lu_pb(m,n,r;maxint=maxint,pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
 
     P  = gen_permutation_matrix(m)
-    A            = L * P * U
-
-    matrices,_,_ = reduce_to_ref(P'A)
-    if length(matrices) > 1
-        L̃            = 1I-sum([tril(l[1],-1) for l in matrices[2:end]])
-    else
-        L̃            = 1I(m)
-    end
-    Ũ            = inv(Rational{Int}.(L̃))*P'*A
+    A = L * P * U
+    L̃, Ũ = _ref_no_row_swaps(P' * A)
     pivot_cols, P, L̃, Ũ, A
 end
 # ------------------------------------------------------------------------------

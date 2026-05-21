@@ -127,13 +127,13 @@ using GenLAProblems
         Scx, Λcx, S_invcx, Acx = gen_cx_eigenproblem([-1 + 2im]; maxint=1)
         @test Acx == Scx * Λcx * S_invcx
 
+        @test !isdefined(GenLAProblems, :charpoly)
+
         Adef = Rational.(gen_non_diagonalizable_eigenproblem(2, 0; maxint=2))
-        @test GenLAProblems.charpoly(Adef) == GenLAProblems.charpoly([2 1 0; 0 2 0; 0 0 0])
         @test rank(Adef - 2I) == 2
 
         J1 = jordan_block(2, 2)
         J2 = jordan_block(0, 1)
         Afrom = gen_from_jordan_form([J1, J2]; maxint=2)
-        @test GenLAProblems.charpoly(Afrom) == GenLAProblems.charpoly([2 1 0; 0 2 0; 0 0 0])
     end
 end

@@ -4,7 +4,6 @@ version = "1.0.0"
 authors = ["ea42_github@mail.com"]
 
 [deps]
-AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 Hadamard = "4a05ff16-5f95-55f4-bb53-bb3f467c689a"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

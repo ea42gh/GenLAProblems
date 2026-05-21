@@ -62,8 +62,6 @@ end
 
 using LinearAlgebra
 using Random
-using AbstractAlgebra
-import AbstractAlgebra: charpoly
 
 using Reexport
 using PrecompileTools
@@ -146,7 +144,6 @@ export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
     gen_rhs(A, pivot_cols)
     ref_matrix(3, 3, 3)
     rref_matrix(3, 3, 3)
-    charpoly(A)
     gen_eigenproblem([1, 2, 3])
     gen_symmetric_eigenproblem([1, 2, 3])
     gen_qr_problem(4; family=:pythagorean)
