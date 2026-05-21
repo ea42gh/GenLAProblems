@@ -5,6 +5,12 @@ using LinearAlgebra
 using GenLAProblems
 
 @testset "GenLAProblems.jl" begin
+    @test !isdefined(GenLAProblems, :ShowGE)
+    @test !isdefined(GenLAProblems, :nM)
+    @test !isdefined(GenLAProblems, :qr_matrices_from_grid)
+    @test !isdefined(GenLAProblems, :eig_matrices_from_spec)
+    @test !isdefined(GenLAProblems, :svd_matrices_from_spec)
+
     @testset "Matrix generation" begin
         M, pivots = rref_matrix(4, 6, 3; maxint=3, pivot_in_first_col=true, has_zeros=true)
         @test size(M) == (4, 6)

@@ -99,6 +99,9 @@ GenLAProblems is intentionally generator-focused.
 - Import `LAlatex` separately when you want notebook-friendly LaTeX display.
 - Import `LATeachingSuite` when you want GE reduction workflows, `ShowGE`,
   back-substitution displays, or Python-backed figure helpers.
+- Legacy render/display compatibility shims now live only in
+  `LATeachingSuite`; `GenLAProblems` no longer exposes the old `nM` proxy or
+  bundle/spec extraction helpers.
 
 ## Local development
 

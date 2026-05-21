@@ -35,11 +35,6 @@ end
 struct SympyProxy end
 const sympy = SympyProxy()
 
-struct NMProxy end
-const nM = NMProxy()
-
-(::NMProxy)() = nM
-
 function materialize_python_value(x)
     if x isa NamedTuple
         return (; (name => materialize_python_value(value) for (name, value) in pairs(x))...)
@@ -173,9 +168,3 @@ function load_matrixlayout()
     end
     return _matrixlayout[]
 end
-
-"""
-    nM -> NMProxy
-
-Proxy that exposes matrixlayout helpers by default and LAFigureSpecs display helpers.
-"""
