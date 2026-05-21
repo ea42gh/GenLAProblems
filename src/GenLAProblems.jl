@@ -8,16 +8,7 @@ using Random
 
 using PrecompileTools
 
-const _symbolics_mod = Ref{Any}(nothing)
 const _hadamard_mod = Ref{Any}(nothing)
-
-function _ensure_symbolics()
-    if _symbolics_mod[] === nothing
-        @eval import Symbolics
-        _symbolics_mod[] = Base.invokelatest(() -> Symbolics)
-    end
-    return _symbolics_mod[]
-end
 
 function _ensure_hadamard()
     if _hadamard_mod[] === nothing

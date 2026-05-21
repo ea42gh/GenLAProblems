@@ -39,9 +39,9 @@ l_show("A X = B : ", A, X, " = ", B)
 
 ## SymPy substitution helper
 
-`GenLAProblems` also provides a small helper for substituting numeric values
+`LATeachingSuite` also provides a small helper for substituting numeric values
 into symbolic matrices while preserving exact values when possible.
 
 ```@docs
-GenLAProblems.SymPyHelpers.sym_subs_numeric
+LATeachingSuite.SymPyHelpers.sym_subs_numeric
 ```

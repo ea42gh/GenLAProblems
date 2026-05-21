@@ -70,17 +70,17 @@ Create a matrix of symbolic variables with names based on given indices.
     - `col_indices`: Iterable of column indices.
 
     # Returns
-    - `Matrix{Sym}`: A matrix of symbolic variables.
+    - `Matrix{Symbol}`: A matrix of symbolic names.
 """
 """
     symbols_matrix(s, row_indices, col_indices)
 
-Create a matrix of symbolic variables using `syms` with names like `s_{i,j}`.
+Create a matrix of symbolic names like `s_{i,j}`.
 """
 function symbols_matrix(s::String, row_indices, col_indices)
     rows = collect(row_indices)
     cols = collect(col_indices)
-    matrix = [syms("$(s)_{$(i),$(j)}", real=true) for i in rows, j in cols]
+    matrix = [Symbol("$(s)_{$(i),$(j)}") for i in rows, j in cols]
     return matrix
 end
 # ------------------------------------------------------------------------------

@@ -22,6 +22,7 @@ using GenLAProblems
     @test !isdefined(GenLAProblems, :px_to_mm)
     @test !isdefined(GenLAProblems, :ensure_pythoncall!)
     @test !isdefined(GenLAProblems, :sympy)
+    @test !isdefined(GenLAProblems, :_ensure_symbolics)
     @test !isdefined(GenLAProblems, :sym_to_julia_vec)
     @test !isdefined(GenLAProblems, :sym_to_julia_mat)
     @test !isdefined(GenLAProblems, :sym_subs_numeric)
