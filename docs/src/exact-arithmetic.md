@@ -42,6 +42,6 @@ l_show("A X = B : ", A, X, " = ", B)
 `LATeachingSuite` also provides a small helper for substituting numeric values
 into symbolic matrices while preserving exact values when possible.
 
-```@docs
-LATeachingSuite.SymPyHelpers.sym_subs_numeric
-```
+Use `LATeachingSuite.SymPyHelpers.sym_subs_numeric` when you need that
+cross-language symbolic substitution workflow; it is no longer part of the
+`GenLAProblems` API surface.
