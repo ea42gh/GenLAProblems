@@ -41,6 +41,10 @@ using GenLAProblems
     @test !isdefined(GenLAProblems, :_reduce_to_ref)
     @test !isdefined(GenLAProblems, :ge_variable_type)
     @test !isdefined(GenLAProblems, :decorate_ge)
+    @test !isdefined(GenLAProblems, :gram_schmidt_w)
+    @test !isdefined(GenLAProblems, :normalize_columns)
+    @test !isdefined(GenLAProblems, :qr_layout)
+    @test !isdefined(GenLAProblems, :gram_schmidt_stable)
 
     @testset "Matrix generation" begin
         M, pivots = rref_matrix(4, 6, 3; maxint=3, pivot_in_first_col=true, has_zeros=true)

@@ -118,7 +118,6 @@ function Base.getproperty(::SympyProxy, name::Symbol)
 end
 
 include("MatrixGeneration.jl")
-include("SolveProblems.jl")
 
 export __version__, __build__
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
