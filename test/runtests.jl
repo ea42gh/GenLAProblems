@@ -60,9 +60,13 @@ using GenLAProblems
 
         Pvec = gen_permutation_matrix([3, 1, 2])
         @test Pvec * [10, 20, 30] == [20, 30, 10]
+        @test_throws ArgumentError gen_permutation_matrix([1, 1, 2])
+        @test_throws ArgumentError gen_permutation_matrix([1, 2, 3])
         Pn = gen_permutation_matrix(4)
         @test Pn * Pn' == Matrix{Int}(I, 4, 4)
         @test Pn' * Pn == Matrix{Int}(I, 4, 4)
+        @test Pn != Matrix{Int}(I, 4, 4)
+        @test_throws ArgumentError gen_permutation_matrix(1)
 
         Afull = gen_full_col_rank_matrix([2, 2], [1, 1]; maxint=2)
         @test size(Afull) == (4, 2)
@@ -71,6 +75,16 @@ using GenLAProblems
         pivot_cols, A = gen_gj_matrix(4, 6, 3; maxint=3, pivot_in_first_col=true, has_zeros=true)
         @test size(A) == (4, 6)
         @test length(pivot_cols) == 3
+        @test_throws ArgumentError rref_matrix(2, 2, 3; maxint=2)
+        @test_throws ArgumentError rref_matrix(2, 3, -1; maxint=2)
+        err_ref = try
+            ref_matrix(2, 2, 3; maxint=2)
+            nothing
+        catch err
+            err
+        end
+        @test err_ref isa ArgumentError
+        @test occursin("ref_matrix requires r to satisfy 0 <= r <= min(m, n)", sprint(showerror, err_ref))
         Xrhs, Brhs = gen_rhs(A, pivot_cols; maxint=2, num_rhs=2, has_zeros=true)
         @test size(Xrhs) == (6, 2)
         @test size(Brhs) == (4, 2)
@@ -86,6 +100,8 @@ using GenLAProblems
             @test rank(hcat(Ar, Rational.(Binc[:, j]))) > rank(Ar)
         end
         @test_throws ArgumentError gen_inconsistent_gj_pb(3, 5, 3; maxint=2)
+        @test_throws ArgumentError gen_gj_pb(2, 2, 3; maxint=2)
+        @test_throws ArgumentError gen_lu_pb(2, 2, 3; maxint=2)
 
         S, Λ, S_inv, Aeig = gen_eigenproblem([3 -1 2]; maxint=2)
         @test size(S) == (3, 3)
@@ -134,6 +150,17 @@ using GenLAProblems
         @test_throws ArgumentError gen_qr_problem(1; family=:pythagorean, maxint=2)
         @test_throws ArgumentError gen_qr_problem((2, 2); family=:hadamard, maxint=2)
 
+        projA = [1 0; 0 1; 1 1]
+        @test ca_projection_matrix(projA) == projA * inv(projA' * projA) * projA'
+        err_proj = try
+            ca_projection_matrix([1 2; 2 4])
+            nothing
+        catch err
+            err
+        end
+        @test err_proj isa ArgumentError
+        @test occursin("ca_projection_matrix requires linearly independent columns", sprint(showerror, err_proj))
+
         U1, Σ1, Vt1, Asvd1 = gen_svd_problem([2, 1], [2, 1], [3, 1, 0]; maxint=2)
         @test U1 * Σ1 * Vt1 == Asvd1
 
@@ -165,6 +192,7 @@ using GenLAProblems
         @test P2 != Matrix{Int}(I, 5, 5)
         @test A2 == P2 * L2 * Uplu2
         @test_throws ArgumentError gen_plu_pb(4, 4, 3; maxint=2, nswaps=4)
+        @test_throws ArgumentError gen_plu_pb(2, 2, 3; maxint=2)
 
         Pc, Jc, Pinvc, Ac = gen_degenerate_matrix((2, 2), (0, 1); maxint=2)
         @test Ac == Pc * Jc * Pinvc
@@ -179,6 +207,9 @@ using GenLAProblems
 
         J1 = jordan_block(2, 2)
         J2 = jordan_block(0, 1)
+        @test_throws ArgumentError jordan_block(2, 0)
         Afrom = gen_from_jordan_form([J1, J2]; maxint=2)
+        @test_throws ArgumentError gen_degenerate_matrix((2, 0); maxint=2)
+        @test_throws ArgumentError gen_degenerate_matrix(0; maxint=2)
     end
 end

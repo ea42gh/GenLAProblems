@@ -5,7 +5,7 @@ module GenLAProblems
 
 Package version string for the loaded `GenLAProblems` module.
 """
-const __version__ = "1.0.0"
+const __version__ = "1.0.1"
 
 """
     __build__::String

@@ -93,6 +93,10 @@ function _int_range( maxint, has_zeros)
     end
     rng
 end
+
+function _validate_rank_request(fname, m, n, r)
+    0 <= r <= min(m, n) || throw(ArgumentError("$fname requires r to satisfy 0 <= r <= min(m, n)"))
+end
 # ------------------------------------------------------------------------------
 """
     unit_lower(m, n; maxint=3) -> Matrix{Int}
@@ -144,6 +148,7 @@ sampled when `has_zeros=true`.
 """
 function rref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
     # create a reduced row echelon form matrix of size m x n and rank r
+    _validate_rank_request("rref_matrix", m, n, r)
     if pivot_in_first_col || r==n
         pivot_cols = sort!([1; (2:n)[randperm(n-1)]][1:r])
     else
@@ -178,6 +183,7 @@ nonpivot columns so the result remains in row echelon form rather than reduced
 row echelon form. `pivot_cols` lists the pivot columns.
 """
 function ref_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false)
+    _validate_rank_request("ref_matrix", m, n, r)
     M,pivot_cols = rref_matrix(m,n,r; maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
     rng = _int_range( maxint, false)
     M   = Diagonal(rand(rng,m)) * M * unit_lower(n,n,maxint=1)'
@@ -278,6 +284,8 @@ If `row_order[i] == j`, then column `i` of the result is the basis vector `e_j`.
 """
 function gen_permutation_matrix(row_order::AbstractVector{<:Integer})
     n = length(row_order)
+    sort(collect(row_order)) == collect(1:n) || throw(ArgumentError("row_order must be a permutation of 1:$n"))
+    row_order == collect(1:n) && throw(ArgumentError("row_order must not be the identity permutation"))
     P = zeros(Int, (n,n))
     for i in 1:n
         P[row_order[i],i] = 1
@@ -291,7 +299,11 @@ end
 Construct a uniformly shuffled `n × n` permutation matrix.
 """
 function gen_permutation_matrix(n)
+    n > 1 || throw(ArgumentError("n must be at least 2 to generate a non-identity permutation"))
     locs = randperm(n)
+    while locs == collect(1:n)
+        locs = randperm(n)
+    end
     P    = zeros(Int, (n,n))
     for i in 1:n
         P[i,locs[i]] = 1
@@ -354,6 +366,7 @@ The right-hand side is produced from an exact integer solution matrix `X`.
 """
 function gen_gj_pb(m,n,r;
         maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1 )
+    _validate_rank_request("gen_gj_pb", m, n, r)
     pivot_cols,A = gen_gj_matrix(m,n,r;
                                  maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros )
     X,B=gen_rhs(A, pivot_cols; maxint=maxint,num_rhs=num_rhs,has_zeros=has_zeros)
@@ -381,6 +394,7 @@ row-rank `m × n` matrix cannot produce an inconsistent system.
 """
 function gen_inconsistent_gj_pb(m,n,r;
         maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1 )
+    _validate_rank_request("gen_inconsistent_gj_pb", m, n, r)
     r < m || throw(ArgumentError("gen_inconsistent_gj_pb requires r < m so the system can be inconsistent"))
 
     M,pivot_cols = rref_matrix(m,n,r;
@@ -478,6 +492,7 @@ Generate an exact LU factorization exercise with `A = L * U`.
 and `pivot_cols` records the pivot columns of `U`.
 """
 function gen_lu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
+    _validate_rank_request("gen_lu_pb", m, n, r)
     U,pivot_cols = ref_matrix(m,n,r,maxint=maxint,pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros )
     L   = unit_lower(m,maxint=maxint)
 
@@ -586,6 +601,7 @@ one swap whenever that is possible. The returned `L` and `P` collapse that
 history into a unit lower-triangular factor and a permutation matrix.
 """
 function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false, nswaps=nothing)
+    _validate_rank_request("gen_plu_pb", m, n, r)
     U, pivot_cols = ref_matrix(m,n,r; maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
     P, L, A = _gen_plu_from_reverse_ge(U, r; maxint=maxint, nswaps=nswaps)
     pivot_cols, P, L, U, A
@@ -797,6 +813,7 @@ This assumes that the columns of `A` are linearly independent so that
 `A' * A` is invertible.
 """
 function ca_projection_matrix(A)
+    rank(A) == size(A, 2) || throw(ArgumentError("ca_projection_matrix requires linearly independent columns so that A' * A is invertible"))
     A*inv(A'A)*A'
 end
 # ------------------------------------------------------------------------------
@@ -984,6 +1001,7 @@ end
 Construct the `k × k` Jordan block with eigenvalue `λ`.
 """
 function jordan_block(lambda,k)
+    k > 0 || throw(ArgumentError("k must be positive"))
     J = Bidiagonal( fill(lambda,k), ones(typeof(lambda),k-1),:U)
 end
 # ------------------------------------------------------------------------------
@@ -1029,8 +1047,10 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
     total_size = 0
     for desc in block_descriptions
         if isa(desc, Int)
+            desc > 0 || throw(ArgumentError("Jordan block sizes must be positive"))
             total_size += desc  # Integer block size (nilpotent case)
         elseif isa(desc, Tuple) && length(desc) == 2
+            desc[2] > 0 || throw(ArgumentError("Jordan block sizes must be positive"))
             total_size += desc[2]  # Tuple (block eigenvalue, size)
         else
             throw(ArgumentError("Each block description must be an integer or a tuple (λ, n)."))
