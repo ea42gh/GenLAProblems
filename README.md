@@ -18,6 +18,9 @@ computation.
 The Binder notebook opens `GenProblems.ipynb` and shows the current
 generator-focused workflow.
 
+For the full exported API reference and generator notes, see the
+[Usage and Quickstart](https://ea42gh.github.io/GenLAProblems.jl/usage/) page.
+
 ## Installation
 
 ```julia

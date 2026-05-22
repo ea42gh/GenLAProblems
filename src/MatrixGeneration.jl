@@ -610,7 +610,9 @@ the zero rows below rank `r`, and `P` then interleaves those dependent rows
 among the pivot rows so standard elimination encounters forced row exchanges.
 When `nswaps` is provided, the construction inserts up to
 `min(nswaps, m-r, r-1)` such dependent rows; when omitted, it uses one swap
-whenever that is possible.
+whenever that is possible. In particular, when `r == m` there are no zero rows
+available for this construction, so no forced dependent-row insertions occur
+and the returned permutation may be the identity.
 """
 function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false, nswaps=nothing)
     _validate_rank_request("gen_plu_pb", m, n, r)
