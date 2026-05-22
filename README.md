@@ -19,7 +19,7 @@ The Binder notebook opens `GenProblems.ipynb` and shows the current
 generator-focused workflow.
 
 For the full exported API reference and generator notes, see the
-[Usage and Quickstart](https://ea42gh.github.io/GenLAProblems.jl/usage/) page.
+[Usage and Quickstart](https://ea42gh.github.io/GenLAProblems.jl/stable/usage/) page.
 
 ## Installation
 
@@ -79,20 +79,25 @@ It is not intended to replace general-purpose numerical linear algebra libraries
 
 ## Generator notes
 
+- `gen_gj_pb(...)` and `gen_inconsistent_gj_pb(...)` are the canonical exact
+  generators for consistent and inconsistent Gaussian-elimination /
+  Gauss-Jordan system problems.
+- `W_matrix` is the general exact `W` constructor, and `W_2_matrix`,
+  `W_3_matrix`, and `W_4_matrix` are the specialized small-size families.
+  All consistently return `(d, A)` where `A' * A` is diagonal.
+- `Q_matrix` is the general exact orthogonal constructor, and `Q_2_matrix`,
+  `Q_3_matrix`, and `Q_4_matrix` are the specialized small-size families.
 - `gen_qr_problem(n; family=:auto, maxint=3)` is now the canonical QR-problem
   entrypoint. Supported families are `:pythagorean`, `:hadamard`, `:cayley`,
   and `:sparse`.
+- `gen_eigenproblem` and `gen_symmetric_eigenproblem` accept either a standard
+  vector of eigenvalues or a `1×n` / `n×1` matrix input.
 - `gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3)`
   now lets you choose the orthogonal-family construction for the left and right
   SVD factors independently.
   The `:hadamard` family is exact-rational only when the size both supports a
   Hadamard matrix and has an integer square root (for example `n = 4`, but not
   `n = 12`).
-- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` consistently return
-  `(d, A)` where `A' * A` is diagonal. `Q_2_matrix`, `Q_3_matrix`, and
-  `Q_4_matrix` return orthogonal matrices.
-- `gen_eigenproblem` and `gen_symmetric_eigenproblem` accept either a standard
-  vector of eigenvalues or a `1×n` / `n×1` matrix input.
 
 ## Package boundaries
 
