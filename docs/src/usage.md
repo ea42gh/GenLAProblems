@@ -144,7 +144,7 @@ Generator-oriented APIs in `GenLAProblems`:
 - `invert_unit_lower(L)` returns the inverse of a unit lower-triangular matrix.
 - `gen_inv_pb(n; ...)` returns an invertible matrix together with its exact inverse.
 - `gen_lu_pb(m, n, r; ...)` returns `pivot_cols, L, U, A` with `A = L * U`.
-- `gen_plu_pb(m, n, r; ..., nswaps=...)` returns `pivot_cols, P, L, U, A` with `A = P * L * U`, and `nswaps` selects the exact number of row exchanges in the generated elimination history.
+- `gen_plu_pb(m, n, r; ..., nswaps=...)` returns `pivot_cols, P, L, U, A` with `A = P * L * U`; it creates dependent rows below rank and then permutes them upward to force up to `min(nswaps, m-r, r-1)` row exchanges.
 - `gen_ldlt_pb(m; ...)` returns `L, D, A` with `A = L * D * L'`.
 
 ### Orthogonal and QR constructors

@@ -62,7 +62,7 @@ function symbol_vector( s, indices )
 end
 # ------------------------------------------------------------------------------
 """
-    symbols_matrix(s, row_indices, col_indices)
+    symbols_matrix(s, row_indices, col_indices) -> Matrix{Symbol}
 
 Create a matrix of symbolic names using the base string `s`.
 Entry `(i, j)` is named like `:a_{1,3}` after collecting the supplied row and
@@ -383,8 +383,7 @@ function gen_gj_pb(m,n; maxint=3)
 end
 # ------------------------------------------------------------------------------
 """
-    gen_inconsistent_gj_pb(m, n, r;
-        maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1) -> A, B
+    gen_inconsistent_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1) -> A, B
 
 Generate an inconsistent linear system `A * x = B` of rank `r`.
 
@@ -500,110 +499,123 @@ function gen_lu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false)
     pivot_cols, L, U, A
 end
 # ------------------------------------------------------------------------------
-function _forced_plu_schedule(m, r; maxint=3, nswaps=nothing)
-    swaps = collect(1:r)
-    multipliers = zeros(Int, m, r)
-    maxswaps = min(r, m - 1)
+"""
+    _plu_dependent_positions(m, r; nswaps=nothing) -> Vector{Int}
 
+Choose the sorted insertion positions used by `gen_plu_pb` for dependent rows
+that will be moved upward among the first `r` pivot rows.
+"""
+function _plu_dependent_positions(m, r; nswaps=nothing)
+    maxswaps = min(m - r, max(r - 1, 0))
     if nswaps === nothing
-        nswaps = maxswaps > 0 ? 1 : 0
+        k = maxswaps > 0 ? 1 : 0
+    else
+        nswaps >= 0 || throw(ArgumentError("nswaps must be nonnegative"))
+        k = min(nswaps, maxswaps)
     end
-    0 <= nswaps <= maxswaps || throw(ArgumentError("nswaps must satisfy 0 <= nswaps <= $(maxswaps)"))
+    k == 0 && return Int[]
 
-    if nswaps > 0
-        for kswap in sort(shuffle!(collect(1:maxswaps))[1:nswaps])
-            swaps[kswap] = rand(kswap + 1:m)
+    positions = shuffle!(collect(2:r+k-1))[1:k]
+    sort!(positions)
+end
+
+"""
+    _plu_base_lower_factor(m, r, dependent_positions; maxint=3) -> Matrix{Int}
+
+Build the dense base lower-triangular factor `L0` used by `gen_plu_pb`.
+For each planned inserted dependent row, the entries in columns `1:k` are
+resampled and columns `k+1:r` are zeroed so that the row depends only on the
+first `k` pivot rows, while the lower-triangular tail to the right of the rank
+block remains random.
+"""
+function _plu_base_lower_factor(m, r, dependent_positions; maxint=3)
+    L = unit_lower(m; maxint=maxint)
+    for (j, pos) in enumerate(dependent_positions)
+        dep_row = r + j
+        npivot_above = pos - j
+        npivot_above > 0 || continue
+        coeffs = rand([-maxint:-1; 1:maxint], npivot_above)
+        L[dep_row, 1:npivot_above] .= coeffs
+        if npivot_above < r
+            L[dep_row, npivot_above+1:r] .= 0
+        end
+    end
+    L
+end
+
+"""
+    _plu_row_order(m, r, dependent_positions) -> Vector{Int}
+
+Return the row order used to form the final matrix `A = P * L * U`.
+Each dependent row `r + j` is inserted at the requested position in
+`dependent_positions`, and the remaining pivot/unused rows keep their relative
+order.
+"""
+function _plu_row_order(m, r, dependent_positions)
+    k = length(dependent_positions)
+    row_order = Vector{Int}(undef, m)
+    dep_lookup = Set(dependent_positions)
+    pivot_row = 1
+    dep_row = r + 1
+
+    for pos in 1:(r+k)
+        if pos in dep_lookup
+            row_order[pos] = dep_row
+            dep_row += 1
+        else
+            row_order[pos] = pivot_row
+            pivot_row += 1
         end
     end
 
-    for k in 1:r
-        for i in k+1:m
-            multipliers[i, k] = rand(-maxint:maxint)
-        end
+    for pos in r+k+1:m
+        row_order[pos] = dep_row
+        dep_row += 1
     end
 
-    swaps, multipliers
+    row_order
 end
 
-function _reverse_plu_matrix(U, r, swaps, multipliers)
-    A = copy(U)
-    m = size(A, 1)
+"""
+    _gen_plu_from_factors(U, r; maxint=3, nswaps=nothing, return_schedule=false) -> P, L, A
+    _gen_plu_from_factors(U, r; maxint=3, nswaps=nothing, return_schedule=true) -> P, L, A, dependent_positions
 
-    for k in r:-1:1
-        for i in k+1:m
-            μ = multipliers[i, k]
-            if μ != 0
-                A[i, :] .+= μ .* A[k, :]
-            end
-        end
-
-        s = swaps[k]
-        if s != k
-            A[[k, s], :] = A[[s, k], :]
-        end
-    end
-
-    A
-end
-
-function _plu_factors_from_schedule(m, r, swaps, multipliers)
-    Pstd = Matrix{Int}(I, m, m)
-    L = Matrix{Int}(I, m, m)
-
-    for k in 1:r
-        s = swaps[k]
-        if s != k
-            Pstd[[k, s], :] = Pstd[[s, k], :]
-            if k > 1
-                L[[k, s], 1:k-1] = L[[s, k], 1:k-1]
-            end
-        end
-        L[k+1:m, k] = multipliers[k+1:m, k]
-    end
-
-    Pstd', L
-end
-
-function _is_identity_permutation(P)
-    P == Matrix{Int}(I, size(P, 1), size(P, 2))
-end
-
-function _swap_count(swaps)
-    count(i -> swaps[i] != i, eachindex(swaps))
-end
-
-function _gen_plu_from_reverse_ge(U, r; maxint=3, nswaps=nothing, return_schedule=false)
+Internal helper for `gen_plu_pb`. Keep the echelon factor `U` fixed, start from
+a dense base unit lower-triangular factor `L0`, zero only the minimum entries
+needed in the rank block so selected lower rows depend on controlled prefixes of
+the pivot rows, then build a permutation `P` that inserts those dependent rows
+upward. The final matrix is `A = P * L * U`.
+"""
+function _gen_plu_from_factors(U, r; maxint=3, nswaps=nothing, return_schedule=false)
     m = size(U, 1)
-
-    swaps, multipliers = _forced_plu_schedule(m, r; maxint=maxint, nswaps=nswaps)
-    A = _reverse_plu_matrix(U, r, swaps, multipliers)
-    P, L = _plu_factors_from_schedule(m, r, swaps, multipliers)
-    A == P * L * U || throw(ArgumentError("failed to generate a consistent PLU backward history"))
+    dependent_positions = _plu_dependent_positions(m, r; nswaps=nswaps)
+    L = _plu_base_lower_factor(m, r, dependent_positions; maxint=maxint)
+    row_order = _plu_row_order(m, r, dependent_positions)
+    P = [j == row_order[i] ? 1 : 0 for i in 1:m, j in 1:m]
+    A = P * L * U
 
     if return_schedule
-        return P, L, A, swaps
+        return P, L, A, dependent_positions
     end
     return P, L, A
 end
 
  # ------------------------------------------------------------------------------
 """
-    gen_plu_pb(m, n, r;
-        maxint=3, pivot_in_first_col=true, has_zeros=false, nswaps=nothing) -> pivot_cols, P, L, U, A
+    gen_plu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, nswaps=nothing) -> pivot_cols, P, L, U, A
 
 Generate an exact PLU factorization exercise with `A = P * L * U`.
-`U` is the canonical row-echelon factor. `A` is built by running a Gaussian
-elimination history backward from `U`, interleaving inverse elimination steps
-with a controlled number of row exchanges. Set `nswaps` to choose the exact
-number of row exchanges in the generated elimination history, subject to
-`0 <= nswaps <= min(r, m-1)`. When `nswaps` is omitted, the generator uses
-one swap whenever that is possible. The returned `L` and `P` collapse that
-history into a unit lower-triangular factor and a permutation matrix.
+`U` is the canonical row-echelon factor. `L` first creates dependent rows from
+the zero rows below rank `r`, and `P` then interleaves those dependent rows
+among the pivot rows so standard elimination encounters forced row exchanges.
+When `nswaps` is provided, the construction inserts up to
+`min(nswaps, m-r, r-1)` such dependent rows; when omitted, it uses one swap
+whenever that is possible.
 """
 function gen_plu_pb(m,n,r;maxint=3,pivot_in_first_col=true, has_zeros=false, nswaps=nothing)
     _validate_rank_request("gen_plu_pb", m, n, r)
     U, pivot_cols = ref_matrix(m,n,r; maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros)
-    P, L, A = _gen_plu_from_reverse_ge(U, r; maxint=maxint, nswaps=nswaps)
+    P, L, A = _gen_plu_from_factors(U, r; maxint=maxint, nswaps=nswaps)
     pivot_cols, P, L, U, A
 end
 # ------------------------------------------------------------------------------
@@ -757,8 +769,6 @@ function Q_matrix(n; maxint=3, with_zeros=false, general=false )
   inv(S-(1//1)I(size(S,1))) * (S+1I(size(S,1)))
 end
 # ------------------------------------------------------------------------------
-raw""" Q = sparse_Q_matrix(n; maxint=3, with_zeros=false )
-"""
 """
     sparse_Q_matrix(n; maxint=3, with_zeros=false) -> Matrix
 
@@ -857,6 +867,12 @@ function gen_qr_problem(n; family=:auto, maxint=3)
     return Qseed * lower(total_size(n), maxint=maxint)'
 end
 # ------------------------------------------------------------------------------
+"""
+    _orthogonal_matrix_family(n; family=:auto, maxint=3) -> Matrix
+
+Internal helper that returns the exact orthogonal matrix family selected by the
+`family` keyword for `gen_qr_problem` and `gen_svd_problem`.
+"""
 function _orthogonal_matrix_family(n; family=:auto, maxint=3)
     if family == :auto
         if n isa Integer && n in (2, 3, 4)
@@ -909,6 +925,12 @@ end
 # ------------------------------------------------------------------------------
 # ---------------------------------------------------------------- Eigenproblems
 # ------------------------------------------------------------------------------
+"""
+    _eigenvalues_vector(e_vals) -> Vector
+
+Normalize a vector-like eigenvalue input into a one-dimensional Julia vector.
+Accepts vectors and `1 × n` / `n × 1` matrices.
+"""
 function _eigenvalues_vector(e_vals)
     if e_vals isa AbstractVector
         return collect(e_vals)
@@ -933,7 +955,6 @@ function gen_eigenproblem( e_vals; maxint=3 )
     S,Λ,S_inv, S*Λ*S_inv
 end
 # ------------------------------------------------------------------------------
-raw""" S,Λ,S_inv,A = gen_cx_eigenproblem( evals_no_conj; maxint=1 ) """
 """
     gen_cx_eigenproblem(evals_no_conj; maxint=1) -> S, Λ, S_inv, A
 
@@ -968,7 +989,6 @@ function gen_cx_eigenproblem( evals_no_conj; maxint=1 )
     S,Λ,S_inv, S*Λ*S_inv
 end
 # ------------------------------------------------------------------------------
-raw""" S, Λ, A = gen_symmetric_eigenproblem( e_vals; maxint=5, with_zeros=false, general=false ) """
 """
     gen_symmetric_eigenproblem(e_vals; maxint=5, with_zeros=false, general=true) -> Q, Λ, A
 
@@ -1086,7 +1106,6 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint=3)
     P, J, P_inv, P * J * P_inv
 end
 # ------------------------------------------------------------------------------
-raw""" U, Σ, Vt, U * Σ * Vt = gen_svd_problem(m,n,σ; left_family=:sparse, right_family=:sparse, maxint = 3) """
 """
     gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3) -> U, Σ, Vt, A
 

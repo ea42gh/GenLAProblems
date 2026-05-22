@@ -181,17 +181,20 @@ using GenLAProblems
         @test Pplu != Matrix{Int}(I, 4, 4)
 
         Uplu0, _ = ref_matrix(4, 4, 3; maxint=2)
-        P0, L0, A0, swaps0 = GenLAProblems._gen_plu_from_reverse_ge(Uplu0, 3; maxint=2, nswaps=0, return_schedule=true)
-        @test GenLAProblems._swap_count(swaps0) == 0
+        P0, L0, A0, deps0 = GenLAProblems._gen_plu_from_factors(Uplu0, 3; maxint=2, nswaps=0, return_schedule=true)
+        @test length(deps0) == 0
         @test P0 == Matrix{Int}(I, 4, 4)
         @test A0 == P0 * L0 * Uplu0
 
-        Uplu2, _ = ref_matrix(5, 5, 4; maxint=2)
-        P2, L2, A2, swaps2 = GenLAProblems._gen_plu_from_reverse_ge(Uplu2, 4; maxint=2, nswaps=2, return_schedule=true)
-        @test GenLAProblems._swap_count(swaps2) == 2
-        @test P2 != Matrix{Int}(I, 5, 5)
+        Uplu2, _ = ref_matrix(6, 6, 4; maxint=2)
+        P2, L2, A2, deps2 = GenLAProblems._gen_plu_from_factors(Uplu2, 4; maxint=2, nswaps=2, return_schedule=true)
+        @test length(deps2) == 2
+        @test issorted(deps2)
+        @test length(unique(deps2)) == 2
+        @test P2 != Matrix{Int}(I, 6, 6)
         @test A2 == P2 * L2 * Uplu2
-        @test_throws ArgumentError gen_plu_pb(4, 4, 3; maxint=2, nswaps=4)
+        _, _, _, Uplu_many, Aplu_many = gen_plu_pb(6, 6, 4; maxint=2, nswaps=99)
+        @test size(Uplu_many) == size(Aplu_many)
         @test_throws ArgumentError gen_plu_pb(2, 2, 3; maxint=2)
 
         Pc, Jc, Pinvc, Ac = gen_degenerate_matrix((2, 2), (0, 1); maxint=2)
