@@ -58,7 +58,8 @@ indices.
 For example, `symbol_vector("x", 1:3)` returns `[:x_1, :x_2, :x_3]`.
 """
 function symbol_vector( s, indices )
-    [Symbol(s*"_$i") for i in collect(indices)]
+    sstr = string(s)
+    [Symbol(sstr * "_$i") for i in collect(indices)]
 end
 # ------------------------------------------------------------------------------
 """
@@ -71,10 +72,11 @@ column index iterables.
 For example, `symbols_matrix("a", 1:2, 3:4)` returns
 `[:a_{1,3} :a_{1,4}; :a_{2,3} :a_{2,4}]`.
 """
-function symbols_matrix(s::String, row_indices, col_indices)
+function symbols_matrix(s, row_indices, col_indices)
+    sstr = string(s)
     rows = collect(row_indices)
     cols = collect(col_indices)
-    matrix = [Symbol("$(s)_{$(i),$(j)}") for i in rows, j in cols]
+    matrix = [Symbol("$(sstr)_{$(i),$(j)}") for i in rows, j in cols]
     return matrix
 end
 # ------------------------------------------------------------------------------

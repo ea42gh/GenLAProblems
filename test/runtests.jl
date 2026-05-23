@@ -4,6 +4,9 @@ using LinearAlgebra
 
 using GenLAProblems
 
+struct WrappedAlpha end
+Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
+
 @testset "GenLAProblems.jl" begin
     @test !isdefined(GenLAProblems, :ShowGE)
     @test !isdefined(GenLAProblems, :nM)
@@ -53,6 +56,12 @@ using GenLAProblems
     @test !isdefined(GenLAProblems, :gram_schmidt_stable)
 
     @testset "Matrix generation" begin
+        @test symbol_vector(WrappedAlpha(), 1:2) == [Symbol("\\alpha_1"), Symbol("\\alpha_2")]
+        @test symbols_matrix(WrappedAlpha(), 1:2, 1:3) == [
+            Symbol("\\alpha_{1,1}") Symbol("\\alpha_{1,2}") Symbol("\\alpha_{1,3}");
+            Symbol("\\alpha_{2,1}") Symbol("\\alpha_{2,2}") Symbol("\\alpha_{2,3}")
+        ]
+
         M, pivots = rref_matrix(4, 6, 3; maxint=3, pivot_in_first_col=true, has_zeros=true)
         @test size(M) == (4, 6)
         @test length(pivots) == 3
