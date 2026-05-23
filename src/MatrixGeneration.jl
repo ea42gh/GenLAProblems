@@ -505,6 +505,22 @@ end
 Choose the sorted insertion positions used by `gen_plu_pb` for dependent rows
 that will be moved upward among the first `r` pivot rows.
 """
+function _denominator_lcm(x)
+    if x isa Rational
+        return denominator(x)
+    elseif x isa Complex{<:Rational}
+        return lcm(denominator(real(x)), denominator(imag(x)))
+    else
+        return 1
+    end
+end
+
+function _factor_out_denominator(A::AbstractArray)
+    isempty(A) && return 1, copy(A)
+    d = foldl(lcm, (_denominator_lcm(x) for x in A); init=1)
+    return d, d .* A
+end
+
 function _plu_dependent_positions(m, r; nswaps=nothing)
     maxswaps = min(m - r, max(r - 1, 0))
     if nswaps === nothing
@@ -749,7 +765,7 @@ function W_matrix(n; general=false)
     end
   end
   A = Q_matrix(n; general=general)
-  factor_out_denominator(A)
+  _factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
 """
@@ -810,7 +826,7 @@ The pair satisfies `(W // d) == sparse_Q_matrix(n)`.
 """
 function sparse_W_matrix(n)
     A = sparse_Q_matrix(n)
-    factor_out_denominator(A)
+    _factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
 # ---------------------------------------------------------------- Orthogonality
