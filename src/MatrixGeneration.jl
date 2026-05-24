@@ -888,6 +888,24 @@ function gen_qr_problem(n; family=:auto, maxint=3)
 end
 # ------------------------------------------------------------------------------
 """
+    gen_qr_problem_3(; maxint=3, kwargs...) -> Matrix
+
+Legacy convenience wrapper for `gen_qr_problem(3; ...)`.
+"""
+function gen_qr_problem_3(; maxint=3, kwargs...)
+    return gen_qr_problem(3; maxint=maxint, kwargs...)
+end
+# ------------------------------------------------------------------------------
+"""
+    gen_qr_problem_4(; maxint=3, kwargs...) -> Matrix
+
+Legacy convenience wrapper for `gen_qr_problem(4; ...)`.
+"""
+function gen_qr_problem_4(; maxint=3, kwargs...)
+    return gen_qr_problem(4; maxint=maxint, kwargs...)
+end
+# ------------------------------------------------------------------------------
+"""
     _orthogonal_matrix_family(n; family=:auto, maxint=3) -> Matrix
 
 Internal helper that returns the exact orthogonal matrix family selected by the
