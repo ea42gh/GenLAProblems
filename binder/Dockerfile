@@ -9,6 +9,12 @@ ENV PYTHON_JULIACALL_EXE=/usr/local/julia/bin/julia
 ENV PYTHON_JULIACALL_PROJECT=/home/jovyan/GenLAProblems
 ENV PYJULIAPKG_PROJECT=/home/jovyan/GenLAProblems
 ENV JULIAPKG_PROJECT=/home/jovyan/GenLAProblems
+ENV JULIA_PKG_PRECOMPILE_AUTO=0
+ENV JULIA_NUM_THREADS=1
+ENV JULIA_NUM_PRECOMPILE_TASKS=1
+ENV OPENBLAS_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV OMP_NUM_THREADS=1
 ENV TERM=xterm-256color
 ENV INPUTRC=/home/jovyan/.inputrc
 ENV XDG_DATA_HOME=/home/jovyan/.local/share
@@ -20,7 +26,11 @@ WORKDIR /tmp
 RUN mkdir -p /home/jovyan/GenLAProblems \
  && chown -R jovyan:jovyan /home/jovyan/GenLAProblems
 
-RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel sympy
+RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+ && /usr/local/bin/python3 -m pip install --no-cache-dir \
+    sympy \
+    "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git" \
+    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git"
 
 USER jovyan
 WORKDIR /home/jovyan/GenLAProblems
@@ -31,16 +41,13 @@ USER root
 RUN chown -R jovyan:jovyan /home/jovyan/GenLAProblems
 
 RUN mkdir -p /home/jovyan/work \
- && chown -R jovyan:jovyan /home/jovyan/work
+ && chown -R jovyan:jovyan /home/jovyan/work \
+ && chmod -R u+rwX /home/jovyan/work
 
 COPY --chown=jovyan:jovyan GenProblems.ipynb /home/jovyan/work/GenProblems.ipynb
+COPY --chown=jovyan:jovyan KernelProbe.ipynb /home/jovyan/work/KernelProbe.ipynb
 
 USER jovyan
-
-RUN mkdir -p /home/jovyan/.local/share/jupyter/kernels/julia-1.10 \
- && chown -R jovyan:jovyan /home/jovyan/.local/share/jupyter/kernels/julia-1.10
-
-COPY --chown=jovyan:jovyan binder/julia-1.10/kernel.json /home/jovyan/.local/share/jupyter/kernels/julia-1.10/kernel.json
 
 RUN bash binder/postBuild
 
