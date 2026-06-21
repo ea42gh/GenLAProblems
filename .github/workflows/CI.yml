@@ -34,8 +34,8 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: ea42gh/LAlatex
           path: LAlatex
@@ -61,8 +61,8 @@ jobs:
       contents: write
       statuses: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: ea42gh/LAlatex
           path: LAlatex
@@ -98,8 +98,8 @@ jobs:
       actions: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: ea42gh/LAlatex
           path: LAlatex
