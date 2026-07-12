@@ -13,11 +13,13 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 [compat]
 BlockArrays = "1.4.0"
 Hadamard = "1"
+LaTeXStrings = "1.4.0"
 PrecompileTools = "1.2.0"
 julia = "1.10"
 
 [extras]
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["LaTeXStrings", "Test"]

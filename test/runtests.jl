@@ -1,6 +1,7 @@
 using Test
 using Random
 using LinearAlgebra
+using LaTeXStrings
 
 using GenLAProblems
 
@@ -57,7 +58,12 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
 
     @testset "Matrix generation" begin
         @test symbol_vector(WrappedAlpha(), 1:2) == [Symbol("\\alpha_1"), Symbol("\\alpha_2")]
+        @test symbol_vector(L"\alpha", 1:2) == [Symbol("\\alpha_1"), Symbol("\\alpha_2")]
         @test symbols_matrix(WrappedAlpha(), 1:2, 1:3) == [
+            Symbol("\\alpha_{1,1}") Symbol("\\alpha_{1,2}") Symbol("\\alpha_{1,3}");
+            Symbol("\\alpha_{2,1}") Symbol("\\alpha_{2,2}") Symbol("\\alpha_{2,3}")
+        ]
+        @test symbols_matrix(L"\alpha", 1:2, 1:3) == [
             Symbol("\\alpha_{1,1}") Symbol("\\alpha_{1,2}") Symbol("\\alpha_{1,3}");
             Symbol("\\alpha_{2,1}") Symbol("\\alpha_{2,2}") Symbol("\\alpha_{2,3}")
         ]
