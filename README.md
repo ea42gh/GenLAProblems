@@ -110,7 +110,7 @@ GenLAProblems is intentionally generator-focused.
 - The Julia-facing Python bridge is owned by `LATeachingSuite.PythonBridge`,
   not by `GenLAProblems`.
 - Legacy render/display compatibility shims now live only in
-  `LATeachingSuite`; `GenLAProblems` no longer exposes the old `nM` proxy or
+  `LATeachingSuite`; `GenLAProblems` no longer exposes the removed `nM` proxy or
   bundle/spec extraction helpers.
 
 The package itself no longer depends on `LAlatex`; display support is an
