@@ -109,9 +109,9 @@ GenLAProblems is intentionally generator-focused.
   back-substitution displays, or Python-backed figure helpers.
 - The Julia-facing Python bridge is owned by `LATeachingSuite.PythonBridge`,
   not by `GenLAProblems`.
-- Legacy render/display compatibility shims now live only in
-  `LATeachingSuite`; `GenLAProblems` no longer exposes the removed `nM` proxy or
-  bundle/spec extraction helpers.
+- Removed render/display APIs such as the old `nM` proxy and bundle/spec
+  extraction helpers are no longer part of `GenLAProblems`; use
+  `LATeachingSuite` for the current workflow and rendering helpers.
 
 The package itself no longer depends on `LAlatex`; display support is an
 explicit companion-layer choice rather than a hard dependency of the generator
