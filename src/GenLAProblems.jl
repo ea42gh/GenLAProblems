@@ -44,6 +44,7 @@ include("IntegerFamilies.jl")
 include("SymbolNames.jl")
 include("BasicMatrices.jl")
 include("GEProblems.jl")
+include("FactorizationProblems.jl")
 include("MatrixGeneration.jl")
 
 export __version__, __build__
