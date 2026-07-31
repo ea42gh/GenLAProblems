@@ -46,7 +46,7 @@ include("BasicMatrices.jl")
 include("GEProblems.jl")
 include("FactorizationProblems.jl")
 include("OrthogonalProblems.jl")
-include("MatrixGeneration.jl")
+include("SpectralProblems.jl")
 
 export __version__, __build__
 export symbol_vector, symbols_matrix
