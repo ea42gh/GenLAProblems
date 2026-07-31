@@ -40,6 +40,8 @@ Return `true` when `x` is `:none` or `nothing`.
 """
 is_none_val(x) = x === :none || x === nothing
 
+include("IntegerFamilies.jl")
+include("SymbolNames.jl")
 include("MatrixGeneration.jl")
 
 export __version__, __build__
