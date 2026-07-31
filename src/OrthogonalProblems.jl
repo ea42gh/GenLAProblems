@@ -8,8 +8,8 @@ Return a `2 × 2` exact matrix `W` built from a Pythagorean triple such that
 `W' * W = d^2 * I`.
 """
 function W_2_matrix()
-    a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
-    c,[ a -b; b a]
+    a, b, c = PythagoreanNumberTriplets[rand(1:size(PythagoreanNumberTriplets, 1)), :]
+    c, [a -b; b a]
 end
 # ------------------------------------------------------------------------------
 """
@@ -18,7 +18,7 @@ end
 Return the exact orthogonal matrix obtained by normalizing `W_2_matrix()`.
 """
 function Q_2_matrix()
-    c,W = W_2_matrix()
+    c, W = W_2_matrix()
     W // c
 end
 # ------------------------------------------------------------------------------
@@ -29,15 +29,17 @@ Return a structured `3 × 3` exact matrix whose Gram matrix is diagonal.
 The leading `2 × 2` block comes from a Pythagorean triple and the remaining
 entry is an independent small integer.
 """
-function W_3_matrix(; maxint=3)
-    a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
+function W_3_matrix(; maxint = 3)
+    a, b, c = PythagoreanNumberTriplets[rand(1:size(PythagoreanNumberTriplets, 1)), :]
     # The Pythagorean scale c governs the 2×2 rotation block only; the third
     # row/column uses an independent small integer so A' * A remains diagonal.
-    A = [ a -b 0
-          b  a 0
-          0  0 rand( [-maxint:-1; 1:maxint]) ]
-    A = A[shuffle(1:3),:]
-    c,A[ :, shuffle(1:3)]
+    A = [
+        a -b 0
+        b a 0
+        0 0 rand([-maxint:-1; 1:maxint])
+    ]
+    A = A[shuffle(1:3), :]
+    c, A[:, shuffle(1:3)]
 end
 # ------------------------------------------------------------------------------
 """
@@ -47,12 +49,14 @@ Return the exact orthogonal matrix obtained by normalizing the `W_3_matrix`
 construction.
 """
 function Q_3_matrix()
-    a,b,c = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
-    A = [ a//c -b//c  0
-          b//c  a//c  0
-             0     0  1 ]
-    A = A[shuffle(1:3),:]
-    A[ :, shuffle(1:3)]
+    a, b, c = PythagoreanNumberTriplets[rand(1:size(PythagoreanNumberTriplets, 1)), :]
+    A = [
+        a//c -b//c 0
+        b//c a//c 0
+        0 0 1
+    ]
+    A = A[shuffle(1:3), :]
+    A[:, shuffle(1:3)]
 end
 # ------------------------------------------------------------------------------
 # the following matrix has a block structure
@@ -63,16 +67,18 @@ Return a `4 × 4` exact orthogonal matrix formed from two independent
 Pythagorean `2 × 2` rotation blocks, followed by row and column shuffling.
 """
 function Q_4_blocks()
-    a1,b1,c1 = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
-    a2,b2,c2 = PythagoreanNumberTriplets[ rand(1:size(PythagoreanNumberTriplets,1)), : ]
+    a1, b1, c1 = PythagoreanNumberTriplets[rand(1:size(PythagoreanNumberTriplets, 1)), :]
+    a2, b2, c2 = PythagoreanNumberTriplets[rand(1:size(PythagoreanNumberTriplets, 1)), :]
 
-    A = [ a1//c1 -b1//c1             0            0
-          b1//c1  a1//c1             0            0
-          0                          0   a2//c2  b2//c2 
-          0                          0  -b2//c2  a2//c2 ]
+    A = [
+        a1//c1 -b1//c1 0 0
+        b1//c1 a1//c1 0 0
+        0 0 a2//c2 b2//c2
+        0 0 -b2//c2 a2//c2
+    ]
 
     A = A[shuffle(1:4), :]
-    A[ :, shuffle(1:4)]
+    A[:, shuffle(1:4)]
 end
 # ------------------------------------------------------------------------------
 """
@@ -82,21 +88,24 @@ Return a structured `4 × 4` exact matrix with diagonal Gram matrix.
 The normalization factor `d` satisfies that `(W // d)` is orthogonal.
 """
 function W_4_matrix()
-    a,b,c,d = PythagoreanNumberQuadruplets[ rand(1:size(PythagoreanNumberQuadruplets,1)), : ]
-    p  = (a*a + b*b) * d*d
-    a2 = -a*c* p
-    a3 =  a*b* p
-    a4 =  a*a* p
+    a, b, c, d =
+        PythagoreanNumberQuadruplets[rand(1:size(PythagoreanNumberQuadruplets, 1)), :]
+    p = (a * a + b * b) * d * d
+    a2 = -a * c * p
+    a3 = a * b * p
+    a4 = a * a * p
 
-    den = gcd(gcd( a2, a3), a4 )
-    a2 = Int( a2 // den)
-    a3 = Int( a3 // den)
-    a4 = Int( a4 // den)
+    den = gcd(gcd(a2, a3), a4)
+    a2 = Int(a2 // den)
+    a3 = Int(a3 // den)
+    a4 = Int(a4 // den)
 
-    A = [ a -b -c   0
-          b  a  0  a2
-          c  0  a  a3 
-          0  c -b  a4 ]
+    A = [
+        a -b -c 0
+        b a 0 a2
+        c 0 a a3
+        0 c -b a4
+    ]
     A = A[shuffle(1:4), :]
     d, A[:, shuffle(1:4)]
 end
@@ -107,8 +116,8 @@ end
 Return the exact orthogonal matrix obtained by normalizing `W_4_matrix()`.
 """
 function Q_4_matrix()
-    d,W = W_4_matrix()
-    W//d
+    d, W = W_4_matrix()
+    W // d
 end
 # ------------------------------------------------------------------------------
 """
@@ -119,15 +128,18 @@ such that `(W // d)` is orthogonal.
 For `n == 2`, `3`, or `4` and `general=false`, specialized families are used;
 otherwise the result is derived from `Q_matrix`.
 """
-function W_matrix(n; general=false)
-  if general == false
-    if     n == 2 return W_2_matrix()
-    elseif n == 3 return W_3_matrix()
-    elseif n == 4 return W_4_matrix()
+function W_matrix(n; general = false)
+    if general == false
+        if n == 2
+            return W_2_matrix()
+        elseif n == 3
+            return W_3_matrix()
+        elseif n == 4
+            return W_4_matrix()
+        end
     end
-  end
-  A = Q_matrix(n; general=general)
-  _factor_out_denominator(A)
+    A = Q_matrix(n; general = general)
+    _factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
 """
@@ -138,15 +150,18 @@ For sizes `2`, `3`, and `4` with `general=false`, this dispatches to the
 specialized `Q_k_matrix` families. Otherwise it applies the Cayley transform to
 a random skew-symmetric matrix.
 """
-function Q_matrix(n; maxint=3, with_zeros=false, general=false )
-  if general == false
-    if     n == 2 return Q_2_matrix()
-    elseif n == 3 return Q_3_matrix()
-    elseif n == 4 return Q_4_matrix()
+function Q_matrix(n; maxint = 3, with_zeros = false, general = false)
+    if general == false
+        if n == 2
+            return Q_2_matrix()
+        elseif n == 3
+            return Q_3_matrix()
+        elseif n == 4
+            return Q_4_matrix()
+        end
     end
-  end
-  S=skew_symmetric_matrix(n,maxint=maxint, with_zeros=with_zeros)
-  inv(S-(1//1)I(size(S,1))) * (S+1I(size(S,1)))
+    S = skew_symmetric_matrix(n, maxint = maxint, with_zeros = with_zeros)
+    inv(S - (1 // 1)I(size(S, 1))) * (S + 1I(size(S, 1)))
 end
 # ------------------------------------------------------------------------------
 """
@@ -163,21 +178,24 @@ For very small block sizes such as `(2,2)`, the number of distinct
 outputs can be limited when `maxint` is small; increase `maxint` if
 more variation is desired.
 """
-function sparse_Q_matrix(n; maxint=3, with_zeros=false )
+function sparse_Q_matrix(n; maxint = 3, with_zeros = false)
     sz = sum(n)
-    A  = zeros(Rational{Int64},(sz,sz))
-    i  = 1
+    A = zeros(Rational{Int64}, (sz, sz))
+    i = 1
     for m in n
-        S = Rational{Int64}.( skew_symmetric_matrix(m; maxint=maxint, with_zeros=with_zeros ) )
-        E = (1//1)I(m)
-        F = inv( S - E ) * ( S + E )
+        S =
+            Rational{
+                Int64,
+            }.(skew_symmetric_matrix(m; maxint = maxint, with_zeros = with_zeros))
+        E = (1 // 1)I(m)
+        F = inv(S - E) * (S + E)
         rng = i:i+m-1 |> collect
-        A[rng,rng] = F
+        A[rng, rng] = F
         i += m
     end
 
     A = A[shuffle(1:sz), :]
-    A[ :, shuffle(1:sz)]
+    A[:, shuffle(1:sz)]
 end
 # ------------------------------------------------------------------------------
 """
@@ -203,8 +221,12 @@ This assumes that the columns of `A` are linearly independent so that
 `A' * A` is invertible.
 """
 function ca_projection_matrix(A)
-    rank(A) == size(A, 2) || throw(ArgumentError("ca_projection_matrix requires linearly independent columns so that A' * A is invertible"))
-    A*inv(A'A)*A'
+    rank(A) == size(A, 2) || throw(
+        ArgumentError(
+            "ca_projection_matrix requires linearly independent columns so that A' * A is invertible",
+        ),
+    )
+    A * inv(A'A) * A'
 end
 # ------------------------------------------------------------------------------
 """
@@ -221,7 +243,7 @@ Generate a QR exercise matrix from one of several orthogonal-seed families.
   tries `:hadamard` and falls back to `:cayley` for integer sizes or `:sparse`
   for block-size inputs.
 """
-function gen_qr_problem(n; family=:auto, maxint=3)
+function gen_qr_problem(n; family = :auto, maxint = 3)
     function total_size(n)
         n isa Integer && return n
         return sum(n)
@@ -230,21 +252,21 @@ function gen_qr_problem(n; family=:auto, maxint=3)
     if family == :pythagorean
         if n == 2
             _, W = W_2_matrix()
-            return W * unit_lower(2, maxint=maxint)'
+            return W * unit_lower(2, maxint = maxint)'
         elseif n == 3
-            _, W = W_3_matrix(maxint=maxint)
-            return W * unit_lower(3, maxint=maxint)'
+            _, W = W_3_matrix(maxint = maxint)
+            return W * unit_lower(3, maxint = maxint)'
         elseif n == 4
             _, W = W_4_matrix()
-            return W * unit_lower(4, maxint=maxint)'
+            return W * unit_lower(4, maxint = maxint)'
         end
         throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
     elseif family == :auto && n isa Integer && n in (2, 3, 4)
-        return gen_qr_problem(n; family=:pythagorean, maxint=maxint)
+        return gen_qr_problem(n; family = :pythagorean, maxint = maxint)
     end
 
-    Qseed = _orthogonal_matrix_family(n; family=family, maxint=maxint)
-    return Qseed * lower(total_size(n), maxint=maxint)'
+    Qseed = _orthogonal_matrix_family(n; family = family, maxint = maxint)
+    return Qseed * lower(total_size(n), maxint = maxint)'
 end
 """
     _orthogonal_matrix_family(n; family=:auto, maxint=3) -> Matrix
@@ -252,24 +274,25 @@ end
 Internal helper that returns the exact orthogonal matrix family selected by the
 `family` keyword for `gen_qr_problem` and `gen_svd_problem`.
 """
-function _orthogonal_matrix_family(n; family=:auto, maxint=3)
+function _orthogonal_matrix_family(n; family = :auto, maxint = 3)
     if family == :auto
         if n isa Integer && n in (2, 3, 4)
-            return _orthogonal_matrix_family(n; family=:pythagorean, maxint=maxint)
+            return _orthogonal_matrix_family(n; family = :pythagorean, maxint = maxint)
         elseif n isa Integer
             try
-                return _orthogonal_matrix_family(n; family=:hadamard, maxint=maxint)
+                return _orthogonal_matrix_family(n; family = :hadamard, maxint = maxint)
             catch err
                 if err isa ArgumentError
-                    return _orthogonal_matrix_family(n; family=:cayley, maxint=maxint)
+                    return _orthogonal_matrix_family(n; family = :cayley, maxint = maxint)
                 end
                 rethrow()
             end
         else
-            return _orthogonal_matrix_family(n; family=:sparse, maxint=maxint)
+            return _orthogonal_matrix_family(n; family = :sparse, maxint = maxint)
         end
     elseif family == :pythagorean
-        n isa Integer || throw(ArgumentError("family=:pythagorean requires an integer size n"))
+        n isa Integer ||
+            throw(ArgumentError("family=:pythagorean requires an integer size n"))
         if n == 2
             return Q_2_matrix()
         elseif n == 3
@@ -284,18 +307,26 @@ function _orthogonal_matrix_family(n; family=:auto, maxint=3)
             Base.invokelatest(Hadamard.hadamard, n)
         catch err
             if err isa ArgumentError
-                throw(ArgumentError("family=:hadamard requires a size supported by Hadamard.hadamard"))
+                throw(
+                    ArgumentError(
+                        "family=:hadamard requires a size supported by Hadamard.hadamard",
+                    ),
+                )
             end
             rethrow()
         end
         d = isqrt(n)
-        d * d == n || throw(ArgumentError("family=:hadamard requires n to have an integer square root for exact orthogonal factors"))
+        d * d == n || throw(
+            ArgumentError(
+                "family=:hadamard requires n to have an integer square root for exact orthogonal factors",
+            ),
+        )
         Rational{Int64}.(had) ./ d
     elseif family == :cayley
         n isa Integer || throw(ArgumentError("family=:cayley requires an integer size n"))
-        Q_matrix(n; maxint=maxint, general=true)
+        Q_matrix(n; maxint = maxint, general = true)
     elseif family == :sparse
-        sparse_Q_matrix(n; maxint=maxint)
+        sparse_Q_matrix(n; maxint = maxint)
     else
         throw(ArgumentError("unknown orthogonal matrix family: $family"))
     end

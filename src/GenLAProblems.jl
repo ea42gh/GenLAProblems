@@ -53,7 +53,8 @@ export gen_particular_solution
 export gen_gj_matrix, gen_rhs, gen_gj_pb, gen_inconsistent_gj_pb
 export gen_inv_pb, gen_lu_pb, gen_plu_pb, gen_ldlt_pb
 export gen_qr_problem
-export gen_eigenproblem, gen_symmetric_eigenproblem, gen_non_diagonalizable_eigenproblem, gen_svd_problem
+export gen_eigenproblem,
+    gen_symmetric_eigenproblem, gen_non_diagonalizable_eigenproblem, gen_svd_problem
 export gen_cx_eigenproblem
 export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
 
@@ -66,7 +67,7 @@ export jordan_block, jordan_form, gen_from_jordan_form, gen_degenerate_matrix
     rref_matrix(3, 3, 3)
     gen_eigenproblem([1, 2, 3])
     gen_symmetric_eigenproblem([1, 2, 3])
-    gen_qr_problem(4; family=:pythagorean)
+    gen_qr_problem(4; family = :pythagorean)
 end
 
 end

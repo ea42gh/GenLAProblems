@@ -17,7 +17,7 @@ function _symbol_base_string(s)
     return sstr
 end
 
-function symbol_vector( s, indices )
+function symbol_vector(s, indices)
     sstr = _symbol_base_string(s)
     [Symbol(sstr * "_$i") for i in collect(indices)]
 end

@@ -8,13 +8,20 @@ Generate a matrix suitable for Gauss-Jordan style exercises.
 The returned matrix has rank `r`, controlled pivot placement, and exact integer
 entries. `pivot_cols` records the pivot columns of the underlying echelon model.
 """
-function gen_gj_matrix(m,n,r; maxint=3, pivot_in_first_col=true, has_zeros=false )
-    M,pivot_cols=rref_matrix(m,n,r,maxint=maxint,pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros )
+function gen_gj_matrix(m, n, r; maxint = 3, pivot_in_first_col = true, has_zeros = false)
+    M, pivot_cols = rref_matrix(
+        m,
+        n,
+        r,
+        maxint = maxint,
+        pivot_in_first_col = pivot_in_first_col,
+        has_zeros = has_zeros,
+    )
 
-    s = ones( Int, n )
-    s[pivot_cols] = rand( [-maxint:-1;1:maxint], r )
+    s = ones(Int, n)
+    s[pivot_cols] = rand([-maxint:-1; 1:maxint], r)
 
-    A = unit_lower(m,maxint=maxint) * unit_lower(m,maxint=maxint)' * M * Diagonal(s)
+    A = unit_lower(m, maxint = maxint) * unit_lower(m, maxint = maxint)' * M * Diagonal(s)
     pivot_cols, A
 end
 # ------------------------------------------------------------------------------
@@ -23,13 +30,13 @@ end
 
 Generate a random RHS matrix `B = A*X` consistent with given pivot columns.
 """
-function gen_rhs( A, pivot_cols; maxint=3,num_rhs=1,has_zeros=false)
-    rng = _int_range(maxint,has_zeros)
-    X   = zeros(Int64, (size(A,2),num_rhs))
+function gen_rhs(A, pivot_cols; maxint = 3, num_rhs = 1, has_zeros = false)
+    rng = _int_range(maxint, has_zeros)
+    X = zeros(Int64, (size(A, 2), num_rhs))
 
-    X[pivot_cols,:] = rand( rng, (length(pivot_cols),num_rhs) )
-    B = A*X
-    X,B
+    X[pivot_cols, :] = rand(rng, (length(pivot_cols), num_rhs))
+    B = A * X
+    X, B
 end
 # ------------------------------------------------------------------------------
 # given the pivot locations, generate a particular solution of N integer entries, free variables set to zero
@@ -40,9 +47,9 @@ Generate one or more particular solution vectors with prescribed pivot entries.
 Only the pivot coordinates listed in `pivot_cols` are assigned nonzero random
 integers; all free-variable coordinates are set to zero.
 """
-function gen_particular_solution( pivot_cols, n; maxint=3, num_rhs=1 )
-    X               = zeros(Int64, (n,num_rhs))
-    X[pivot_cols,:] = rand( [-maxint:-1; 1:maxint], (length(pivot_cols),num_rhs) )
+function gen_particular_solution(pivot_cols, n; maxint = 3, num_rhs = 1)
+    X = zeros(Int64, (n, num_rhs))
+    X[pivot_cols, :] = rand([-maxint:-1; 1:maxint], (length(pivot_cols), num_rhs))
     X
 end
 # ------------------------------------------------------------------------------
@@ -52,13 +59,26 @@ end
 Generate a consistent linear system `A * X = B` of rank `r`.
 The right-hand side is produced from an exact integer solution matrix `X`.
 """
-function gen_gj_pb(m,n,r;
-        maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1 )
+function gen_gj_pb(
+    m,
+    n,
+    r;
+    maxint = 3,
+    pivot_in_first_col = true,
+    has_zeros = false,
+    num_rhs = 1,
+)
     _validate_rank_request("gen_gj_pb", m, n, r)
-    pivot_cols,A = gen_gj_matrix(m,n,r;
-                                 maxint=maxint, pivot_in_first_col=pivot_in_first_col, has_zeros=has_zeros )
-    X,B=gen_rhs(A, pivot_cols; maxint=maxint,num_rhs=num_rhs,has_zeros=has_zeros)
-    A,X,B
+    pivot_cols, A = gen_gj_matrix(
+        m,
+        n,
+        r;
+        maxint = maxint,
+        pivot_in_first_col = pivot_in_first_col,
+        has_zeros = has_zeros,
+    )
+    X, B = gen_rhs(A, pivot_cols; maxint = maxint, num_rhs = num_rhs, has_zeros = has_zeros)
+    A, X, B
 end
 # ------------------------------------------------------------------------------
 """
@@ -66,8 +86,8 @@ end
 
 Convenience method for the full-rank case `r = min(m, n)`.
 """
-function gen_gj_pb(m,n; maxint=3)
-    gen_gj_pb( m,n,min(m,n); maxint=maxint )
+function gen_gj_pb(m, n; maxint = 3)
+    gen_gj_pb(m, n, min(m, n); maxint = maxint)
 end
 # ------------------------------------------------------------------------------
 """
@@ -79,20 +99,35 @@ The returned right-hand side columns are constructed outside the column space of
 `A`, so each RHS column is inconsistent. This requires `r < m`, since a full
 row-rank `m × n` matrix cannot produce an inconsistent system.
 """
-function gen_inconsistent_gj_pb(m,n,r;
-        maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1 )
+function gen_inconsistent_gj_pb(
+    m,
+    n,
+    r;
+    maxint = 3,
+    pivot_in_first_col = true,
+    has_zeros = false,
+    num_rhs = 1,
+)
     _validate_rank_request("gen_inconsistent_gj_pb", m, n, r)
-    r < m || throw(ArgumentError("gen_inconsistent_gj_pb requires r < m so the system can be inconsistent"))
+    r < m || throw(
+        ArgumentError(
+            "gen_inconsistent_gj_pb requires r < m so the system can be inconsistent",
+        ),
+    )
 
-    M,pivot_cols = rref_matrix(m,n,r;
-                               maxint=maxint,
-                               pivot_in_first_col=pivot_in_first_col,
-                               has_zeros=has_zeros )
+    M, pivot_cols = rref_matrix(
+        m,
+        n,
+        r;
+        maxint = maxint,
+        pivot_in_first_col = pivot_in_first_col,
+        has_zeros = has_zeros,
+    )
 
     s = ones(Int, n)
     s[pivot_cols] = rand([-maxint:-1; 1:maxint], r)
 
-    E = unit_lower(m,maxint=maxint) * unit_lower(m,maxint=maxint)'
+    E = unit_lower(m, maxint = maxint) * unit_lower(m, maxint = maxint)'
     A = E * M * Diagonal(s)
 
     rng = _int_range(maxint, has_zeros)
@@ -102,7 +137,7 @@ function gen_inconsistent_gj_pb(m,n,r;
     end
     # A column of E*Y is inconsistent exactly when Y has a nonzero entry below
     # the rank rows of M, since the corresponding rows of M are zero.
-    Y[r+1:m, :] = rand([-maxint:-1; 1:maxint], (m-r, num_rhs))
+    Y[r+1:m, :] = rand([-maxint:-1; 1:maxint], (m - r, num_rhs))
     B = E * Y
 
     A, B
