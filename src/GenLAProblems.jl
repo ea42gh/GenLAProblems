@@ -18,18 +18,8 @@ const __build__ = "unknown"
 using LinearAlgebra
 using Random
 
+import Hadamard
 using PrecompileTools
-
-const _hadamard_mod = Ref{Any}(nothing)
-
-function _ensure_hadamard()
-    if _hadamard_mod[] === nothing
-        @eval import Hadamard
-        _hadamard_mod[] = Base.invokelatest(() -> Hadamard)
-    end
-    return _hadamard_mod[]
-end
-
 
 const NO_VALUE = (:none, nothing)
 

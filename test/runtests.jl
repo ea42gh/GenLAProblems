@@ -2,8 +2,13 @@ using Test
 using Random
 using LinearAlgebra
 using LaTeXStrings
+using Aqua
 
 using GenLAProblems
+
+@testset "Package quality" begin
+    Aqua.test_all(GenLAProblems; ambiguities=false, persistent_tasks=false)
+end
 
 struct WrappedAlpha end
 Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")

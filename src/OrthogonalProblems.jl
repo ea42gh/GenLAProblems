@@ -280,9 +280,8 @@ function _orthogonal_matrix_family(n; family=:auto, maxint=3)
         throw(ArgumentError("family=:pythagorean is only supported for n == 2, 3, or 4"))
     elseif family == :hadamard
         n isa Integer || throw(ArgumentError("family=:hadamard requires an integer size n"))
-        H = _ensure_hadamard()
         had = try
-            Base.invokelatest(H.hadamard, n)
+            Base.invokelatest(Hadamard.hadamard, n)
         catch err
             if err isa ArgumentError
                 throw(ArgumentError("family=:hadamard requires a size supported by Hadamard.hadamard"))
