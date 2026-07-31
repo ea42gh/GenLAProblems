@@ -16,8 +16,6 @@ jobs:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-    env:
-      JULIA_PYTHONCALL_EXE: python3
     permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
@@ -35,46 +33,32 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
-        with:
-          repository: ea42gh/LAlatex
-          path: LAlatex
       - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v3
-      - name: Develop sibling package
-        shell: julia --project=. {0}
-        run: |
-          using Pkg
-          Pkg.develop(path=joinpath(pwd(), "LAlatex"))
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
   docs:
     name: Documentation
     runs-on: ubuntu-latest
-    env:
-      JULIA_PYTHONCALL_EXE: python3
     permissions:
       actions: write # needed to allow julia-actions/cache to proactively delete old caches that it has created
       contents: write
       statuses: write
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
-        with:
-          repository: ea42gh/LAlatex
-          path: LAlatex
       - uses: julia-actions/setup-julia@v3
         with:
           version: '1.10'
       - uses: julia-actions/cache@v3
-      - name: Develop sibling package
-        shell: julia --project=. {0}
+      - name: Develop local docs dependency
+        shell: julia --project=docs --color=yes {0}
         run: |
           using Pkg
-          Pkg.develop(path=joinpath(pwd(), "LAlatex"))
+          Pkg.develop(path=pwd())
+          Pkg.instantiate()
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
         env:
