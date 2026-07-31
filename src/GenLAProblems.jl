@@ -42,6 +42,7 @@ is_none_val(x) = x === :none || x === nothing
 
 include("IntegerFamilies.jl")
 include("SymbolNames.jl")
+include("BasicMatrices.jl")
 include("MatrixGeneration.jl")
 
 export __version__, __build__
