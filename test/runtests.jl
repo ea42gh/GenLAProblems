@@ -23,51 +23,58 @@ struct WrappedAlpha end
 Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
 
 @testset "GenLAProblems.jl" begin
-    @test !isdefined(GenLAProblems, :ShowGE)
-    @test !isdefined(GenLAProblems, :nM)
-    @test !isdefined(GenLAProblems, :PythonBridge)
-    @test !isdefined(GenLAProblems, :qr_matrices_from_grid)
-    @test !isdefined(GenLAProblems, :eig_matrices_from_spec)
-    @test !isdefined(GenLAProblems, :svd_matrices_from_spec)
-    @test !isdefined(GenLAProblems, :load_LAFigureSpecs)
-    @test !isdefined(GenLAProblems, :load_matrixlayout)
-    @test !isdefined(GenLAProblems, :la_version)
-    @test !isdefined(GenLAProblems, :la_build)
-    @test !isdefined(GenLAProblems, :ml_version)
-    @test !isdefined(GenLAProblems, :ml_build)
-    @test !isdefined(GenLAProblems, :materialize_python_value)
-    @test !isdefined(GenLAProblems, :mm_to_px)
-    @test !isdefined(GenLAProblems, :px_to_mm)
-    @test !isdefined(GenLAProblems, :ensure_pythoncall!)
-    @test !isdefined(GenLAProblems, :sympy)
-    @test !isdefined(GenLAProblems, :_ensure_symbolics)
-    @test !isdefined(GenLAProblems, :sym_to_julia_vec)
-    @test !isdefined(GenLAProblems, :sym_to_julia_mat)
-    @test !isdefined(GenLAProblems, :sym_subs_numeric)
-    @test !isdefined(GenLAProblems, :AbstractDescription)
-    @test !isdefined(GenLAProblems, :FoundPivot)
-    @test !isdefined(GenLAProblems, :RequireRowExchange)
-    @test !isdefined(GenLAProblems, :RequireElimination)
-    @test !isdefined(GenLAProblems, :RequireScaling)
-    @test !isdefined(GenLAProblems, :DoElimination)
-    @test !isdefined(GenLAProblems, :DoRowExchange)
-    @test !isdefined(GenLAProblems, :DoScaling)
-    @test !isdefined(GenLAProblems, :Finished)
-    @test !isdefined(GenLAProblems, :split_R_RHS)
-    @test !isdefined(GenLAProblems, :particular_solution)
-    @test !isdefined(GenLAProblems, :homogeneous_solutions)
-    @test !isdefined(GenLAProblems, :find_pivot)
-    @test !isdefined(GenLAProblems, :non_zero_entry)
-    @test !isdefined(GenLAProblems, :interchange)
-    @test !isdefined(GenLAProblems, :eliminate)
-    @test !isdefined(GenLAProblems, :normal_eq_reduce_to_ref)
-    @test !isdefined(GenLAProblems, :reduce_to_ref)
-    @test !isdefined(GenLAProblems, :_reduce_to_ref)
-    @test !isdefined(GenLAProblems, :ge_variable_type)
-    @test !isdefined(GenLAProblems, :gram_schmidt_w)
-    @test !isdefined(GenLAProblems, :normalize_columns)
-    @test !isdefined(GenLAProblems, :qr_layout)
-    @test !isdefined(GenLAProblems, :gram_schmidt_stable)
+    expected_public_names = Set(
+        Symbol[
+            :GenLAProblems,
+            :Q_2_matrix,
+            :Q_3_matrix,
+            :Q_4_blocks,
+            :Q_4_matrix,
+            :Q_matrix,
+            :W_2_matrix,
+            :W_3_matrix,
+            :W_4_matrix,
+            :W_matrix,
+            :__build__,
+            :__version__,
+            :ca_projection_matrix,
+            :e_i,
+            :gen_cx_eigenproblem,
+            :gen_degenerate_matrix,
+            :gen_eigenproblem,
+            :gen_from_jordan_form,
+            :gen_full_col_rank_matrix,
+            :gen_gj_matrix,
+            :gen_gj_pb,
+            :gen_inconsistent_gj_pb,
+            :gen_inv_pb,
+            :gen_ldlt_pb,
+            :gen_lu_pb,
+            :gen_non_diagonalizable_eigenproblem,
+            :gen_particular_solution,
+            :gen_permutation_matrix,
+            :gen_plu_pb,
+            :gen_qr_problem,
+            :gen_rhs,
+            :gen_svd_problem,
+            :gen_symmetric_eigenproblem,
+            :i_with_onecol,
+            :invert_unit_lower,
+            :jordan_block,
+            :jordan_form,
+            :lower,
+            :ref_matrix,
+            :rref_matrix,
+            :skew_symmetric_matrix,
+            :sparse_Q_matrix,
+            :sparse_W_matrix,
+            :symbol_vector,
+            :symbols_matrix,
+            :symmetric_matrix,
+            :unit_lower,
+        ],
+    )
+    @test Set(names(GenLAProblems)) == expected_public_names
 
     @testset "Matrix generation" begin
         @test symbol_vector(WrappedAlpha(), 1:2) ==
