@@ -12,7 +12,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 [compat]
 Aqua = "0.8"
 Hadamard = "1"
-JuliaFormatter = "1"
+JuliaFormatter = "1, 2"
 LaTeXStrings = "1.4.0"
 LinearAlgebra = "1"
 PrecompileTools = "1.2.0"
