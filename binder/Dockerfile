@@ -30,7 +30,7 @@ RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip setuptool
  && /usr/local/bin/python3 -m pip install --no-cache-dir \
     sympy \
     "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git@5bd86bcfa1c330fd05b1048e9c41e6d9ff7f623d" \
-    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@fdf116b96c5ebb8bf7a6deecc857e6e565d6b68e"
+    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@23d4bd4e0c767f6e8fef783c651f80ebff3a980c"
 
 USER jovyan
 WORKDIR /home/jovyan/GenLAProblems
