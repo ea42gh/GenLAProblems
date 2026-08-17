@@ -29,8 +29,8 @@ RUN mkdir -p /home/jovyan/GenLAProblems \
 RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel \
  && /usr/local/bin/python3 -m pip install --no-cache-dir \
     sympy \
-    "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git@e3c0153aede5013827f55fd9cff7e4ec34520612" \
-    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@49d4329512ba6d51b1d2ec774abb00899f04a095"
+    "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git@5bd86bcfa1c330fd05b1048e9c41e6d9ff7f623d" \
+    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@fdf116b96c5ebb8bf7a6deecc857e6e565d6b68e"
 
 USER jovyan
 WORKDIR /home/jovyan/GenLAProblems
