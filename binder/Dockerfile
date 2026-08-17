@@ -30,7 +30,7 @@ RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip setuptool
  && /usr/local/bin/python3 -m pip install --no-cache-dir \
     sympy \
     "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git@e3c0153aede5013827f55fd9cff7e4ec34520612" \
-    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@b145e6480f3977f6b54625a5c8975b58e3c2fd4d"
+    "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@49d4329512ba6d51b1d2ec774abb00899f04a095"
 
 USER jovyan
 WORKDIR /home/jovyan/GenLAProblems
@@ -53,4 +53,5 @@ RUN bash binder/postBuild
 
 EXPOSE 8888
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--no-browser", "--ServerApp.token=", "--ServerApp.password=", "--ServerApp.root_dir=/home/jovyan/work", "--notebook-dir=/home/jovyan/work"]
+
 
