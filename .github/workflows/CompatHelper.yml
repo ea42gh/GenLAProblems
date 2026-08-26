@@ -13,7 +13,7 @@ jobs:
       - name: Run CompatHelper
         run: |
           using CompatHelper
-          CompatHelper.main(; subdirs=[""])
+          CompatHelper.main(; subdirs=[""], open_prs_for_extras=CompatHelper.NoExtras())
         shell: julia --color=yes {0}
         env:
           GITHUB_TOKEN: ${{ secrets.COMPATHELPER_TOKEN }}
