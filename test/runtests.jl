@@ -11,6 +11,17 @@ using GenLAProblems
     Aqua.test_all(GenLAProblems; ambiguities = false, persistent_tasks = false)
 end
 
+@testset "Explicit RNG support" begin
+    @test gen_qr_problem(4; rng = MersenneTwister(1234)) ==
+          gen_qr_problem(4; rng = MersenneTwister(1234))
+    @test gen_qr_problem(5; family = :cayley, rng = MersenneTwister(5678)) ==
+          gen_qr_problem(5; family = :cayley, rng = MersenneTwister(5678))
+    @test sparse_Q_matrix([2, 2]; rng = MersenneTwister(9012)) ==
+          sparse_Q_matrix([2, 2]; rng = MersenneTwister(9012))
+    @test gen_svd_problem(3, 2, [3, 1]; rng = MersenneTwister(3456)) ==
+          gen_svd_problem(3, 2, [3, 1]; rng = MersenneTwister(3456))
+end
+
 @testset "Formatting" begin
     @test format(
         joinpath.(pkgdir(GenLAProblems), ["src", "test"]);
@@ -278,4 +289,46 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test_throws ArgumentError gen_degenerate_matrix((2, 0); maxint = 2)
         @test_throws ArgumentError gen_degenerate_matrix(0; maxint = 2)
     end
+end
+@testset "Explicit RNG direct helpers" begin
+    A = [1 2; 3 4]
+    @test gen_rhs(A, [1]; rng = MersenneTwister(7890)) ==
+          gen_rhs(A, [1]; rng = MersenneTwister(7890))
+    @test gen_particular_solution([1, 2], 3; rng = MersenneTwister(7891)) ==
+          gen_particular_solution([1, 2], 3; rng = MersenneTwister(7891))
+end
+@testset "Explicit RNG echelon helpers" begin
+    @test rref_matrix(4, 6, 3; rng = MersenneTwister(1111)) ==
+          rref_matrix(4, 6, 3; rng = MersenneTwister(1111))
+    @test ref_matrix(4, 6, 3; rng = MersenneTwister(2222)) ==
+          ref_matrix(4, 6, 3; rng = MersenneTwister(2222))
+end
+@testset "Explicit RNG GE problem helpers" begin
+    @test gen_gj_matrix(4, 6, 3; rng = MersenneTwister(3333)) ==
+          gen_gj_matrix(4, 6, 3; rng = MersenneTwister(3333))
+    @test gen_gj_pb(4, 6, 3; rng = MersenneTwister(4444)) ==
+          gen_gj_pb(4, 6, 3; rng = MersenneTwister(4444))
+end
+@testset "Explicit RNG inconsistent GE helper" begin
+    @test gen_inconsistent_gj_pb(4, 6, 3; rng = MersenneTwister(5555)) ==
+          gen_inconsistent_gj_pb(4, 6, 3; rng = MersenneTwister(5555))
+end
+
+@testset "Explicit RNG factorization and basic helpers" begin
+    @test gen_inv_pb(4; rng = MersenneTwister(6001)) ==
+          gen_inv_pb(4; rng = MersenneTwister(6001))
+    @test gen_ldlt_pb(4; rng = MersenneTwister(6002)) ==
+          gen_ldlt_pb(4; rng = MersenneTwister(6002))
+    @test gen_lu_pb(4, 6, 3; rng = MersenneTwister(6003)) ==
+          gen_lu_pb(4, 6, 3; rng = MersenneTwister(6003))
+    @test gen_plu_pb(5, 6, 3; rng = MersenneTwister(6004)) ==
+          gen_plu_pb(5, 6, 3; rng = MersenneTwister(6004))
+    @test gen_full_col_rank_matrix(5, 3; rng = MersenneTwister(6005)) ==
+          gen_full_col_rank_matrix(5, 3; rng = MersenneTwister(6005))
+    @test symmetric_matrix(4; rng = MersenneTwister(6006)) ==
+          symmetric_matrix(4; rng = MersenneTwister(6006))
+    @test i_with_onecol(4, 2; rng = MersenneTwister(6007)) ==
+          i_with_onecol(4, 2; rng = MersenneTwister(6007))
+    @test gen_permutation_matrix(4; rng = MersenneTwister(6008)) ==
+          gen_permutation_matrix(4; rng = MersenneTwister(6008))
 end

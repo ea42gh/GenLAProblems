@@ -20,16 +20,16 @@ function invert_unit_lower(L)
 end
 # ------------------------------------------------------------------------------
 """
-    gen_inv_pb(n; maxint=3) -> A, A_inv
+    gen_inv_pb(n; maxint=3, rng=Random.default_rng()) -> A, A_inv
 
 Generate an invertible `n × n` integer matrix together with its exact inverse.
 The construction is unimodular, so `A_inv` also has integer entries.
 """
-function gen_inv_pb(n; maxint = 3)
+function gen_inv_pb(n; maxint = 3, rng = Random.default_rng())
     # create an invertible matix problem of size n x n
     # with maxint=2, this works for n <= 15 or so
-    e1 = unit_lower(n, n, maxint = maxint)
-    e2 = unit_lower(n, n, maxint = maxint)
+    e1 = unit_lower(n, n, maxint = maxint, rng = rng)
+    e2 = unit_lower(n, n, maxint = maxint, rng = rng)
     A = e1 * e2'
 
     # A is unimodular: unit-lower factors and their transpose have determinant 1,
@@ -40,22 +40,28 @@ function gen_inv_pb(n; maxint = 3)
 end
 # ------------------------------------------------------------------------------
 """
-    gen_ldlt_pb(m; maxint=3, rank=nothing, squares=false) -> L, D, A
+    gen_ldlt_pb(m; maxint=3, rank=nothing, squares=false, rng=Random.default_rng()) -> L, D, A
 
 Generate an exact symmetric matrix in `L * D * L'` form.
 When `rank` is provided, trailing diagonal entries of `D` are set to zero to
 control the rank. When `squares=true`, the nonzero diagonal entries of `D` are
 chosen from perfect squares.
 """
-function gen_ldlt_pb(m; maxint = 3, rank = nothing, squares = false)
-    L = unit_lower(m, maxint = maxint)
+function gen_ldlt_pb(
+    m;
+    maxint = 3,
+    rank = nothing,
+    squares = false,
+    rng = Random.default_rng(),
+)
+    L = unit_lower(m, maxint = maxint, rng = rng)
     p = squares ? (1:maxint) .^ 2 : 1:maxint
     if rank !== nothing
         0 <= rank <= m || throw(ArgumentError("rank must satisfy 0 <= rank <= m"))
-        pivots = [rand(p, rank); zeros(Int, m - rank)]
+        pivots = [rand(rng, p, rank); zeros(Int, m - rank)]
         D = Diagonal(pivots)
     else
-        D = Diagonal(rand(p, m))
+        D = Diagonal(rand(rng, p, m))
     end
 
     A = L * D * L'
@@ -63,13 +69,21 @@ function gen_ldlt_pb(m; maxint = 3, rank = nothing, squares = false)
 end
 # ------------------------------------------------------------------------------
 """
-    gen_lu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> pivot_cols, L, U, A
+    gen_lu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, rng=Random.default_rng()) -> pivot_cols, L, U, A
 
 Generate an exact LU factorization exercise with `A = L * U`.
 `U` is an `m × n` row-echelon matrix of rank `r`, `L` is unit lower triangular,
 and `pivot_cols` records the pivot columns of `U`.
 """
-function gen_lu_pb(m, n, r; maxint = 3, pivot_in_first_col = true, has_zeros = false)
+function gen_lu_pb(
+    m,
+    n,
+    r;
+    maxint = 3,
+    pivot_in_first_col = true,
+    has_zeros = false,
+    rng = Random.default_rng(),
+)
     _validate_rank_request("gen_lu_pb", m, n, r)
     U, pivot_cols = ref_matrix(
         m,
@@ -78,8 +92,9 @@ function gen_lu_pb(m, n, r; maxint = 3, pivot_in_first_col = true, has_zeros = f
         maxint = maxint,
         pivot_in_first_col = pivot_in_first_col,
         has_zeros = has_zeros,
+        rng = rng,
     )
-    L = unit_lower(m, maxint = maxint)
+    L = unit_lower(m, maxint = maxint, rng = rng)
 
     A = L * U
     pivot_cols, L, U, A
@@ -107,7 +122,7 @@ function _factor_out_denominator(A::AbstractArray)
     return d, d .* A
 end
 
-function _plu_dependent_positions(m, r; nswaps = nothing)
+function _plu_dependent_positions(m, r; nswaps = nothing, rng = Random.default_rng())
     maxswaps = min(m - r, max(r - 1, 0))
     if nswaps === nothing
         k = maxswaps > 0 ? 1 : 0
@@ -117,7 +132,7 @@ function _plu_dependent_positions(m, r; nswaps = nothing)
     end
     k == 0 && return Int[]
 
-    positions = shuffle!(collect(2:r+k-1))[1:k]
+    positions = shuffle(rng, collect(2:r+k-1))[1:k]
     sort!(positions)
 end
 
@@ -130,13 +145,19 @@ resampled and columns `k+1:r` are zeroed so that the row depends only on the
 first `k` pivot rows, while the lower-triangular tail to the right of the rank
 block remains random.
 """
-function _plu_base_lower_factor(m, r, dependent_positions; maxint = 3)
-    L = unit_lower(m; maxint = maxint)
+function _plu_base_lower_factor(
+    m,
+    r,
+    dependent_positions;
+    maxint = 3,
+    rng = Random.default_rng(),
+)
+    L = unit_lower(m; maxint = maxint, rng = rng)
     for (j, pos) in enumerate(dependent_positions)
         dep_row = r + j
         npivot_above = pos - j
         npivot_above > 0 || continue
-        coeffs = rand([-maxint:-1; 1:maxint], npivot_above)
+        coeffs = rand(rng, [-maxint:-1; 1:maxint], npivot_above)
         L[dep_row, 1:npivot_above] .= coeffs
         if npivot_above < r
             L[dep_row, npivot_above+1:r] .= 0
@@ -188,10 +209,17 @@ needed in the rank block so selected lower rows depend on controlled prefixes of
 the pivot rows, then build a permutation `P` that inserts those dependent rows
 upward. The final matrix is `A = P * L * U`.
 """
-function _gen_plu_from_factors(U, r; maxint = 3, nswaps = nothing, return_schedule = false)
+function _gen_plu_from_factors(
+    U,
+    r;
+    maxint = 3,
+    nswaps = nothing,
+    return_schedule = false,
+    rng = Random.default_rng(),
+)
     m = size(U, 1)
-    dependent_positions = _plu_dependent_positions(m, r; nswaps = nswaps)
-    L = _plu_base_lower_factor(m, r, dependent_positions; maxint = maxint)
+    dependent_positions = _plu_dependent_positions(m, r; nswaps = nswaps, rng = rng)
+    L = _plu_base_lower_factor(m, r, dependent_positions; maxint = maxint, rng = rng)
     row_order = _plu_row_order(m, r, dependent_positions)
     P = [j == row_order[i] ? 1 : 0 for i = 1:m, j = 1:m]
     A = P * L * U
@@ -204,7 +232,7 @@ end
 
 # ------------------------------------------------------------------------------
 """
-    gen_plu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, nswaps=nothing) -> pivot_cols, P, L, U, A
+    gen_plu_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, nswaps=nothing, rng=Random.default_rng()) -> pivot_cols, P, L, U, A
 
 Generate an exact PLU factorization exercise with `A = P * L * U`.
 `U` is the canonical row-echelon factor. `L` first creates dependent rows from
@@ -224,6 +252,7 @@ function gen_plu_pb(
     pivot_in_first_col = true,
     has_zeros = false,
     nswaps = nothing,
+    rng = Random.default_rng(),
 )
     _validate_rank_request("gen_plu_pb", m, n, r)
     U, pivot_cols = ref_matrix(
@@ -233,7 +262,8 @@ function gen_plu_pb(
         maxint = maxint,
         pivot_in_first_col = pivot_in_first_col,
         has_zeros = has_zeros,
+        rng = rng,
     )
-    P, L, A = _gen_plu_from_factors(U, r; maxint = maxint, nswaps = nswaps)
+    P, L, A = _gen_plu_from_factors(U, r; maxint = maxint, nswaps = nswaps, rng = rng)
     pivot_cols, P, L, U, A
 end

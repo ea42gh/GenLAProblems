@@ -201,9 +201,17 @@ Returns orthogonal factors `U`, `Vt`, the diagonal matrix `Σ`, and the product 
 The `left_family` and `right_family` keywords choose the orthogonal-matrix
 construction used for the left and right factors independently.
 """
-function gen_svd_problem(m, n, σ; left_family = :sparse, right_family = :sparse, maxint = 3)
-    U = _orthogonal_matrix_family(m; family = left_family, maxint = maxint)
-    Vt = _orthogonal_matrix_family(n; family = right_family, maxint = maxint)
+function gen_svd_problem(
+    m,
+    n,
+    σ;
+    left_family = :sparse,
+    right_family = :sparse,
+    maxint = 3,
+    rng = Random.default_rng(),
+)
+    U = _orthogonal_matrix_family(m; family = left_family, maxint = maxint, rng = rng)
+    Vt = _orthogonal_matrix_family(n; family = right_family, maxint = maxint, rng = rng)
     m = sum(m)
     n = sum(n)
     Σ = zeros(eltype(σ[1]), m, n)
