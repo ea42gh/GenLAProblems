@@ -26,6 +26,7 @@ Generate an invertible `n × n` integer matrix together with its exact inverse.
 The construction is unimodular, so `A_inv` also has integer entries.
 """
 function gen_inv_pb(n; maxint = 3, rng = Random.default_rng())
+    _validate_dimension("gen_inv_pb", "n", n)
     # create an invertible matix problem of size n x n
     # with maxint=2, this works for n <= 15 or so
     e1 = unit_lower(n, n, maxint = maxint, rng = rng)
@@ -54,10 +55,12 @@ function gen_ldlt_pb(
     squares = false,
     rng = Random.default_rng(),
 )
+    _validate_dimension("gen_ldlt_pb", "m", m)
     L = unit_lower(m, maxint = maxint, rng = rng)
     p = squares ? (1:maxint) .^ 2 : 1:maxint
     if rank !== nothing
-        0 <= rank <= m || throw(ArgumentError("rank must satisfy 0 <= rank <= m"))
+        _validate_dimension("gen_ldlt_pb", "rank", rank)
+        rank <= m || throw(ArgumentError("rank must satisfy 0 <= rank <= m"))
         pivots = [rand(rng, p, rank); zeros(Int, m - rank)]
         D = Diagonal(pivots)
     else

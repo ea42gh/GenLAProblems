@@ -2,7 +2,7 @@
 # -------------------------------------------------------------- GE, GJ problems
 # ------------------------------------------------------------------------------
 """
-    gen_gj_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> pivot_cols, A
+    gen_gj_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, rng=Random.default_rng()) -> pivot_cols, A
 
 Generate a matrix suitable for Gauss-Jordan style exercises.
 The returned matrix has rank `r`, controlled pivot placement, and exact integer
@@ -37,9 +37,13 @@ function gen_gj_matrix(
         Diagonal(s)
     pivot_cols, A
 end
+function _validate_num_rhs(fname, num_rhs)
+    num_rhs isa Integer && num_rhs >= 0 ||
+        throw(ArgumentError("$fname requires num_rhs to be a nonnegative integer"))
+end
 # ------------------------------------------------------------------------------
 """
-    gen_rhs(A, pivot_cols; maxint=3, num_rhs=1, has_zeros=false) -> X, B
+    gen_rhs(A, pivot_cols; maxint=3, num_rhs=1, has_zeros=false, rng=Random.default_rng()) -> X, B
 
 Generate a random RHS matrix `B = A*X` consistent with given pivot columns.
 """
@@ -51,6 +55,7 @@ function gen_rhs(
     has_zeros = false,
     rng = Random.default_rng(),
 )
+    _validate_num_rhs("gen_rhs", num_rhs)
     values = _int_range(maxint, has_zeros)
     X = zeros(Int64, (size(A, 2), num_rhs))
 
@@ -61,7 +66,7 @@ end
 # ------------------------------------------------------------------------------
 # given the pivot locations, generate a particular solution of N integer entries, free variables set to zero
 """
-    gen_particular_solution(pivot_cols, n; maxint=3, num_rhs=1) -> Matrix{Int}
+    gen_particular_solution(pivot_cols, n; maxint=3, num_rhs=1, rng=Random.default_rng()) -> Matrix{Int}
 
 Generate one or more particular solution vectors with prescribed pivot entries.
 Only the pivot coordinates listed in `pivot_cols` are assigned nonzero random
@@ -74,13 +79,15 @@ function gen_particular_solution(
     num_rhs = 1,
     rng = Random.default_rng(),
 )
+    _validate_maxint("gen_particular_solution", maxint)
+    _validate_num_rhs("gen_particular_solution", num_rhs)
     X = zeros(Int64, (n, num_rhs))
     X[pivot_cols, :] = rand(rng, [-maxint:-1; 1:maxint], (length(pivot_cols), num_rhs))
     X
 end
 # ------------------------------------------------------------------------------
 """
-    gen_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1) -> A, X, B
+    gen_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1, rng=Random.default_rng()) -> A, X, B
 
 Generate a consistent linear system `A * X = B` of rank `r`.
 The right-hand side is produced from an exact integer solution matrix `X`.
@@ -117,7 +124,7 @@ function gen_gj_pb(
 end
 # ------------------------------------------------------------------------------
 """
-    gen_gj_pb(m, n; maxint=3) -> A, X, B
+    gen_gj_pb(m, n; maxint=3, rng=Random.default_rng()) -> A, X, B
 
 Convenience method for the full-rank case `r = min(m, n)`.
 """
@@ -126,7 +133,7 @@ function gen_gj_pb(m, n; maxint = 3, rng = Random.default_rng())
 end
 # ------------------------------------------------------------------------------
 """
-    gen_inconsistent_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1) -> A, B
+    gen_inconsistent_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1, rng=Random.default_rng()) -> A, B
 
 Generate an inconsistent linear system `A * x = B` of rank `r`.
 
@@ -145,6 +152,7 @@ function gen_inconsistent_gj_pb(
     rng = Random.default_rng(),
 )
     _validate_rank_request("gen_inconsistent_gj_pb", m, n, r)
+    _validate_num_rhs("gen_inconsistent_gj_pb", num_rhs)
     r < m || throw(
         ArgumentError(
             "gen_inconsistent_gj_pb requires r < m so the system can be inconsistent",

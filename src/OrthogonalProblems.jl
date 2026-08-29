@@ -23,7 +23,7 @@ function Q_2_matrix(; rng = Random.default_rng())
 end
 # ------------------------------------------------------------------------------
 """
-    W_3_matrix(; maxint=3) -> d, W
+    W_3_matrix(; maxint=3, rng=Random.default_rng()) -> d, W
 
 Return a structured `3 × 3` exact matrix whose Gram matrix is diagonal.
 The leading `2 × 2` block comes from a Pythagorean triple and the remaining
@@ -123,7 +123,7 @@ function Q_4_matrix(; rng = Random.default_rng())
 end
 # ------------------------------------------------------------------------------
 """
-    W_matrix(n; general=false) -> d, W
+    W_matrix(n; general=false, rng=Random.default_rng()) -> d, W
 
 Return a structured exact matrix `W` together with a common denominator `d`
 such that `(W // d)` is orthogonal.
@@ -145,7 +145,7 @@ function W_matrix(n; general = false, rng = Random.default_rng())
 end
 # ------------------------------------------------------------------------------
 """
-    Q_matrix(n; maxint=3, with_zeros=false, general=false) -> Matrix
+    Q_matrix(n; maxint=3, with_zeros=false, general=false, rng=Random.default_rng()) -> Matrix
 
 Return an exact orthogonal matrix.
 For sizes `2`, `3`, and `4` with `general=false`, this dispatches to the
@@ -173,7 +173,7 @@ function Q_matrix(
 end
 # ------------------------------------------------------------------------------
 """
-    sparse_Q_matrix(n; maxint=3, with_zeros=false) -> Matrix
+    sparse_Q_matrix(n; maxint=3, with_zeros=false, rng=Random.default_rng()) -> Matrix
 
 Construct an exact rational orthogonal matrix from block sizes `n`.
 For each block size `m` in `n`, the function builds a skew-symmetric
@@ -187,10 +187,11 @@ outputs can be limited when `maxint` is small; increase `maxint` if
 more variation is desired.
 """
 function sparse_Q_matrix(n; maxint = 3, with_zeros = false, rng = Random.default_rng())
-    sz = sum(n)
+    blocks = _validate_block_sizes("sparse_Q_matrix", n)
+    sz = sum(blocks)
     A = zeros(Rational{Int64}, (sz, sz))
     i = 1
-    for m in n
+    for m in blocks
         S =
             Rational{
                 Int64,
@@ -214,7 +215,7 @@ function sparse_Q_matrix(n; maxint = 3, with_zeros = false, rng = Random.default
 end
 # ------------------------------------------------------------------------------
 """
-    sparse_W_matrix(n) -> d, W
+    sparse_W_matrix(n; rng=Random.default_rng()) -> d, W
 
 Return the denominator-factor representation of `sparse_Q_matrix(n)`.
 The pair satisfies `(W // d) == sparse_Q_matrix(n)`.
@@ -259,6 +260,10 @@ Generate a QR exercise matrix from one of several orthogonal-seed families.
   for block-size inputs.
 """
 function gen_qr_problem(n; family = :auto, maxint = 3, rng = Random.default_rng())
+    n =
+        n isa Integer ? (_validate_dimension("gen_qr_problem", "n", n; minimum = 1); n) :
+        _validate_block_sizes("gen_qr_problem", n)
+
     function total_size(n)
         n isa Integer && return n
         return sum(n)

@@ -6,7 +6,28 @@
 
 Return the integer range used to populate random matrices, optionally including zero.
 """
+function _validate_dimension(fname, name, value; minimum = 0)
+    value isa Integer && value >= minimum ||
+        throw(ArgumentError("$fname requires $name to be an integer >= $minimum"))
+end
+
+function _validate_block_sizes(fname, blocks)
+    values = blocks isa Integer ? [blocks] : collect(blocks)
+    (!isempty(values) && all(x -> x isa Integer && x > 0, values)) || throw(
+        ArgumentError(
+            "$fname requires a nonempty collection of positive integer block sizes",
+        ),
+    )
+    values
+end
+
+function _validate_maxint(fname, maxint)
+    maxint isa Integer && maxint >= 0 ||
+        throw(ArgumentError("$fname requires maxint to be a nonnegative integer"))
+end
+
 function _int_range(maxint, has_zeros)
+    _validate_maxint("integer matrix generator", maxint)
     if has_zeros
         rng = (-maxint):maxint
     else
@@ -16,6 +37,10 @@ function _int_range(maxint, has_zeros)
 end
 
 function _validate_rank_request(fname, m, n, r)
+    all(x -> x isa Integer, (m, n, r)) ||
+        throw(ArgumentError("$fname requires integer dimensions and rank"))
+    m >= 0 && n >= 0 ||
+        throw(ArgumentError("$fname requires nonnegative matrix dimensions"))
     0 <= r <= min(m, n) ||
         throw(ArgumentError("$fname requires r to satisfy 0 <= r <= min(m, n)"))
 end
@@ -30,6 +55,9 @@ diagonal entries are `1`, and entries above the diagonal are `0`.
 The one-argument method returns the square `m × m` case.
 """
 function unit_lower(m, n; maxint = 3, rng = Random.default_rng())
+    _validate_dimension("unit_lower", "m", m)
+    _validate_dimension("unit_lower", "n", n)
+    _validate_maxint("unit_lower", maxint)
     # create a unit lower triangular matrix
     [x > y ? rand(rng, (-maxint):maxint) : (x == y ? 1 : 0) for x = 1:m, y = 1:n]
 end
@@ -60,7 +88,7 @@ function lower(m; maxint = 3, rng = Random.default_rng())
 end
 # ------------------------------------------------------------------------------
 """
-    rref_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> R, pivot_cols
+    rref_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, rng=Random.default_rng()) -> R, pivot_cols
 
 Generate an `m × n` reduced row-echelon matrix of rank `r`.
 `pivot_cols` contains the pivot column indices. When `pivot_in_first_col=true`,
@@ -106,7 +134,7 @@ function rref_matrix(
 end
 # ------------------------------------------------------------------------------
 """
-    ref_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false) -> U, pivot_cols
+    ref_matrix(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, rng=Random.default_rng()) -> U, pivot_cols
 
 Generate an `m × n` row-echelon-form matrix of rank `r`.
 This starts from `rref_matrix(...)` and then scales pivot rows and mixes
@@ -148,10 +176,13 @@ rank equal to its number of columns.
 """
 function gen_full_col_rank_matrix(mc, nc; maxint = 3, rng = Random.default_rng())
     # produce a reasonable A'A matrix; need m ≥ n
-    m = sum(mc)
-    n = sum(nc)
+    row_blocks = _validate_block_sizes("gen_full_col_rank_matrix", mc)
+    col_blocks = _validate_block_sizes("gen_full_col_rank_matrix", nc)
+    m = sum(row_blocks)
+    n = sum(col_blocks)
+    m >= n || throw(ArgumentError("gen_full_col_rank_matrix requires m >= n"))
 
-    Q = sparse_Q_matrix(mc; rng = rng)
+    Q = sparse_Q_matrix(row_blocks; rng = rng)
     M = zeros(Int64, (m, n))
     values = _int_range(maxint, false)
     for i = 1:min(m, n)
@@ -201,6 +232,8 @@ end
 Return the `i`th standard basis vector in `R^n`.
 """
 function e_i(i, n)
+    _validate_dimension("e_i", "n", n; minimum = 1)
+    1 <= i <= n || throw(ArgumentError("e_i requires i to satisfy 1 <= i <= n"))
     v = zeros(Int, n)
     v[i] = 1
     v
@@ -223,6 +256,8 @@ function i_with_onecol(
     upper = true,
     rng = Random.default_rng(),
 )
+    _validate_dimension("i_with_onecol", "m", m; minimum = 1)
+    1 <= c <= m || throw(ArgumentError("i_with_onecol requires c to satisfy 1 <= c <= m"))
     values = _int_range(maxint, with_zeros)
     # take I and set column c to random entries
     E = collect(1I(m))           # Int64  eye(m)
@@ -264,6 +299,7 @@ end
 Construct a uniformly shuffled `n × n` permutation matrix.
 """
 function gen_permutation_matrix(n; rng = Random.default_rng())
+    _validate_dimension("gen_permutation_matrix", "n", n; minimum = 2)
     n > 1 ||
         throw(ArgumentError("n must be at least 2 to generate a non-identity permutation"))
     locs = randperm(rng, n)

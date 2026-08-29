@@ -332,3 +332,82 @@ end
     @test gen_permutation_matrix(4; rng = MersenneTwister(6008)) ==
           gen_permutation_matrix(4; rng = MersenneTwister(6008))
 end
+
+@testset "Explicit RNG spectral helpers" begin
+    @test gen_eigenproblem([1, 2, 3]; rng = MersenneTwister(7001)) ==
+          gen_eigenproblem([1, 2, 3]; rng = MersenneTwister(7001))
+    @test gen_cx_eigenproblem([1 + 2im, 3]; rng = MersenneTwister(7002)) ==
+          gen_cx_eigenproblem([1 + 2im, 3]; rng = MersenneTwister(7002))
+    @test gen_symmetric_eigenproblem([1, 2, 3]; rng = MersenneTwister(7003)) ==
+          gen_symmetric_eigenproblem([1, 2, 3]; rng = MersenneTwister(7003))
+    @test gen_non_diagonalizable_eigenproblem(2, 3; rng = MersenneTwister(7004)) ==
+          gen_non_diagonalizable_eigenproblem(2, 3; rng = MersenneTwister(7004))
+    blocks = [jordan_block(2, 2), jordan_block(0, 1)]
+    @test gen_from_jordan_form(blocks; rng = MersenneTwister(7005)) ==
+          gen_from_jordan_form(blocks; rng = MersenneTwister(7005))
+    @test gen_degenerate_matrix(2, (3, 1); rng = MersenneTwister(7006)) ==
+          gen_degenerate_matrix(2, (3, 1); rng = MersenneTwister(7006))
+end
+
+@testset "Rank input validation" begin
+    @test_throws ArgumentError rref_matrix(2.0, 3, 1)
+    @test_throws ArgumentError ref_matrix(2, 3, 1.0)
+    @test_throws ArgumentError gen_gj_matrix(-1, 3, 0)
+    @test_throws ArgumentError gen_lu_pb(2, -3, 0)
+end
+
+@testset "RHS count validation" begin
+    @test size(gen_rhs([1 2; 3 4], [1]; num_rhs = 0)[2]) == (2, 0)
+    @test_throws ArgumentError gen_particular_solution([1], 2; num_rhs = -1)
+    @test size(gen_gj_pb(2, 2, 1; num_rhs = 0)[3], 2) == 0
+    @test_throws ArgumentError gen_inconsistent_gj_pb(3, 4, 1; num_rhs = 1.0)
+end
+
+@testset "maxint validation" begin
+    @test_throws ArgumentError unit_lower(2; maxint = -1)
+    @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = -1)
+    @test_throws ArgumentError gen_particular_solution([1], 2; maxint = 1.5)
+    @test unit_lower(2; maxint = 0) == Matrix{Int}(I, 2, 2)
+    @test skew_symmetric_matrix(3; maxint = 0, with_zeros = true) == zeros(Int, 3, 3)
+end
+
+@testset "Dimension and index validation" begin
+    @test_throws ArgumentError unit_lower(-1, 2)
+    @test_throws ArgumentError e_i(0, 3)
+    @test_throws ArgumentError e_i(1, 0)
+    @test_throws ArgumentError i_with_onecol(3, 4)
+    @test_throws ArgumentError gen_permutation_matrix(1.0)
+end
+
+@testset "Empty spectral input validation" begin
+    @test_throws ArgumentError gen_eigenproblem(Int[])
+    @test_throws ArgumentError gen_symmetric_eigenproblem(Int[])
+    @test_throws ArgumentError gen_cx_eigenproblem(ComplexF64[])
+    @test_throws ArgumentError jordan_form([])
+    @test_throws ArgumentError gen_degenerate_matrix()
+end
+
+@testset "Full-column-rank input validation" begin
+    @test_throws ArgumentError gen_full_col_rank_matrix(2, 3)
+end
+
+@testset "Factorization input validation" begin
+    @test_throws ArgumentError gen_inv_pb(2.0)
+    @test_throws ArgumentError gen_ldlt_pb(-1)
+    @test_throws ArgumentError gen_ldlt_pb(3; rank = 1.5)
+    @test gen_inv_pb(0) == (zeros(Int, 0, 0), zeros(Int, 0, 0))
+end
+
+@testset "Block-size validation" begin
+    @test size(sparse_Q_matrix(3), 1) == 3
+    @test_throws ArgumentError sparse_Q_matrix((2, 0))
+    @test_throws ArgumentError sparse_Q_matrix(Int[])
+    @test_throws ArgumentError gen_full_col_rank_matrix((2, -1), 2)
+end
+
+@testset "QR dimension validation" begin
+    @test_throws ArgumentError gen_qr_problem(0)
+    @test_throws ArgumentError gen_qr_problem(-1; family = :cayley)
+    @test_throws ArgumentError gen_qr_problem((2, 0); family = :sparse)
+    @test_throws ArgumentError gen_qr_problem(Int[]; family = :sparse)
+end

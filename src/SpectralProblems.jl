@@ -9,8 +9,10 @@ Accepts vectors and `1 × n` / `n × 1` matrices.
 """
 function _eigenvalues_vector(e_vals)
     if e_vals isa AbstractVector
+        isempty(e_vals) && throw(ArgumentError("e_vals must not be empty"))
         return collect(e_vals)
     elseif e_vals isa AbstractMatrix
+        isempty(e_vals) && throw(ArgumentError("e_vals must not be empty"))
         min(size(e_vals)...) == 1 ||
             throw(ArgumentError("e_vals must be a vector or a 1×n/n×1 matrix"))
         return vec(e_vals)
@@ -19,27 +21,28 @@ function _eigenvalues_vector(e_vals)
 end
 
 """
-    gen_eigenproblem(e_vals; maxint=3) -> S, Λ, S_inv, A
+    gen_eigenproblem(e_vals; maxint=3, rng=Random.default_rng()) -> S, Λ, S_inv, A
 
 Generate a diagonalizable exact eigenproblem with prescribed eigenvalues.
 `e_vals` may be a vector, a `1 × n` matrix, or an `n × 1` matrix. The return
 values satisfy `A = S * Λ * S_inv`.
 """
-function gen_eigenproblem(e_vals; maxint = 3)
+function gen_eigenproblem(e_vals; maxint = 3, rng = Random.default_rng())
     vals = _eigenvalues_vector(e_vals)
     Λ = Diagonal(vals)
-    S, S_inv = gen_inv_pb(length(vals), maxint = maxint)
+    S, S_inv = gen_inv_pb(length(vals), maxint = maxint, rng = rng)
     S, Λ, S_inv, S * Λ * S_inv
 end
 # ------------------------------------------------------------------------------
 """
-    gen_cx_eigenproblem(evals_no_conj; maxint=1) -> S, Λ, S_inv, A
+    gen_cx_eigenproblem(evals_no_conj; maxint=1, rng=Random.default_rng()) -> S, Λ, S_inv, A
 
 Generate a real matrix whose eigenstructure includes the supplied complex
 eigenvalues. Each nonreal scalar is expanded to its real `2 × 2` companion
 block, so the returned `Λ` is block diagonal and `A = S * Λ * S_inv`.
 """
-function gen_cx_eigenproblem(evals_no_conj; maxint = 1)
+function gen_cx_eigenproblem(evals_no_conj; maxint = 1, rng = Random.default_rng())
+    isempty(evals_no_conj) && throw(ArgumentError("evals_no_conj must not be empty"))
     function construct_diagonal_blocks()
         t = typeof(real(evals_no_conj[1]))
         function f(x)
@@ -62,32 +65,49 @@ function gen_cx_eigenproblem(evals_no_conj; maxint = 1)
     end
 
     Λ = construct_diagonal_blocks()
-    S, S_inv = gen_inv_pb(size(Λ, 1), maxint = maxint)
+    S, S_inv = gen_inv_pb(size(Λ, 1), maxint = maxint, rng = rng)
     S, Λ, S_inv, S * Λ * S_inv
 end
 # ------------------------------------------------------------------------------
 """
-    gen_symmetric_eigenproblem(e_vals; maxint=5, with_zeros=false, general=true) -> Q, Λ, A
+    gen_symmetric_eigenproblem(e_vals; maxint=5, with_zeros=false, general=true, rng=Random.default_rng()) -> Q, Λ, A
 
 Generate a symmetric exact eigenproblem with prescribed eigenvalues.
 The return values satisfy `A = Q * Λ * Q'`, where `Q` is orthogonal.
 """
-function gen_symmetric_eigenproblem(e_vals; maxint = 5, with_zeros = false, general = true)
+function gen_symmetric_eigenproblem(
+    e_vals;
+    maxint = 5,
+    with_zeros = false,
+    general = true,
+    rng = Random.default_rng(),
+)
     vals = _eigenvalues_vector(e_vals)
-    S = Q_matrix(length(vals); maxint = maxint, with_zeros = with_zeros, general = general)
+    S = Q_matrix(
+        length(vals);
+        maxint = maxint,
+        with_zeros = with_zeros,
+        general = general,
+        rng = rng,
+    )
     Λ = Diagonal(vals)
     S, Λ, S * Λ * S'
 end
 # ------------------------------------------------------------------------------
 """
-    gen_non_diagonalizable_eigenproblem(e_dup, e; maxint=4) -> Matrix
+    gen_non_diagonalizable_eigenproblem(e_dup, e; maxint=4, rng=Random.default_rng()) -> Matrix
 
 Generate a `3 × 3` exact matrix with a repeated eigenvalue `e_dup` and a
 nontrivial Jordan block, so the matrix is not diagonalizable.
 """
-function gen_non_diagonalizable_eigenproblem(e_dup, e; maxint = 4)
+function gen_non_diagonalizable_eigenproblem(
+    e_dup,
+    e;
+    maxint = 4,
+    rng = Random.default_rng(),
+)
     # size 3x3 problem
-    S, S_inv = gen_inv_pb(3, maxint = maxint)
+    S, S_inv = gen_inv_pb(3, maxint = maxint, rng = rng)
     Λ = [e_dup 1 0; 0 e_dup 0; 0 0 e]
     S * Λ * S_inv
 end
@@ -108,6 +128,7 @@ end
 Assemble a block-diagonal Jordan matrix from a collection of Jordan blocks.
 """
 function jordan_form(j_blocks)
+    isempty(j_blocks) && throw(ArgumentError("j_blocks must not be empty"))
     sz = sum([size(b, 1) for b in j_blocks])
     A = zeros(eltype(j_blocks[1]), sz, sz)
     i = 1
@@ -120,27 +141,33 @@ function jordan_form(j_blocks)
 end
 # ------------------------------------------------------------------------------
 """
-    gen_from_jordan_form(j_blocks; maxint=3) -> Matrix
+    gen_from_jordan_form(j_blocks; maxint=3, rng=Random.default_rng()) -> Matrix
 
 Generate a matrix similar to the block-diagonal Jordan form built from
 `j_blocks`, using an exact invertible change of basis.
 """
-function gen_from_jordan_form(j_blocks; maxint = 3)
+function gen_from_jordan_form(j_blocks; maxint = 3, rng = Random.default_rng())
     A = jordan_form(j_blocks)
-    S, S_inv = gen_inv_pb(size(A, 1), maxint = maxint)
+    S, S_inv = gen_inv_pb(size(A, 1), maxint = maxint, rng = rng)
     S * A * S_inv
 end
 # ------------------------------------------------------------------------------
 # Generate a degenerate matrix based on block sizes or (eigenvalue, size) pairs
 """
-    gen_degenerate_matrix(block_descriptions...; maxint=3) -> P, J, P_inv, A
+    gen_degenerate_matrix(block_descriptions...; maxint=3, rng=Random.default_rng()) -> P, J, P_inv, A
 
 Generate a matrix similar to a Jordan matrix with repeated or nilpotent blocks.
 Each block description is either an integer `n` for a nilpotent `n × n` block or
 a tuple `(λ, n)` for a Jordan block of size `n` with eigenvalue `λ`.
 The return values satisfy `A = P * J * P_inv`.
 """
-function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint = 3)
+function gen_degenerate_matrix(
+    block_descriptions::Vararg{Any};
+    maxint = 3,
+    rng = Random.default_rng(),
+)
+    isempty(block_descriptions) &&
+        throw(ArgumentError("at least one Jordan block is required"))
     total_size = 0
     for desc in block_descriptions
         if isa(desc, Int)
@@ -189,12 +216,12 @@ function gen_degenerate_matrix(block_descriptions::Vararg{Any}; maxint = 3)
         current_row += desc isa Int ? desc : desc[2]
     end
 
-    P, P_inv = gen_inv_pb(total_size, maxint = maxint)
+    P, P_inv = gen_inv_pb(total_size, maxint = maxint, rng = rng)
     P, J, P_inv, P * J * P_inv
 end
 # ------------------------------------------------------------------------------
 """
-    gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3) -> U, Σ, Vt, A
+    gen_svd_problem(m, n, σ; left_family=:sparse, right_family=:sparse, maxint=3, rng=Random.default_rng()) -> U, Σ, Vt, A
 
 Generate an SVD problem with specified singular values.
 Returns orthogonal factors `U`, `Vt`, the diagonal matrix `Σ`, and the product `A = U * Σ * Vt`.
