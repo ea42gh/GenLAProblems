@@ -149,10 +149,10 @@ Generator-oriented APIs in `GenLAProblems`:
 
 ### Orthogonal and QR constructors
 
-- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, W)` where `(W // d)` is orthogonal.
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, W)` where `(W // d)` is orthogonal; `W_matrix(n; maxint=...)` forwards the range control to its applicable construction.
 - `Q_2_matrix`, `Q_3_matrix`, `Q_4_blocks`, `Q_4_matrix`, and `Q_matrix` return exact orthogonal matrices.
 - `sparse_Q_matrix(n; ...)` builds a block-structured exact orthogonal matrix.
-- `sparse_W_matrix(n)` returns the denominator-factor representation of `sparse_Q_matrix(n)`.
+- `sparse_W_matrix(n; maxint=...)` returns the denominator-factor representation of `sparse_Q_matrix(n)` and forwards `maxint`.
 - `gen_qr_problem(n; ...)` is the canonical QR exercise generator.
 
 ### Eigenvalue, Jordan, and SVD constructors
