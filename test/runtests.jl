@@ -219,6 +219,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test size(gen_qr_problem(5; family = :cayley, maxint = 2)) == (5, 5)
         @test size(gen_qr_problem((2, 2); family = :sparse, maxint = 2)) == (4, 4)
         @test size(gen_qr_problem(6; maxint = 2)) == (6, 6)
+        @test_throws ArgumentError gen_qr_problem(3; family = :pythagorean, maxint = 0)
         @test_throws ArgumentError gen_qr_problem(1; family = :pythagorean, maxint = 2)
         @test_throws ArgumentError gen_qr_problem((2, 2); family = :hadamard, maxint = 2)
 
@@ -408,6 +409,7 @@ end
     )
     @test_throws ArgumentError Q_matrix(2; maxint = -1)
     @test_throws ArgumentError W_3_matrix(maxint = -1)
+    @test_throws ArgumentError W_3_matrix(maxint = 0)
     @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = -1)
     @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = 0)
     @test rref_matrix(2, 2, 1; maxint = 0, has_zeros = true)[1][1, 1] == 1

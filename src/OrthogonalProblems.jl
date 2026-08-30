@@ -30,7 +30,7 @@ The leading `2 × 2` block comes from a Pythagorean triple and the remaining
 entry is an independent small integer.
 """
 function W_3_matrix(; maxint = 3, rng = Random.default_rng())
-    _validate_maxint("W_3_matrix", maxint)
+    _validate_positive_maxint("W_3_matrix", maxint)
     a, b, c = PythagoreanNumberTriplets[rand(rng, 1:size(PythagoreanNumberTriplets, 1)), :]
     # The Pythagorean scale c governs the 2×2 rotation block only; the third
     # row/column uses an independent small integer so A' * A remains diagonal.
