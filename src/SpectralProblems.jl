@@ -252,6 +252,7 @@ function gen_svd_problem(
     maxint = 3,
     rng = Random.default_rng(),
 )
+    _validate_maxint("gen_svd_problem", maxint)
     m_blocks = if m isa Integer
         _validate_dimension("gen_svd_problem", "m", m; minimum = 1)
         [m]

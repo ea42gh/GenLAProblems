@@ -264,6 +264,7 @@ Generate a QR exercise matrix from one of several orthogonal-seed families.
   for block-size inputs.
 """
 function gen_qr_problem(n; family = :auto, maxint = 3, rng = Random.default_rng())
+    _validate_maxint("gen_qr_problem", maxint)
     n =
         n isa Integer ? (_validate_dimension("gen_qr_problem", "n", n; minimum = 1); n) :
         _validate_block_sizes("gen_qr_problem", n)

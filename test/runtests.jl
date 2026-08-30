@@ -397,6 +397,8 @@ end
 
 @testset "maxint validation" begin
     @test_throws ArgumentError unit_lower(2; maxint = -1)
+    @test_throws ArgumentError gen_qr_problem(2; maxint = -1)
+    @test_throws ArgumentError gen_svd_problem(2, 2, [1]; maxint = -1)
     @test_throws ArgumentError lower(0; maxint = -1)
     @test_throws ArgumentError symmetric_matrix(0; maxint = -1)
     @test_throws ArgumentError skew_symmetric_matrix(1; maxint = -1)
