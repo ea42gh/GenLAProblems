@@ -411,3 +411,16 @@ end
     @test_throws ArgumentError gen_qr_problem((2, 0); family = :sparse)
     @test_throws ArgumentError gen_qr_problem(Int[]; family = :sparse)
 end
+
+@testset "Symmetric matrix dimension validation" begin
+    @test_throws ArgumentError symmetric_matrix(-1)
+    @test_throws ArgumentError skew_symmetric_matrix(1.5)
+    @test size(symmetric_matrix(0), 1) == 0
+    @test size(skew_symmetric_matrix(0), 1) == 0
+end
+
+@testset "Jordan size validation" begin
+    @test_throws ArgumentError jordan_block(0, 1.5)
+    @test_throws ArgumentError gen_degenerate_matrix((2, 1.5))
+    @test gen_degenerate_matrix(Int32(2))[2] == jordan_block(0, 2)
+end

@@ -118,7 +118,7 @@ end
 Construct the `k × k` Jordan block with eigenvalue `λ`.
 """
 function jordan_block(lambda, k)
-    k > 0 || throw(ArgumentError("k must be positive"))
+    _validate_dimension("jordan_block", "k", k; minimum = 1)
     J = Bidiagonal(fill(lambda, k), ones(typeof(lambda), k - 1), :U)
 end
 # ------------------------------------------------------------------------------
@@ -170,10 +170,10 @@ function gen_degenerate_matrix(
         throw(ArgumentError("at least one Jordan block is required"))
     total_size = 0
     for desc in block_descriptions
-        if isa(desc, Int)
+        if desc isa Integer
             desc > 0 || throw(ArgumentError("Jordan block sizes must be positive"))
             total_size += desc  # Integer block size (nilpotent case)
-        elseif isa(desc, Tuple) && length(desc) == 2
+        elseif desc isa Tuple && length(desc) == 2 && desc[2] isa Integer
             desc[2] > 0 || throw(ArgumentError("Jordan block sizes must be positive"))
             total_size += desc[2]  # Tuple (block eigenvalue, size)
         else
@@ -186,9 +186,9 @@ function gen_degenerate_matrix(
     end
 
     function block_value_type(desc)
-        if desc isa Int
+        if desc isa Integer
             return Int
-        elseif desc isa Tuple && length(desc) == 2
+        elseif desc isa Tuple && length(desc) == 2 && desc[2] isa Integer
             return typeof(desc[1])
         else
             throw(
@@ -204,16 +204,16 @@ function gen_degenerate_matrix(
     current_row = 1
 
     for desc in block_descriptions
-        if isa(desc, Int)                                 # Nilpotent Jordan block
+        if desc isa Integer                                 # Nilpotent Jordan block
             n = desc
             J[current_row:(current_row+n-1), current_row:(current_row+n-1)] .=
                 jordan_block(0, n)
-        elseif isa(desc, Tuple) && length(desc) == 2      # Degenerate Jordan block with eigenvalue
+        elseif desc isa Tuple && length(desc) == 2 && desc[2] isa Integer      # Degenerate Jordan block with eigenvalue
             λ, n = desc
             J[current_row:(current_row+n-1), current_row:(current_row+n-1)] .=
                 jordan_block(λ, n)
         end
-        current_row += desc isa Int ? desc : desc[2]
+        current_row += desc isa Integer ? desc : desc[2]
     end
 
     P, P_inv = gen_inv_pb(total_size, maxint = maxint, rng = rng)

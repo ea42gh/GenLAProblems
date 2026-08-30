@@ -199,6 +199,7 @@ Off-diagonal entries are sampled from the integer range controlled by `maxint`;
 when `with_zeros=true`, zeros may also appear off the diagonal.
 """
 function symmetric_matrix(m; maxint = 3, with_zeros = false, rng = Random.default_rng())
+    _validate_dimension("symmetric_matrix", "m", m)
     values = _int_range(maxint, with_zeros)
     A = [x > y ? rand(rng, values) : 0 for x = 1:m, y = 1:m]
     A = A + A'
@@ -221,6 +222,7 @@ function skew_symmetric_matrix(
     with_zeros = false,
     rng = Random.default_rng(),
 )
+    _validate_dimension("skew_symmetric_matrix", "m", m)
     values = _int_range(maxint, with_zeros)
     A = [i > j ? rand(rng, values) : 0 for i = 1:m, j = 1:m]
     A - A'
