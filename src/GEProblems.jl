@@ -41,6 +41,13 @@ function _validate_num_rhs(fname, num_rhs)
     num_rhs isa Integer && num_rhs >= 0 ||
         throw(ArgumentError("$fname requires num_rhs to be a nonnegative integer"))
 end
+
+function _validate_pivot_columns(fname, pivot_cols, n)
+    cols = pivot_cols isa Integer ? [pivot_cols] : collect(pivot_cols)
+    all(x -> x isa Integer && 1 <= x <= n, cols) && length(unique(cols)) == length(cols) ||
+        throw(ArgumentError("$fname requires unique pivot columns in 1:n"))
+    cols
+end
 # ------------------------------------------------------------------------------
 """
     gen_rhs(A, pivot_cols; maxint=3, num_rhs=1, has_zeros=false, rng=Random.default_rng()) -> X, B
@@ -56,6 +63,8 @@ function gen_rhs(
     rng = Random.default_rng(),
 )
     _validate_num_rhs("gen_rhs", num_rhs)
+    A isa AbstractMatrix || throw(ArgumentError("gen_rhs requires A to be a matrix"))
+    pivot_cols = _validate_pivot_columns("gen_rhs", pivot_cols, size(A, 2))
     values = _int_range(maxint, has_zeros)
     X = zeros(Int64, (size(A, 2), num_rhs))
 
@@ -80,6 +89,8 @@ function gen_particular_solution(
     rng = Random.default_rng(),
 )
     _validate_maxint("gen_particular_solution", maxint)
+    _validate_dimension("gen_particular_solution", "n", n)
+    pivot_cols = _validate_pivot_columns("gen_particular_solution", pivot_cols, n)
     _validate_num_rhs("gen_particular_solution", num_rhs)
     X = zeros(Int64, (n, num_rhs))
     X[pivot_cols, :] = rand(rng, [-maxint:-1; 1:maxint], (length(pivot_cols), num_rhs))

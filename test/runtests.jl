@@ -169,6 +169,18 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test_throws ArgumentError gen_eigenproblem([1 2; 3 4]; maxint = 2)
         @test_throws ArgumentError gen_symmetric_eigenproblem([1 2; 3 4]; maxint = 2)
 
+        @test Aeig == S * Λ * S_inv
+        @test Asym == Q * D * Q'
+
+        Sc, Λc, Sc_inv, Ac = gen_cx_eigenproblem([1 + 2im, 3]; maxint = 2)
+        @test size(Λc) == (3, 3)
+        @test Ac == Sc * Λc * Sc_inv
+        @test Λc[1:2, 1:2] == [1 -2; 2 1]
+
+        And = gen_non_diagonalizable_eigenproblem(2, 3; maxint = 2)
+        @test size(And) == (3, 3)
+        @test count(x -> isapprox(x, 2; atol = 1e-6, rtol = 0), eigvals(And)) >= 2
+
         Random.seed!(1234)
         q4_general = Q_matrix(4)
         Random.seed!(1234)
@@ -354,6 +366,16 @@ end
     @test_throws ArgumentError ref_matrix(2, 3, 1.0)
     @test_throws ArgumentError gen_gj_matrix(-1, 3, 0)
     @test_throws ArgumentError gen_lu_pb(2, -3, 0)
+    @test rref_matrix(3, 0, 0) == (zeros(Int64, 3, 0), Int[])
+    @test rref_matrix(0, 4, 0) == (zeros(Int64, 0, 4), Int[])
+    @test_throws ArgumentError rref_matrix(3, 0, 0; maxint = -1)
+    @test size(ref_matrix(3, 0, 0)[1]) == (3, 0)
+    @test size(gen_gj_matrix(3, 0, 0)[2]) == (3, 0)
+    @test gen_lu_pb(3, 0, 0)[1] == Int[]
+    A0, X0, B0 = gen_gj_pb(3, 0, 0)
+    @test size(A0) == (3, 0)
+    @test size(X0) == (0, 1)
+    @test B0 == zeros(Int64, 3, 1)
 end
 
 @testset "RHS count validation" begin
@@ -430,5 +452,45 @@ end
     @test_throws ArgumentError gen_svd_problem(2, (1, 0), [1])
     @test_throws ArgumentError gen_svd_problem(2, 2, Int[])
     @test_throws ArgumentError gen_svd_problem(2, 2, [1, 2, 3])
+    @test_throws ArgumentError gen_svd_problem(2, 2, [-1])
+    @test_throws ArgumentError gen_svd_problem(2, 2, [1 + 2im])
     @test size(gen_svd_problem(2, 3, reshape([1, 2], 1, 2))[2]) == (2, 3)
+end
+
+@testset "Complex eigenproblem input validation" begin
+    @test_throws ArgumentError gen_cx_eigenproblem(1 + 2im)
+    @test_throws ArgumentError gen_cx_eigenproblem(reshape([1, 2, 3, 4], 2, 2))
+    @test size(gen_cx_eigenproblem(reshape([1 + 2im, 3], 1, 2))[2]) == (3, 3)
+end
+
+@testset "Jordan block collection validation" begin
+    @test_throws ArgumentError jordan_form([ones(Int, 2, 3)])
+    @test_throws ArgumentError jordan_form([1, 2])
+    @test_throws ArgumentError jordan_form(ones(Int, 2, 2))
+    @test size(jordan_form([jordan_block(0, 2)])) == (2, 2)
+end
+
+@testset "RHS metadata validation" begin
+    @test_throws ArgumentError gen_rhs([1 2], [0])
+    @test_throws ArgumentError gen_rhs([1 2], [1, 1])
+    @test_throws ArgumentError gen_rhs([1 2], [3])
+    @test_throws ArgumentError gen_rhs([1, 2], [1])
+    @test_throws ArgumentError gen_particular_solution([1], 0)
+    @test_throws ArgumentError gen_particular_solution([1, 1], 2)
+    @test gen_particular_solution(Int[], 0; num_rhs = 0) == zeros(Int, 0, 0)
+end
+
+@testset "invert_unit_lower validation" begin
+    @test invert_unit_lower([1 0; -2 1]) == [1 0; 2 1]
+    @test_throws ArgumentError invert_unit_lower([1 2; 0 1])
+    @test_throws ArgumentError invert_unit_lower([1 0])
+    @test invert_unit_lower(zeros(Int, 0, 0)) == zeros(Int, 0, 0)
+end
+
+@testset "ca_projection_matrix validation" begin
+    @test_throws ArgumentError ca_projection_matrix([1, 2])
+    @test_throws ArgumentError ca_projection_matrix([1 2; 2 4])
+    P = ca_projection_matrix([1 0; 0 1; 1 1])
+    @test isapprox(P, P'; atol = 1e-12, rtol = 0)
+    @test isapprox(P * P, P; atol = 1e-12, rtol = 0)
 end

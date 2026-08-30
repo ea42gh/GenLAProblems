@@ -6,7 +6,15 @@ Return the inverse of a unit lower-triangular matrix `L`.
 The result has the same element type as `L`.
 """
 function invert_unit_lower(L)
+    L isa AbstractMatrix || throw(ArgumentError("invert_unit_lower requires a matrix"))
+    size(L, 1) == size(L, 2) ||
+        throw(ArgumentError("invert_unit_lower requires a square matrix"))
     n = size(L, 1)
+    all(L[i, i] == 1 for i = 1:n) ||
+        throw(ArgumentError("invert_unit_lower requires unit diagonal entries"))
+    all(iszero(L[i, j]) for i = 1:n for j = i+1:n) ||
+        throw(ArgumentError("invert_unit_lower requires a lower-triangular matrix"))
+
     L_inv = Matrix{eltype(L)}(I, n, n)
 
     for j = n-1:-1:1 # current column of L_inv to update

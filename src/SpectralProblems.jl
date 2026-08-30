@@ -7,19 +7,20 @@
 Normalize a vector-like eigenvalue input into a one-dimensional Julia vector.
 Accepts vectors and `1 × n` / `n × 1` matrices.
 """
-function _eigenvalues_vector(e_vals)
-    if e_vals isa AbstractVector
-        isempty(e_vals) && throw(ArgumentError("e_vals must not be empty"))
-        return collect(e_vals)
-    elseif e_vals isa AbstractMatrix
-        isempty(e_vals) && throw(ArgumentError("e_vals must not be empty"))
-        min(size(e_vals)...) == 1 ||
-            throw(ArgumentError("e_vals must be a vector or a 1×n/n×1 matrix"))
-        return vec(e_vals)
+function _values_vector(values, name)
+    message = "$name must be a vector or a 1×n/n×1 matrix"
+    if values isa AbstractVector
+        isempty(values) && throw(ArgumentError("$name must not be empty"))
+        return collect(values)
+    elseif values isa AbstractMatrix
+        isempty(values) && throw(ArgumentError("$name must not be empty"))
+        min(size(values)...) == 1 || throw(ArgumentError(message))
+        return vec(values)
     end
-    throw(ArgumentError("e_vals must be a vector or a 1×n/n×1 matrix"))
+    throw(ArgumentError(message))
 end
 
+_eigenvalues_vector(e_vals) = _values_vector(e_vals, "e_vals")
 """
     gen_eigenproblem(e_vals; maxint=3, rng=Random.default_rng()) -> S, Λ, S_inv, A
 
@@ -42,9 +43,9 @@ eigenvalues. Each nonreal scalar is expanded to its real `2 × 2` companion
 block, so the returned `Λ` is block diagonal and `A = S * Λ * S_inv`.
 """
 function gen_cx_eigenproblem(evals_no_conj; maxint = 1, rng = Random.default_rng())
-    isempty(evals_no_conj) && throw(ArgumentError("evals_no_conj must not be empty"))
+    evals = _eigenvalues_vector(evals_no_conj)
     function construct_diagonal_blocks()
-        t = typeof(real(evals_no_conj[1]))
+        t = typeof(real(evals[1]))
         function f(x)
             if imag(x) == zero(t)
                 [x]
@@ -52,7 +53,7 @@ function gen_cx_eigenproblem(evals_no_conj; maxint = 1, rng = Random.default_rng
                 [real(x) -imag(x); imag(x) real(x)]
             end
         end
-        blocks = [f(x) for x in evals_no_conj]
+        blocks = [f(x) for x in evals]
         sz = sum((x -> size(x, 1)).(blocks))
         A = zeros(t, sz, sz)
         k = 1
@@ -127,8 +128,19 @@ end
 
 Assemble a block-diagonal Jordan matrix from a collection of Jordan blocks.
 """
-function jordan_form(j_blocks)
+function _validate_jordan_blocks(j_blocks)
+    j_blocks isa AbstractVector ||
+        throw(ArgumentError("j_blocks must be a vector of nonempty square matrices"))
     isempty(j_blocks) && throw(ArgumentError("j_blocks must not be empty"))
+    all(
+        b -> b isa AbstractMatrix && size(b, 1) > 0 && size(b, 1) == size(b, 2),
+        j_blocks,
+    ) || throw(ArgumentError("j_blocks must contain nonempty square matrices"))
+    j_blocks
+end
+
+function jordan_form(j_blocks)
+    _validate_jordan_blocks(j_blocks)
     sz = sum([size(b, 1) for b in j_blocks])
     A = zeros(eltype(j_blocks[1]), sz, sz)
     i = 1
@@ -228,18 +240,8 @@ Returns orthogonal factors `U`, `Vt`, the diagonal matrix `Σ`, and the product 
 The `left_family` and `right_family` keywords choose the orthogonal-matrix
 construction used for the left and right factors independently.
 """
-function _singular_values_vector(σ)
-    if σ isa AbstractVector
-        isempty(σ) && throw(ArgumentError("σ must not be empty"))
-        return collect(σ)
-    elseif σ isa AbstractMatrix
-        isempty(σ) && throw(ArgumentError("σ must not be empty"))
-        min(size(σ)...) == 1 ||
-            throw(ArgumentError("σ must be a vector or a 1×n/n×1 matrix"))
-        return vec(σ)
-    end
-    throw(ArgumentError("σ must be a vector or a 1×n/n×1 matrix"))
-end
+_singular_values_vector(σ) = _values_vector(σ, "σ")
+
 function gen_svd_problem(
     m,
     n,
@@ -262,6 +264,8 @@ function gen_svd_problem(
         _validate_block_sizes("gen_svd_problem", n)
     end
     sigmas = _singular_values_vector(σ)
+    all(x -> x isa Real && x >= 0, sigmas) ||
+        throw(ArgumentError("σ must contain real, nonnegative singular values"))
     m_size = sum(m_blocks)
     n_size = sum(n_blocks)
     length(sigmas) <= min(m_size, n_size) ||

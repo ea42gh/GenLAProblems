@@ -107,6 +107,8 @@ function rref_matrix(
 )
     # create a reduced row echelon form matrix of size m x n and rank r
     _validate_rank_request("rref_matrix", m, n, r)
+    _validate_maxint("rref_matrix", maxint)
+    r == 0 && return zeros(Int64, m, n), Int[]
     if pivot_in_first_col || r == n
         pivot_cols = sort!([1; (2:n)[randperm(rng, n - 1)]][1:r])
     else

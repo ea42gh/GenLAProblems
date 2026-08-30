@@ -237,6 +237,8 @@ This assumes that the columns of `A` are linearly independent so that
 `A' * A` is invertible.
 """
 function ca_projection_matrix(A)
+    A isa AbstractMatrix ||
+        throw(ArgumentError("ca_projection_matrix requires A to be a matrix"))
     rank(A) == size(A, 2) || throw(
         ArgumentError(
             "ca_projection_matrix requires linearly independent columns so that A' * A is invertible",
