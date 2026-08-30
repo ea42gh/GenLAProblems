@@ -1,0 +1,2 @@
+[dev.deps]
+numpy = ">=2,<3"

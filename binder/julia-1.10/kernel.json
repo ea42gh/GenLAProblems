@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/usr/local/julia/bin/julia",
+    "--color=yes",
+    "--project=/home/jovyan/GenLAProblems",
+    "-i",
+    "--startup-file=yes",
+    "--history-file=yes",
+    "{connection_file}"
+  ],
+  "display_name": "Julia 1.10",
+  "language": "julia"
+}
