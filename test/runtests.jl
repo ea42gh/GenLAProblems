@@ -464,6 +464,8 @@ end
     @test_throws ArgumentError symmetric_matrix(2; maxint = 0)
     @test_throws ArgumentError lower(2; maxint = 0)
     @test size(lower(0; maxint = 0)) == (0, 0)
+    @test_throws ArgumentError skew_symmetric_matrix(2; maxint = 0)
+    @test skew_symmetric_matrix(1; maxint = 0) == zeros(Int, 1, 1)
     @test size(skew_symmetric_matrix(0), 1) == 0
 end
 

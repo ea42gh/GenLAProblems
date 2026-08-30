@@ -237,6 +237,7 @@ function skew_symmetric_matrix(
     rng = Random.default_rng(),
 )
     _validate_dimension("skew_symmetric_matrix", "m", m)
+    (with_zeros || m <= 1) || _validate_positive_maxint("skew_symmetric_matrix", maxint)
     values = _int_range(maxint, with_zeros)
     A = [i > j ? rand(rng, values) : 0 for i = 1:m, j = 1:m]
     A - A'
