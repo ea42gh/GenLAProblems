@@ -27,7 +27,7 @@ Documentation for [GenLAProblems](https://github.com/ea42gh/GenLAProblems.jl).
   keywords for the orthogonal factors.
 - For exact rational SVD factors, `family=:hadamard` additionally requires the
   size to have an integer square root; a Hadamard order alone is not enough.
-- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, A)`
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, W)`
   with diagonal `A' * A`; the corresponding `Q_*` constructors return
   orthogonal matrices.
 

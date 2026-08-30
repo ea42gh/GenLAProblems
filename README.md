@@ -84,7 +84,7 @@ It is not intended to replace general-purpose numerical linear algebra libraries
   Gauss-Jordan system problems.
 - `W_matrix` is the general exact `W` constructor, and `W_2_matrix`,
   `W_3_matrix`, and `W_4_matrix` are the specialized small-size families.
-  All consistently return `(d, A)` where `A' * A` is diagonal.
+  All consistently return `(d, W)` where `W' * W` is diagonal.
 - `Q_matrix` is the general exact orthogonal constructor, and `Q_2_matrix`,
   `Q_3_matrix`, and `Q_4_matrix` are the specialized small-size families.
 - `gen_qr_problem(n; family=:auto, maxint=3)` is now the canonical QR-problem

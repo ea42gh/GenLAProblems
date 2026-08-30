@@ -82,7 +82,7 @@ integer square root. For example, `4` works, but `12` does not.
 
 ### `W_*` and `Q_*` constructors
 
-- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, A)`
+- `W_2_matrix`, `W_3_matrix`, `W_4_matrix`, and `W_matrix` return `(d, W)`
   where `A' * A` is diagonal.
 - `Q_2_matrix`, `Q_3_matrix`, and `Q_4_matrix` return orthogonal matrices.
 - `W_matrix` now follows the same two-value contract in both the specialized and
