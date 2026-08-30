@@ -64,14 +64,19 @@ function gen_ldlt_pb(
     rng = Random.default_rng(),
 )
     _validate_dimension("gen_ldlt_pb", "m", m)
+    _validate_maxint("gen_ldlt_pb", maxint)
     L = unit_lower(m, maxint = maxint, rng = rng)
     p = squares ? (1:maxint) .^ 2 : 1:maxint
     if rank !== nothing
         _validate_dimension("gen_ldlt_pb", "rank", rank)
         rank <= m || throw(ArgumentError("rank must satisfy 0 <= rank <= m"))
-        pivots = [rand(rng, p, rank); zeros(Int, m - rank)]
+        rank == 0 ||
+            maxint > 0 ||
+            throw(ArgumentError("gen_ldlt_pb requires maxint > 0 when rank is positive"))
+        pivots = rank == 0 ? zeros(Int, m) : [rand(rng, p, rank); zeros(Int, m - rank)]
         D = Diagonal(pivots)
     else
+        maxint > 0 || throw(ArgumentError("gen_ldlt_pb requires maxint > 0 for full rank"))
         D = Diagonal(rand(rng, p, m))
     end
 

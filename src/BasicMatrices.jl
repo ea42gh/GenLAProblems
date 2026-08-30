@@ -26,6 +26,11 @@ function _validate_maxint(fname, maxint)
         throw(ArgumentError("$fname requires maxint to be a nonnegative integer"))
 end
 
+function _validate_positive_maxint(fname, maxint)
+    _validate_maxint(fname, maxint)
+    maxint > 0 || throw(ArgumentError("$fname requires maxint to be positive"))
+end
+
 function _int_range(maxint, has_zeros)
     _validate_maxint("integer matrix generator", maxint)
     if has_zeros
@@ -76,6 +81,7 @@ integer chosen from `[-maxint:-1; 1:maxint]`.
 The one-argument method returns the square `m × m` case.
 """
 function lower(m, n; maxint = 3, rng = Random.default_rng())
+    min(m, n) == 0 || _validate_positive_maxint("lower", maxint)
     L = unit_lower(m, n; maxint = maxint, rng = rng)
     for i = 1:min(m, n)
         L[i, i] = rand(rng, [(-maxint):-1; 1:maxint])
@@ -109,6 +115,7 @@ function rref_matrix(
     _validate_rank_request("rref_matrix", m, n, r)
     _validate_maxint("rref_matrix", maxint)
     r == 0 && return zeros(Int64, m, n), Int[]
+    (has_zeros || r == 0) || _validate_positive_maxint("rref_matrix", maxint)
     if pivot_in_first_col || r == n
         pivot_cols = sort!([1; (2:n)[randperm(rng, n - 1)]][1:r])
     else
@@ -153,6 +160,7 @@ function ref_matrix(
     rng = Random.default_rng(),
 )
     _validate_rank_request("ref_matrix", m, n, r)
+    m == 0 || _validate_positive_maxint("ref_matrix", maxint)
     M, pivot_cols = rref_matrix(
         m,
         n,
@@ -183,6 +191,7 @@ function gen_full_col_rank_matrix(mc, nc; maxint = 3, rng = Random.default_rng()
     m = sum(row_blocks)
     n = sum(col_blocks)
     m >= n || throw(ArgumentError("gen_full_col_rank_matrix requires m >= n"))
+    _validate_positive_maxint("gen_full_col_rank_matrix", maxint)
 
     Q = sparse_Q_matrix(row_blocks; rng = rng)
     M = zeros(Int64, (m, n))
@@ -202,6 +211,7 @@ when `with_zeros=true`, zeros may also appear off the diagonal.
 """
 function symmetric_matrix(m; maxint = 3, with_zeros = false, rng = Random.default_rng())
     _validate_dimension("symmetric_matrix", "m", m)
+    m == 0 || _validate_positive_maxint("symmetric_matrix", maxint)
     values = _int_range(maxint, with_zeros)
     A = [x > y ? rand(rng, values) : 0 for x = 1:m, y = 1:m]
     A = A + A'

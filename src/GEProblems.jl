@@ -17,6 +17,8 @@ function gen_gj_matrix(
     has_zeros = false,
     rng = Random.default_rng(),
 )
+    r == 0 || _validate_positive_maxint("gen_gj_matrix", maxint)
+
     M, pivot_cols = rref_matrix(
         m,
         n,
@@ -164,6 +166,7 @@ function gen_inconsistent_gj_pb(
 )
     _validate_rank_request("gen_inconsistent_gj_pb", m, n, r)
     _validate_num_rhs("gen_inconsistent_gj_pb", num_rhs)
+    _validate_positive_maxint("gen_inconsistent_gj_pb", maxint)
     r < m || throw(
         ArgumentError(
             "gen_inconsistent_gj_pb requires r < m so the system can be inconsistent",

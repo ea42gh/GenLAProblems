@@ -45,7 +45,7 @@ block, so the returned `Λ` is block diagonal and `A = S * Λ * S_inv`.
 function gen_cx_eigenproblem(evals_no_conj; maxint = 1, rng = Random.default_rng())
     evals = _eigenvalues_vector(evals_no_conj)
     function construct_diagonal_blocks()
-        t = typeof(real(evals[1]))
+        t = foldl(promote_type, (typeof(real(x)) for x in evals))
         function f(x)
             if imag(x) == zero(t)
                 [x]
@@ -142,7 +142,8 @@ end
 function jordan_form(j_blocks)
     _validate_jordan_blocks(j_blocks)
     sz = sum([size(b, 1) for b in j_blocks])
-    A = zeros(eltype(j_blocks[1]), sz, sz)
+    T = foldl(promote_type, (eltype(b) for b in j_blocks))
+    A = zeros(T, sz, sz)
     i = 1
     for b in j_blocks
         sz_b = size(b, 1)

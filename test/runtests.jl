@@ -177,6 +177,14 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test Ac == Sc * Λc * Sc_inv
         @test Λc[1:2, 1:2] == [1 -2; 2 1]
 
+        Smixed, Λmixed, Smixed_inv, Amixed = gen_cx_eigenproblem(
+            [3, 1 // 2 + (1 // 3)im];
+            maxint = 2,
+            rng = MersenneTwister(7007),
+        )
+        @test eltype(Λmixed) == Rational{Int}
+        @test Amixed == Smixed * Λmixed * Smixed_inv
+
         And = gen_non_diagonalizable_eigenproblem(2, 3; maxint = 2)
         @test size(And) == (3, 3)
         @test count(x -> isapprox(x, 2; atol = 1e-6, rtol = 0), eigvals(And)) >= 2
@@ -390,6 +398,12 @@ end
     @test_throws ArgumentError Q_matrix(2; maxint = -1)
     @test_throws ArgumentError W_3_matrix(maxint = -1)
     @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = -1)
+    @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = 0)
+    @test rref_matrix(2, 2, 1; maxint = 0, has_zeros = true)[1][1, 1] == 1
+    @test_throws ArgumentError ref_matrix(2, 2, 1; maxint = 0)
+    @test_throws ArgumentError gen_gj_matrix(2, 2, 1; maxint = 0)
+    @test_throws ArgumentError gen_full_col_rank_matrix(3, 2; maxint = 0)
+    @test_throws ArgumentError gen_inconsistent_gj_pb(3, 4, 1; maxint = 0)
     @test_throws ArgumentError gen_particular_solution([1], 2; maxint = 1.5)
     @test unit_lower(2; maxint = 0) == Matrix{Int}(I, 2, 2)
     @test skew_symmetric_matrix(3; maxint = 0, with_zeros = true) == zeros(Int, 3, 3)
@@ -419,6 +433,8 @@ end
     @test_throws ArgumentError gen_inv_pb(2.0)
     @test_throws ArgumentError gen_ldlt_pb(-1)
     @test_throws ArgumentError gen_ldlt_pb(3; rank = 1.5)
+    @test_throws ArgumentError gen_ldlt_pb(3; maxint = 0)
+    @test gen_ldlt_pb(3; maxint = 0, rank = 0)[2] == Diagonal(zeros(Int, 3))
     @test gen_inv_pb(0) == (zeros(Int, 0, 0), zeros(Int, 0, 0))
 end
 
@@ -440,6 +456,9 @@ end
     @test_throws ArgumentError symmetric_matrix(-1)
     @test_throws ArgumentError skew_symmetric_matrix(1.5)
     @test size(symmetric_matrix(0), 1) == 0
+    @test_throws ArgumentError symmetric_matrix(2; maxint = 0)
+    @test_throws ArgumentError lower(2; maxint = 0)
+    @test size(lower(0; maxint = 0)) == (0, 0)
     @test size(skew_symmetric_matrix(0), 1) == 0
 end
 
@@ -470,6 +489,9 @@ end
     @test_throws ArgumentError jordan_form([1, 2])
     @test_throws ArgumentError jordan_form(ones(Int, 2, 2))
     @test size(jordan_form([jordan_block(0, 2)])) == (2, 2)
+    mixed_jordan = jordan_form([jordan_block(1, 1), jordan_block(1 // 2, 1)])
+    @test eltype(mixed_jordan) == Rational{Int}
+    @test mixed_jordan == [1 0; 0 1//2]
 end
 
 @testset "RHS metadata validation" begin
