@@ -396,6 +396,16 @@ end
 
 @testset "maxint validation" begin
     @test_throws ArgumentError unit_lower(2; maxint = -1)
+    @test_throws ArgumentError lower(0; maxint = -1)
+    @test_throws ArgumentError symmetric_matrix(0; maxint = -1)
+    @test_throws ArgumentError skew_symmetric_matrix(1; maxint = -1)
+    @test_throws ArgumentError i_with_onecol(
+        3,
+        2;
+        maxint = -1,
+        lower = false,
+        upper = false,
+    )
     @test_throws ArgumentError Q_matrix(2; maxint = -1)
     @test_throws ArgumentError W_3_matrix(maxint = -1)
     @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = -1)
@@ -419,6 +429,9 @@ end
     @test_throws ArgumentError e_i(0, 3)
     @test_throws ArgumentError e_i(1, 0)
     @test_throws ArgumentError i_with_onecol(3, 4)
+    @test_throws ArgumentError i_with_onecol(3, 2; maxint = 0)
+    @test i_with_onecol(3, 2; maxint = 0, lower = false, upper = false) ==
+          Matrix{Int}(I, 3, 3)
     @test_throws ArgumentError gen_permutation_matrix(1.0)
 end
 

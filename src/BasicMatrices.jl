@@ -81,6 +81,7 @@ integer chosen from `[-maxint:-1; 1:maxint]`.
 The one-argument method returns the square `m × m` case.
 """
 function lower(m, n; maxint = 3, rng = Random.default_rng())
+    _validate_maxint("lower", maxint)
     min(m, n) == 0 || _validate_positive_maxint("lower", maxint)
     L = unit_lower(m, n; maxint = maxint, rng = rng)
     for i = 1:min(m, n)
@@ -213,6 +214,7 @@ when `with_zeros=true`, zeros may also appear off the diagonal.
 """
 function symmetric_matrix(m; maxint = 3, with_zeros = false, rng = Random.default_rng())
     _validate_dimension("symmetric_matrix", "m", m)
+    _validate_maxint("symmetric_matrix", maxint)
     m == 0 || _validate_positive_maxint("symmetric_matrix", maxint)
     values = _int_range(maxint, with_zeros)
     A = [x > y ? rand(rng, values) : 0 for x = 1:m, y = 1:m]
@@ -237,6 +239,7 @@ function skew_symmetric_matrix(
     rng = Random.default_rng(),
 )
     _validate_dimension("skew_symmetric_matrix", "m", m)
+    _validate_maxint("skew_symmetric_matrix", maxint)
     (with_zeros || m <= 1) || _validate_positive_maxint("skew_symmetric_matrix", maxint)
     values = _int_range(maxint, with_zeros)
     A = [i > j ? rand(rng, values) : 0 for i = 1:m, j = 1:m]
@@ -275,7 +278,10 @@ function i_with_onecol(
 )
     _validate_dimension("i_with_onecol", "m", m; minimum = 1)
     1 <= c <= m || throw(ArgumentError("i_with_onecol requires c to satisfy 1 <= c <= m"))
-    values = _int_range(maxint, with_zeros)
+    _validate_maxint("i_with_onecol", maxint)
+    needs_samples = (lower && c < m) || (upper && c > 1)
+    values = needs_samples ? _int_range(maxint, with_zeros) : Int[]
+    needs_samples && !with_zeros && _validate_positive_maxint("i_with_onecol", maxint)
     # take I and set column c to random entries
     E = collect(1I(m))           # Int64  eye(m)
     if lower && c < m
