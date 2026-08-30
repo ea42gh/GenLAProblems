@@ -378,6 +378,7 @@ end
     @test rref_matrix(0, 4, 0) == (zeros(Int64, 0, 4), Int[])
     @test_throws ArgumentError rref_matrix(3, 0, 0; maxint = -1)
     @test size(ref_matrix(3, 0, 0)[1]) == (3, 0)
+    @test ref_matrix(3, 4, 0; maxint = 0) == (zeros(Int64, 3, 4), Int[])
     @test size(gen_gj_matrix(3, 0, 0)[2]) == (3, 0)
     @test gen_lu_pb(3, 0, 0)[1] == Int[]
     A0, X0, B0 = gen_gj_pb(3, 0, 0)

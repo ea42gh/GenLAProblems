@@ -160,6 +160,8 @@ function ref_matrix(
     rng = Random.default_rng(),
 )
     _validate_rank_request("ref_matrix", m, n, r)
+    _validate_maxint("ref_matrix", maxint)
+    r == 0 && return zeros(Int64, m, n), Int[]
     m == 0 || _validate_positive_maxint("ref_matrix", maxint)
     M, pivot_cols = rref_matrix(
         m,
