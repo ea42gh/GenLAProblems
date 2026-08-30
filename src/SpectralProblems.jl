@@ -228,6 +228,18 @@ Returns orthogonal factors `U`, `Vt`, the diagonal matrix `Σ`, and the product 
 The `left_family` and `right_family` keywords choose the orthogonal-matrix
 construction used for the left and right factors independently.
 """
+function _singular_values_vector(σ)
+    if σ isa AbstractVector
+        isempty(σ) && throw(ArgumentError("σ must not be empty"))
+        return collect(σ)
+    elseif σ isa AbstractMatrix
+        isempty(σ) && throw(ArgumentError("σ must not be empty"))
+        min(size(σ)...) == 1 ||
+            throw(ArgumentError("σ must be a vector or a 1×n/n×1 matrix"))
+        return vec(σ)
+    end
+    throw(ArgumentError("σ must be a vector or a 1×n/n×1 matrix"))
+end
 function gen_svd_problem(
     m,
     n,
@@ -237,13 +249,31 @@ function gen_svd_problem(
     maxint = 3,
     rng = Random.default_rng(),
 )
-    U = _orthogonal_matrix_family(m; family = left_family, maxint = maxint, rng = rng)
-    Vt = _orthogonal_matrix_family(n; family = right_family, maxint = maxint, rng = rng)
-    m = sum(m)
-    n = sum(n)
-    Σ = zeros(eltype(σ[1]), m, n)
-    for i = 1:min(m, size(σ, 1))
-        Σ[i, i] = σ[i]
+    m_blocks = if m isa Integer
+        _validate_dimension("gen_svd_problem", "m", m; minimum = 1)
+        [m]
+    else
+        _validate_block_sizes("gen_svd_problem", m)
+    end
+    n_blocks = if n isa Integer
+        _validate_dimension("gen_svd_problem", "n", n; minimum = 1)
+        [n]
+    else
+        _validate_block_sizes("gen_svd_problem", n)
+    end
+    sigmas = _singular_values_vector(σ)
+    m_size = sum(m_blocks)
+    n_size = sum(n_blocks)
+    length(sigmas) <= min(m_size, n_size) ||
+        throw(ArgumentError("σ cannot contain more than min(m, n) singular values"))
+
+    m_arg = m isa Integer ? m : m_blocks
+    n_arg = n isa Integer ? n : n_blocks
+    U = _orthogonal_matrix_family(m_arg; family = left_family, maxint = maxint, rng = rng)
+    Vt = _orthogonal_matrix_family(n_arg; family = right_family, maxint = maxint, rng = rng)
+    Σ = zeros(eltype(sigmas), m_size, n_size)
+    for i = 1:length(sigmas)
+        Σ[i, i] = sigmas[i]
     end
     U, Σ, Vt, U * Σ * Vt
 end

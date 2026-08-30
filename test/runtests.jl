@@ -424,3 +424,11 @@ end
     @test_throws ArgumentError gen_degenerate_matrix((2, 1.5))
     @test gen_degenerate_matrix(Int32(2))[2] == jordan_block(0, 2)
 end
+
+@testset "SVD input validation" begin
+    @test_throws ArgumentError gen_svd_problem(0, 2, [1])
+    @test_throws ArgumentError gen_svd_problem(2, (1, 0), [1])
+    @test_throws ArgumentError gen_svd_problem(2, 2, Int[])
+    @test_throws ArgumentError gen_svd_problem(2, 2, [1, 2, 3])
+    @test size(gen_svd_problem(2, 3, reshape([1, 2], 1, 2))[2]) == (2, 3)
+end
