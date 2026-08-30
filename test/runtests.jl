@@ -411,6 +411,8 @@ end
     )
     @test_throws ArgumentError Q_matrix(2; maxint = -1)
     @test_throws ArgumentError W_3_matrix(maxint = -1)
+    @test_throws ArgumentError W_matrix(3; maxint = 0)
+    @test_throws ArgumentError sparse_W_matrix(2; maxint = 0)
     @test_throws ArgumentError W_3_matrix(maxint = 0)
     @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = -1)
     @test_throws ArgumentError rref_matrix(2, 2, 1; maxint = 0)

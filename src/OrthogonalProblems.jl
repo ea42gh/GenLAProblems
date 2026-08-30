@@ -124,24 +124,25 @@ function Q_4_matrix(; rng = Random.default_rng())
 end
 # ------------------------------------------------------------------------------
 """
-    W_matrix(n; general=false, rng=Random.default_rng()) -> d, W
+    W_matrix(n; maxint=3, general=false, rng=Random.default_rng()) -> d, W
 
 Return a structured exact matrix `W` together with a common denominator `d`
 such that `(W // d)` is orthogonal.
 For `n == 2`, `3`, or `4` and `general=false`, specialized families are used;
 otherwise the result is derived from `Q_matrix`.
 """
-function W_matrix(n; general = false, rng = Random.default_rng())
+function W_matrix(n; maxint = 3, general = false, rng = Random.default_rng())
+    _validate_maxint("W_matrix", maxint)
     if general == false
         if n == 2
             return W_2_matrix(rng = rng)
         elseif n == 3
-            return W_3_matrix(rng = rng)
+            return W_3_matrix(maxint = maxint, rng = rng)
         elseif n == 4
             return W_4_matrix(rng = rng)
         end
     end
-    A = Q_matrix(n; general = general, rng = rng)
+    A = Q_matrix(n; maxint = maxint, general = general, rng = rng)
     _factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
@@ -217,13 +218,13 @@ function sparse_Q_matrix(n; maxint = 3, with_zeros = false, rng = Random.default
 end
 # ------------------------------------------------------------------------------
 """
-    sparse_W_matrix(n; rng=Random.default_rng()) -> d, W
+    sparse_W_matrix(n; maxint=3, rng=Random.default_rng()) -> d, W
 
 Return the denominator-factor representation of `sparse_Q_matrix(n)`.
 The pair satisfies `(W // d) == sparse_Q_matrix(n)`.
 """
-function sparse_W_matrix(n; rng = Random.default_rng())
-    A = sparse_Q_matrix(n; rng = rng)
+function sparse_W_matrix(n; maxint = 3, rng = Random.default_rng())
+    A = sparse_Q_matrix(n; maxint = maxint, rng = rng)
     _factor_out_denominator(A)
 end
 # ------------------------------------------------------------------------------
