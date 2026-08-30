@@ -30,7 +30,9 @@ function gen_gj_matrix(
     )
 
     s = ones(Int, n)
-    s[pivot_cols] = rand(rng, [-maxint:-1; 1:maxint], r)
+    if r > 0
+        s[pivot_cols] = rand(rng, [-maxint:-1; 1:maxint], r)
+    end
 
     A =
         unit_lower(m, maxint = maxint, rng = rng) *
@@ -65,16 +67,17 @@ function gen_rhs(
     rng = Random.default_rng(),
 )
     _validate_num_rhs("gen_rhs", num_rhs)
+    _validate_maxint("gen_rhs", maxint)
     A isa AbstractMatrix || throw(ArgumentError("gen_rhs requires A to be a matrix"))
     pivot_cols = _validate_pivot_columns("gen_rhs", pivot_cols, size(A, 2))
-    values = _int_range(maxint, has_zeros)
     X = zeros(Int64, (size(A, 2), num_rhs))
-
-    X[pivot_cols, :] = rand(rng, values, (length(pivot_cols), num_rhs))
+    if !isempty(pivot_cols) && num_rhs > 0
+        values = _int_range(maxint, has_zeros)
+        X[pivot_cols, :] = rand(rng, values, (length(pivot_cols), num_rhs))
+    end
     B = A * X
     X, B
-end
-# ------------------------------------------------------------------------------
+end# ------------------------------------------------------------------------------
 # given the pivot locations, generate a particular solution of N integer entries, free variables set to zero
 """
     gen_particular_solution(pivot_cols, n; maxint=3, num_rhs=1, rng=Random.default_rng()) -> Matrix{Int}
@@ -95,10 +98,13 @@ function gen_particular_solution(
     pivot_cols = _validate_pivot_columns("gen_particular_solution", pivot_cols, n)
     _validate_num_rhs("gen_particular_solution", num_rhs)
     X = zeros(Int64, (n, num_rhs))
-    X[pivot_cols, :] = rand(rng, [-maxint:-1; 1:maxint], (length(pivot_cols), num_rhs))
+    if !isempty(pivot_cols) && num_rhs > 0
+        _validate_positive_maxint("gen_particular_solution", maxint)
+        values = _int_range(maxint, false)
+        X[pivot_cols, :] = rand(rng, values, (length(pivot_cols), num_rhs))
+    end
     X
-end
-# ------------------------------------------------------------------------------
+end# ------------------------------------------------------------------------------
 """
     gen_gj_pb(m, n, r; maxint=3, pivot_in_first_col=true, has_zeros=false, num_rhs=1, rng=Random.default_rng()) -> A, X, B
 
@@ -166,7 +172,7 @@ function gen_inconsistent_gj_pb(
 )
     _validate_rank_request("gen_inconsistent_gj_pb", m, n, r)
     _validate_num_rhs("gen_inconsistent_gj_pb", num_rhs)
-    _validate_positive_maxint("gen_inconsistent_gj_pb", maxint)
+    (r == 0 && num_rhs == 0) || _validate_positive_maxint("gen_inconsistent_gj_pb", maxint)
     r < m || throw(
         ArgumentError(
             "gen_inconsistent_gj_pb requires r < m so the system can be inconsistent",
@@ -184,21 +190,25 @@ function gen_inconsistent_gj_pb(
     )
 
     s = ones(Int, n)
-    s[pivot_cols] = rand(rng, [-maxint:-1; 1:maxint], r)
+    if r > 0
+        s[pivot_cols] = rand(rng, [-maxint:-1; 1:maxint], r)
+    end
 
     E =
         unit_lower(m, maxint = maxint, rng = rng) *
         unit_lower(m, maxint = maxint, rng = rng)'
     A = E * M * Diagonal(s)
 
-    values = _int_range(maxint, has_zeros)
     Y = zeros(Int64, m, num_rhs)
-    if r > 0
-        Y[1:r, :] = rand(rng, values, (r, num_rhs))
+    if num_rhs > 0
+        values = _int_range(maxint, has_zeros)
+        if r > 0
+            Y[1:r, :] = rand(rng, values, (r, num_rhs))
+        end
+        # A column of E*Y is inconsistent exactly when Y has a nonzero entry below
+        # the rank rows of M, since the corresponding rows of M are zero.
+        Y[r+1:m, :] = rand(rng, [-maxint:-1; 1:maxint], (m - r, num_rhs))
     end
-    # A column of E*Y is inconsistent exactly when Y has a nonzero entry below
-    # the rank rows of M, since the corresponding rows of M are zero.
-    Y[r+1:m, :] = rand(rng, [-maxint:-1; 1:maxint], (m - r, num_rhs))
     B = E * Y
 
     A, B

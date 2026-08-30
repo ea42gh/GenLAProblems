@@ -404,6 +404,10 @@ end
     @test_throws ArgumentError gen_gj_matrix(2, 2, 1; maxint = 0)
     @test_throws ArgumentError gen_full_col_rank_matrix(3, 2; maxint = 0)
     @test_throws ArgumentError gen_inconsistent_gj_pb(3, 4, 1; maxint = 0)
+    @test size(gen_gj_matrix(2, 0, 0; maxint = 0)[2]) == (2, 0)
+    Aempty, Bempty = gen_inconsistent_gj_pb(2, 0, 0; maxint = 0, num_rhs = 0)
+    @test size(Aempty) == (2, 0)
+    @test size(Bempty) == (2, 0)
     @test_throws ArgumentError gen_particular_solution([1], 2; maxint = 1.5)
     @test unit_lower(2; maxint = 0) == Matrix{Int}(I, 2, 2)
     @test skew_symmetric_matrix(3; maxint = 0, with_zeros = true) == zeros(Int, 3, 3)
@@ -502,6 +506,9 @@ end
     @test_throws ArgumentError gen_particular_solution([1], 0)
     @test_throws ArgumentError gen_particular_solution([1, 1], 2)
     @test gen_particular_solution(Int[], 0; num_rhs = 0) == zeros(Int, 0, 0)
+    @test size(gen_rhs([1 2], [1]; num_rhs = 0, maxint = 0)[1]) == (2, 0)
+    @test gen_particular_solution([1], 2; num_rhs = 0, maxint = 0) == zeros(Int, 2, 0)
+    @test gen_particular_solution(Int[], 2; maxint = 0) == zeros(Int, 2, 1)
 end
 
 @testset "invert_unit_lower validation" begin
