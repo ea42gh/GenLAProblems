@@ -73,7 +73,7 @@ jobs:
           doctest(GenLAProblems)
 
   renderer-smoke:
-    name: Renderer/Binder smoke - Julia 1.10 - Python 3.11
+    name: Renderer/Binder smoke - Julia 1.10 - Python 3.12
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/setup-python@v6
         id: setup-python
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install Python renderer stack
         run: |
           "${{ steps.setup-python.outputs.python-path }}" -m pip install --upgrade pip
