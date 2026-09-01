@@ -95,8 +95,8 @@ jobs:
         run: |
           "${{ steps.setup-python.outputs.python-path }}" -m pip install --upgrade pip
           "${{ steps.setup-python.outputs.python-path }}" -m pip install \
-            "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git@e3c0153aede5013827f55fd9cff7e4ec34520612" \
-            "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git@49d4329512ba6d51b1d2ec774abb00899f04a095"
+            "matrixlayout[render] @ git+https://github.com/ea42gh/matrixlayout.git" \
+            "LAFigureSpecs @ git+https://github.com/ea42gh/LAFigureSpecs.git"
           "${{ steps.setup-python.outputs.python-path }}" -c "import matrixlayout, LAFigureSpecs; print(matrixlayout.__name__, LAFigureSpecs.__name__)"
       - uses: julia-actions/setup-julia@v3
         with:
