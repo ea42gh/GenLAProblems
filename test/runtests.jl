@@ -58,6 +58,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
             :gen_gj_matrix,
             :gen_gj_pb,
             :gen_inconsistent_gj_pb,
+            :gen_matrix,
             :gen_inv_pb,
             :gen_ldlt_pb,
             :gen_lu_pb,
@@ -88,6 +89,15 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
     @test Set(names(GenLAProblems)) == expected_public_names
 
     @testset "Matrix generation" begin
+        A = gen_matrix(2, 3; maxint = 4, rng = MersenneTwister(123))
+        @test size(A) == (2, 3)
+        @test all(x -> -4 <= x <= 4, A)
+        @test A == gen_matrix(2, 3; maxint = 4, rng = MersenneTwister(123))
+        @test gen_matrix(2, 3; minint = 5, maxint = 5) == fill(5, 2, 3)
+        @test size(gen_matrix(0, 3; maxint = 0)) == (0, 3)
+        @test_throws ArgumentError gen_matrix(-1, 3)
+        @test_throws ArgumentError gen_matrix(2, 3; minint = 4, maxint = 3)
+
         @test symbol_vector(WrappedAlpha(), 1:2) ==
               [Symbol("\\alpha_1"), Symbol("\\alpha_2")]
         @test symbol_vector(L"\alpha", 1:2) == [Symbol("\\alpha_1"), Symbol("\\alpha_2")]
@@ -170,7 +180,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test_throws ArgumentError gen_symmetric_eigenproblem([1 2; 3 4]; maxint = 2)
 
         @test Aeig == S * Λ * S_inv
-        @test Asym == Q * D * Q'
+        @test Asym == Q * D * Q
 
         Sc, Λc, Sc_inv, Ac = gen_cx_eigenproblem([1 + 2im, 3]; maxint = 2)
         @test size(Λc) == (3, 3)
@@ -224,7 +234,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test_throws ArgumentError gen_qr_problem((2, 2); family = :hadamard, maxint = 2)
 
         projA = [1 0; 0 1; 1 1]
-        @test ca_projection_matrix(projA) == projA * inv(projA' * projA) * projA'
+        @test ca_projection_matrix(projA) == projA * inv(projA' * projA) * projA
         err_proj = try
             ca_projection_matrix([1 2; 2 4])
             nothing
@@ -257,7 +267,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test Ainv_inv * Ainv == Matrix{Int}(I, 4, 4)
 
         Ldlt, Ddlt, Adlt = gen_ldlt_pb(4; maxint = 2, rank = 3)
-        @test Adlt == Ldlt * Ddlt * Ldlt'
+        @test Adlt == Ldlt * Ddlt * Ldlt
 
         _, Pplu, Lplu, Uplu, Aplu = gen_plu_pb(4, 4, 3; maxint = 2)
         @test Aplu == Pplu * Lplu * Uplu

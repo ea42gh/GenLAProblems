@@ -26,6 +26,22 @@ function _validate_maxint(fname, maxint)
         throw(ArgumentError("$fname requires maxint to be a nonnegative integer"))
 end
 
+"""
+    gen_matrix(m, n; maxint=3, minint=-maxint, rng=Random.default_rng()) -> Matrix{Int}
+
+Construct an unconstrained `m × n` integer matrix by sampling each entry
+uniformly from `minint:maxint`. This generator does not impose a rank or
+other structural condition.
+"""
+function gen_matrix(m, n; maxint = 3, minint = -maxint, rng = Random.default_rng())
+    _validate_dimension("gen_matrix", "m", m)
+    _validate_dimension("gen_matrix", "n", n)
+    _validate_maxint("gen_matrix", maxint)
+    minint isa Integer && minint <= maxint ||
+        throw(ArgumentError("gen_matrix requires minint to be an integer <= maxint"))
+    rand(rng, minint:maxint, m, n)
+end
+
 function _validate_positive_maxint(fname, maxint)
     _validate_maxint(fname, maxint)
     maxint > 0 || throw(ArgumentError("$fname requires maxint to be positive"))

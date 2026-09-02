@@ -40,7 +40,7 @@ include("SpectralProblems.jl")
 
 export __version__, __build__
 export symbol_vector, symbols_matrix
-export ca_projection_matrix
+export ca_projection_matrix, gen_matrix
 export invert_unit_lower, unit_lower, lower, gen_full_col_rank_matrix
 export ref_matrix, rref_matrix, symmetric_matrix, skew_symmetric_matrix
 export e_i, i_with_onecol, gen_permutation_matrix
