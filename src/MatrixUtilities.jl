@@ -55,10 +55,7 @@ end
 Construct the permutation matrix determined by `row_order`.
 If `row_order[i] == j`, then column `i` of the result is the basis vector `e_j`.
 """
-function gen_permutation_matrix(
-    row_order::AbstractVector{<:Integer};
-    rng = Random.default_rng(),
-)
+function gen_permutation_matrix(row_order::AbstractVector{<:Integer})
     n = length(row_order)
     sort(collect(row_order)) == collect(1:n) ||
         throw(ArgumentError("row_order must be a permutation of 1:$n"))
