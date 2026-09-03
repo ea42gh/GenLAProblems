@@ -180,7 +180,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test_throws ArgumentError gen_symmetric_eigenproblem([1 2; 3 4]; maxint = 2)
 
         @test Aeig == S * Λ * S_inv
-        @test Asym == Q * D * Q
+        @test Asym == Q * D * Q'
 
         Sc, Λc, Sc_inv, Ac = gen_cx_eigenproblem([1 + 2im, 3]; maxint = 2)
         @test size(Λc) == (3, 3)
@@ -234,7 +234,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test_throws ArgumentError gen_qr_problem((2, 2); family = :hadamard, maxint = 2)
 
         projA = [1 0; 0 1; 1 1]
-        @test ca_projection_matrix(projA) == projA * inv(projA' * projA) * projA
+        @test ca_projection_matrix(projA) == projA * inv(projA' * projA) * projA'
         err_proj = try
             ca_projection_matrix([1 2; 2 4])
             nothing
@@ -267,7 +267,7 @@ Base.show(io::IO, ::WrappedAlpha) = print(io, "\\alpha")
         @test Ainv_inv * Ainv == Matrix{Int}(I, 4, 4)
 
         Ldlt, Ddlt, Adlt = gen_ldlt_pb(4; maxint = 2, rank = 3)
-        @test Adlt == Ldlt * Ddlt * Ldlt
+        @test Adlt == Ldlt * Ddlt * Ldlt'
 
         _, Pplu, Lplu, Uplu, Aplu = gen_plu_pb(4, 4, 3; maxint = 2)
         @test Aplu == Pplu * Lplu * Uplu
