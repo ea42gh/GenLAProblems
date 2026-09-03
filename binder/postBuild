@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd /home/jovyan/GenLAProblems
 
-julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.add([PackageSpec(url="https://github.com/ea42gh/LAlatex.git", rev="main"), PackageSpec(name="LaTeXStrings")]); Pkg.precompile()'
+julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.add([PackageSpec(url="https://github.com/ea42gh/LAlatex.git"), PackageSpec(name="LaTeXStrings")]); Pkg.precompile()'
 julia --project=. -e 'using GenLAProblems, LAlatex, LinearAlgebra, LaTeXStrings, Random; Random.seed!(42)'
 julia --project=. binder/warmup.jl
 bash binder/kernel_probe.sh
