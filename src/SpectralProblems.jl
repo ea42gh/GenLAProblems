@@ -59,7 +59,7 @@ function gen_cx_eigenproblem(evals_no_conj; maxint = 1, rng = Random.default_rng
         k = 1
         for b in blocks
             l = size(b, 1) - 1
-            A[k:k+l, k:k+l] = b
+            A[k:(k+l), k:(k+l)] = b
             k += l + 1
         end
         A
@@ -147,7 +147,7 @@ function jordan_form(j_blocks)
     i = 1
     for b in j_blocks
         sz_b = size(b, 1)
-        A[i:i+sz_b-1, i:i+sz_b-1] = b
+        A[i:(i+sz_b-1), i:(i+sz_b-1)] = b
         i += sz_b
     end
     A

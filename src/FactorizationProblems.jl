@@ -12,13 +12,13 @@ function invert_unit_lower(L)
     n = size(L, 1)
     all(L[i, i] == 1 for i = 1:n) ||
         throw(ArgumentError("invert_unit_lower requires unit diagonal entries"))
-    all(iszero(L[i, j]) for i = 1:n for j = i+1:n) ||
+    all(iszero(L[i, j]) for i = 1:n for j = (i+1):n) ||
         throw(ArgumentError("invert_unit_lower requires a lower-triangular matrix"))
 
     L_inv = Matrix{eltype(L)}(I, n, n)
 
-    for j = n-1:-1:1 # current column of L_inv to update
-        for k = j+1:n   # Use these columns of L_inv
+    for j = (n-1):-1:1 # current column of L_inv to update
+        for k = (j+1):n   # Use these columns of L_inv
             for i = k:n # each affected row
                 L_inv[i, j] -= L[k, j] * L_inv[i, k]
             end
@@ -148,7 +148,7 @@ function _plu_dependent_positions(m, r; nswaps = nothing, rng = Random.default_r
     end
     k == 0 && return Int[]
 
-    positions = shuffle(rng, collect(2:r+k-1))[1:k]
+    positions = shuffle(rng, collect(2:(r+k-1)))[1:k]
     sort!(positions)
 end
 
@@ -173,10 +173,10 @@ function _plu_base_lower_factor(
         dep_row = r + j
         npivot_above = pos - j
         npivot_above > 0 || continue
-        coeffs = rand(rng, [-maxint:-1; 1:maxint], npivot_above)
+        coeffs = rand(rng, [(-maxint):-1; 1:maxint], npivot_above)
         L[dep_row, 1:npivot_above] .= coeffs
         if npivot_above < r
-            L[dep_row, npivot_above+1:r] .= 0
+            L[dep_row, (npivot_above+1):r] .= 0
         end
     end
     L
@@ -207,7 +207,7 @@ function _plu_row_order(m, r, dependent_positions)
         end
     end
 
-    for pos = r+k+1:m
+    for pos = (r+k+1):m
         row_order[pos] = dep_row
         dep_row += 1
     end

@@ -31,7 +31,7 @@ function gen_gj_matrix(
 
     s = ones(Int, n)
     if r > 0
-        s[pivot_cols] = rand(rng, [-maxint:-1; 1:maxint], r)
+        s[pivot_cols] = rand(rng, [(-maxint):-1; 1:maxint], r)
     end
 
     A =
@@ -191,7 +191,7 @@ function gen_inconsistent_gj_pb(
 
     s = ones(Int, n)
     if r > 0
-        s[pivot_cols] = rand(rng, [-maxint:-1; 1:maxint], r)
+        s[pivot_cols] = rand(rng, [(-maxint):-1; 1:maxint], r)
     end
 
     E =
@@ -207,7 +207,7 @@ function gen_inconsistent_gj_pb(
         end
         # A column of E*Y is inconsistent exactly when Y has a nonzero entry below
         # the rank rows of M, since the corresponding rows of M are zero.
-        Y[r+1:m, :] = rand(rng, [-maxint:-1; 1:maxint], (m - r, num_rhs))
+        Y[(r+1):m, :] = rand(rng, [(-maxint):-1; 1:maxint], (m - r, num_rhs))
     end
     B = E * Y
 

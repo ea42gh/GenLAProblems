@@ -12,7 +12,7 @@ For example, `symbol_vector("x", 1:3)` returns `[:x_1, :x_2, :x_3]`.
 function _symbol_base_string(s)
     sstr = string(s)
     if startswith(sstr, "\$") && endswith(sstr, "\$") && length(sstr) >= 2
-        return sstr[2:end-1]
+        return sstr[2:(end-1)]
     end
     return sstr
 end
